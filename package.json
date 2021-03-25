@@ -21,6 +21,8 @@
     "@angular/router": "~11.2.0",
     "rxjs": "~6.6.0",
     "tslib": "^2.0.0",
+    "wav": "^1.0.2",
+    "wav-file-encoder": "^1.0.2",
     "zone.js": "~0.11.3"
   },
   "devDependencies": {

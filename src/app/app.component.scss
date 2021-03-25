@@ -1,0 +1,21 @@
+.waveFormWrapper {
+  min-width: 500px;
+  min-height: 400px;
+}
+
+.waveFormWrapperSecond {
+  top: 1200px;
+  position: absolute;
+}
+
+.waveFormSample {
+  height: 1px;
+  background: rebeccapurple;
+  width: 2px;
+  height: 100px;
+  position: absolute;
+  //left: 50px;
+  //top: 0px;
+  bottom: 50%;
+  transform-origin : 50% 100%;
+}
