@@ -1,5 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import * as WavFileEncoder from "wav-file-encoder";
+import {CR} from "@angular/compiler/src/i18n/serializers/xml_helper";
 
 interface UiParms {
   frequency:      number;
@@ -120,8 +121,8 @@ export class AppComponent implements OnInit {
     const x1 = audioBuffer.getChannelData(0);
     const x2 = audioBuffer_02.getChannelData(0);
 
-    const pattern_notes = this.scanPatternNotes(x_pattern_01);
     const notes = this.scanNotes(x2);
+    const pattern_notes = this.scanNotes(x2, 2530);
 
     notes[0].periods.forEach(item => {
       for (let i = item.start, iPattern = pattern_notes[0].start; i < x2.length && i < item.end; i++, iPattern++) {
@@ -129,10 +130,29 @@ export class AppComponent implements OnInit {
       }
     })
 
+
+    // notes[0].periods.forEach(item => {
+    //   x2[item.start] = 0.25;
+    //   x2[item.croses[0] + 1] = -0.25;
+    //   x2[item.croses[1] + 1] = -0.25;
+    //   x2[item.croses[2] + 1] = -0.25;
+    //
+    //
+    //   // x2[item.end + 1] = -0.15;
+    // })
+
+    // const testI = 5;
+    // x2[notes[0].periods[testI].start] = 0.25;
+    // x2[notes[0].periods[testI].croses[0] + 1] = -0.25;
+    // x2[notes[0].periods[testI].croses[1] + 1] = -0.25;
+    // x2[notes[0].periods[testI].croses[2] + 1] = -0.25;
+    //
+    // x2[3715] = 1;
+
     debugger;
 
-    this.channelData = x2.slice(0, 5000);
-    this.patternChannelData = x_pattern_01.slice(0, 5000);
+    this.channelData = x2.slice(0, 15000);
+    this.patternChannelData = x_pattern_01.slice(0, 15000);
 
 
     // this.applyRandomePitch(x2, notes);
@@ -144,105 +164,21 @@ export class AppComponent implements OnInit {
 
   }
 
-  scanPatternNotes(x: Float32Array): Note[] {
-    const startScanTreshold = 0.035;
-    let firstNoteStart = 0;
-
-    // for (let i = 0; firstNoteStart === 0; i++) {
-    //   if(Math.abs(x[i]) >= startScanTreshold) {
-    //     firstNoteStart = i;
-    //   }
-    // }
-
-    firstNoteStart = this.getNoteZeroCross(x,2530);
-
-
-    const cross_01: number = this.getNoteZeroCross(x, firstNoteStart);
-    const cross_02: number = this.getNoteZeroCross(x, cross_01);
-    const cross_03: number = this.getNoteZeroCross(x, cross_02);
-
-    const allZeroCrosses = this.getAllZeroCrosses(x, firstNoteStart);
-
-    allZeroCrosses.forEach(item => {
-      // x[item] = 0.2;
-    })
-
-    // x[cross_01] = 0.3;
-    // x[cross_02] = 0.3;
-    // x[cross_03] = 0.3;
-    // x[firstNoteStart] = 1;
-
-    const note_01: Note = {
-      start: allZeroCrosses[0],
-      length: 0,
-      periods: [
-        {
-          periodLength: 0,
-          croses: [cross_01, cross_02, cross_03]
-        }
-      ],
-    };
-
-
-
-    // const periods = this.findNotePeriods(x, note_01);
-    const period_01_start = this.findPeriodLengthByNDots(x, note_01.start, note_01.periods[0], allZeroCrosses);
-    const period_02_start = this.findPeriodLengthByNDots(x, period_01_start, note_01.periods[0], allZeroCrosses);
-    const period_03_start = this.findPeriodLengthByNDots(x, period_02_start, note_01.periods[0], allZeroCrosses);
-
-
-    // for (let i = note_01.start; i < x.length && i < period_01_start; i++) {
-    //   x[i] = 0.25
-    // }
-    //
-    // for (let i = period_01_start; i < x.length && i < period_02_start; i++) {
-    //   x[i] = 0.5
-    // }
-
-    // x[period_01_start] = 0.75;
-    // x[period_02_start] = 0.8;
-    // x[period_02_start] = 1;
-
-    let firstNoteEnd = 0;
-
-    for (let i = 0; firstNoteStart === 0; i++) {
-      if(Math.abs(x[i]) >= startScanTreshold) {
-        // firstNoteStart = i;
-      }
-    }
-
-    let result: Note[] = [
-      note_01
-    ];
-    return result;
-  }
-
-
-  scanNotes(x: Float32Array): Note[] {
+  scanNotes(channelData: Float32Array, patternFirstNoteStart = 0): Note[] {
     const startScanTreshold = 0.035;
     let firstNoteStart = 0;
 
     for (let i = 0; firstNoteStart === 0; i++) {
-      if(Math.abs(x[i]) >= startScanTreshold) {
+      if(Math.abs(channelData[i]) >= startScanTreshold) {
         firstNoteStart = i;
       }
     }
 
-    const cross_01: number = this.getNoteZeroCross(x, firstNoteStart);
-    const cross_02: number = this.getNoteZeroCross(x, cross_01);
-    const cross_03: number = this.getNoteZeroCross(x, cross_02);
-    const cross_04: number = this.getNoteZeroCross(x, cross_03);
+    if (patternFirstNoteStart) {
+      firstNoteStart = patternFirstNoteStart;
+    }
 
-    const allZeroCrosses = this.getAllZeroCrosses(x, firstNoteStart);
-
-    allZeroCrosses.forEach(item => {
-      // x[item] = 0.2;
-    })
-
-    // x[cross_01] = 0.3;
-    // x[cross_02] = 0.3;
-    // x[cross_03] = 0.3;
-    // x[firstNoteStart] = 1;
+    const allZeroCrosses = this.getAllZeroCrosses(channelData, firstNoteStart);
 
     const note_01: Note = {
       start: allZeroCrosses[0],
@@ -251,97 +187,36 @@ export class AppComponent implements OnInit {
       ],
     };
 
+    const someX = 250;
+    // let lastCross = firstNoteStart;
 
-    const period_00: Period = {
-      start: 0,
-      end: 0,
-      croses: [cross_01, cross_02, cross_03, cross_04],
-      // croses: [],
-      periodLength: 0
-    };
+    let lastStart = note_01.start;
 
-    const period_01: Period = {
-      start: 0,
-      end: 0,
-      croses: [cross_01, cross_02, cross_03, cross_04],
-      // croses: [],
-      periodLength: 0
-    };
+    for (let i = 0; i < someX; i++) {
+      const periodTemp: Period = {
+        start: 0,
+        end: 0,
+        croses: [],
+        periodLength: 0
+      };
 
-    const period_02: Period = {
-      start: 0,
-      end: 0,
-      croses: [cross_01, cross_02, cross_03, cross_04],
-      // croses: [],
-      periodLength: 0
-    };
+      periodTemp.croses = this.getPeriodCrosses(channelData, lastStart);
 
-    const period_03: Period = {
-      start: 0,
-      end: 0,
-      croses: [cross_01, cross_02, cross_03, cross_04],
-      // croses: [],
-      periodLength: 0
-    };
+      const periodStart = this.findPeriodLengthByNDots(channelData, lastStart, allZeroCrosses);
 
-    const period_04: Period = {
-      start: 0,
-      end: 0,
-      croses: [cross_01, cross_02, cross_03, cross_04],
-      // croses: [],
-      periodLength: 0
-    };
+      periodTemp.start = lastStart;
+      periodTemp.end = periodStart;
+      periodTemp.periodLength = periodStart - lastStart;
 
-    // const periods = this.findNotePeriods(x, note_01);
-    const period_01_start = this.findPeriodLengthByNDots(x, note_01.start, period_00, allZeroCrosses);
-    const period_02_start = this.findPeriodLengthByNDots(x, period_01_start, period_00, allZeroCrosses);
-    const period_03_start = this.findPeriodLengthByNDots(x, period_02_start, period_00, allZeroCrosses);
-    const period_04_start = this.findPeriodLengthByNDots(x, period_03_start, period_00, allZeroCrosses);
-    const period_05_start = this.findPeriodLengthByNDots(x, period_04_start, period_00, allZeroCrosses);
+      note_01.periods.push(periodTemp);
 
-
-    period_00.start = note_01.start;
-    period_00.end = period_01_start;
-    period_00.periodLength = period_01_start - note_01.start;
-
-    period_01.start = period_01_start;
-    period_01.end = period_02_start;
-    period_01.periodLength = period_02_start - period_01_start;
-
-    period_02.start = period_02_start;
-    period_02.end = period_03_start;
-    period_02.periodLength = period_03_start - period_02_start;
-
-    period_03.start = period_03_start;
-    period_03.end = period_04_start;
-    period_03.periodLength = period_04_start - period_03_start;
-
-    period_04.start = period_04_start;
-    period_04.end = period_05_start;
-    period_04.periodLength = period_05_start - period_04_start;
-
-    note_01.periods.push(period_00);
-    note_01.periods.push(period_01);
-    note_01.periods.push(period_02);
-    note_01.periods.push(period_03);
-    note_01.periods.push(period_04);
-
-    // for (let i = note_01.start; i < x.length && i < period_01_start; i++) {
-    //   x[i] = 0.25
-    // }
-    //
-    // for (let i = period_01_start; i < x.length && i < period_02_start; i++) {
-    //   x[i] = 0.5
-    // }
-
-    // x[period_01_start] = 0.75;
-    // x[period_02_start] = 0.8;
-    // x[period_02_start] = 1;
+      lastStart = periodStart;
+    }
 
     let firstNoteEnd = 0;
 
     for (let i = 0; firstNoteStart === 0; i++) {
-      if(Math.abs(x[i]) >= startScanTreshold) {
+      if(Math.abs(channelData[i]) >= startScanTreshold) {
         // firstNoteStart = i;
       }
     }
@@ -352,7 +227,7 @@ export class AppComponent implements OnInit {
     return result;
   }
 
-  findPeriodLengthByNDots(x: Float32Array, start: number, period: Period, allZeroCrosses: number[]): number {
+  findPeriodLengthByNDots(x: Float32Array, start: number, allZeroCrosses: number[]): number {
     /**
      * Measuring error
      */
@@ -366,12 +241,20 @@ export class AppComponent implements OnInit {
       }
     })
 
-    for (let i = 0; i + 2 < allZeroCrosses.length; i++) {
-      if(allZeroCrosses[i] > start && allZeroCrosses[i] > period.croses[2] && !found) {
-        const delta_01 = Math.abs(period.croses[1] - period.croses[0]);
-        const delta_02 = Math.abs(period.croses[2] - period.croses[1]);
-        const delta_03 = Math.abs(period.croses[3] - period.croses[2]);
+    //
+    // const cross: number = this.getNoteZeroCross(x, lastCross);
 
+    const periodCrosses: number[] = [];
+    periodCrosses[0] = this.getNoteZeroCross(x, start);
+    periodCrosses[1] = this.getNoteZeroCross(x, periodCrosses[0]);
+    periodCrosses[2] = this.getNoteZeroCross(x, periodCrosses[1]);
+
+    const delta_01 = Math.abs(periodCrosses[0] - start);
+    const delta_02 = Math.abs(periodCrosses[1] - periodCrosses[0]);
+    const delta_03 = Math.abs(periodCrosses[2] - periodCrosses[1]);
+
+    for (let i = 0; i + 2 < allZeroCrosses.length; i++) {
+      if(allZeroCrosses[i] > start && allZeroCrosses[i] > periodCrosses[2] && !found) {
         const delta_b_01 = Math.abs(allZeroCrosses[i + 1] - allZeroCrosses[i]);
         const delta_b_02 = Math.abs(allZeroCrosses[i + 2] - allZeroCrosses[i + 1]);
         const delta_b_03 = Math.abs(allZeroCrosses[i + 3] - allZeroCrosses[i + 2]);
@@ -428,15 +311,31 @@ export class AppComponent implements OnInit {
   private getAllZeroCrosses(x: Float32Array, start): number[] {
     let result = [];
     let lastCross = start;
+    let stop = false;
 
     // hotfix
     // for (let i = 0; i < x.length;) {
-    for (let i = 0; i < 5000;) {
+    // for (let i = 0; i < 8000;) {
+    for (let i = 0; !stop;) {
       const cross: number = this.getNoteZeroCross(x, lastCross);
+      if(cross <= 0) {
+        stop = true;
+      }
+
       result.push(cross);
       lastCross = cross;
       i = lastCross;
     }
+
+    return result;
+  }
+
+  private getPeriodCrosses(channelData: Float32Array, start: number) {
+    const result: number[]  = [];
+
+    result[0] = this.getNoteZeroCross(channelData, start);
+    result[1] = this.getNoteZeroCross(channelData, result[0]);
+    result[2] = this.getNoteZeroCross(channelData, result[1]);
 
     return result;
   }
