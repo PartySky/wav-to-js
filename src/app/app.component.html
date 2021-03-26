@@ -37,7 +37,8 @@
 
 
 <div *ngIf="channelData"
-     class="waveFormWrapper">
+     class="waveFormWrapper"
+     style="transform: scaleX(0.250);">
   <div *ngFor="let item of channelData; let i = index;"
        class="waveFormSample"
        [style.transform]="'scaleY(' + item * 10 + ')'"

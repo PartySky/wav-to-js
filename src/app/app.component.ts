@@ -120,40 +120,165 @@ export class AppComponent implements OnInit {
     const x_pattern_01 = audBuff_pattern_01.getChannelData(0);
     const x1 = audioBuffer.getChannelData(0);
     const x2 = audioBuffer_02.getChannelData(0);
+    const x2_right = audioBuffer_02.getChannelData(1);
 
-    const notes = this.scanNotes(x2);
-    const pattern_notes = this.scanNotes(x2, 2530);
-
-    notes[0].periods.forEach(item => {
-      for (let i = item.start, iPattern = pattern_notes[0].start; i < x2.length && i < item.end; i++, iPattern++) {
-        x2[i] = x_pattern_01[iPattern];
-      }
-    })
-
-
-    // notes[0].periods.forEach(item => {
-    //   x2[item.start] = 0.25;
-    //   x2[item.croses[0] + 1] = -0.25;
-    //   x2[item.croses[1] + 1] = -0.25;
-    //   x2[item.croses[2] + 1] = -0.25;
-    //
-    //
-    //   // x2[item.end + 1] = -0.15;
-    // })
-
-    // const testI = 5;
-    // x2[notes[0].periods[testI].start] = 0.25;
-    // x2[notes[0].periods[testI].croses[0] + 1] = -0.25;
-    // x2[notes[0].periods[testI].croses[1] + 1] = -0.25;
-    // x2[notes[0].periods[testI].croses[2] + 1] = -0.25;
-    //
-    // x2[3715] = 1;
+    x2[1320] = 0;
+    x2[1319] = -0.1;
 
     debugger;
 
-    this.channelData = x2.slice(0, 15000);
-    this.patternChannelData = x_pattern_01.slice(0, 15000);
+    // const notes = this.scanNotes(x2);
+    // const pattern_notes = this.scanNotes(x_pattern_01, 2530);
 
+    const periods: Period[] = this.scanPeriods(x2, 1320 + 2);
+    const patternPeriods: Period[] = this.scanPeriods(x_pattern_01, 1695 + 2);
+    // const allZeroCrosses = this.getAllZeroCrosses(x2, 1320 + 2);
+
+
+    const testI = 1;
+    const doTest = false;
+    const doTestOnRight = true;
+    const doTestOnPattern = false;
+    const doRenderPeriods = true;
+
+
+    const maxPeriod = 10;
+
+    if(doTest) {
+      const chData = x2;
+      // x2[periods[testI].start + 1] = 0.5;
+      // x2[periods[testI].crosses[0] + 1] = -0.25;
+      // x2[periods[testI].crosses[1] + 1] = -0.25;
+      // x2[periods[testI].crosses[2] + 1] = -0.25;
+      // x2[periods[testI].end + 1] = -0.5;
+
+      let i = 0;
+
+      periods.forEach(item => {
+        if(i < maxPeriod) {
+          chData[item.start + 1] = 0.25;
+          chData[item.end + 3] = -0.25;
+          item.crosses.forEach(cross => {
+            chData[cross + 1] = -0.125;
+          })
+        }
+        i++;
+      })
+    }
+
+    if(doTestOnRight) {
+      const chData = x2_right;
+
+      let i = 0;
+
+      periods.forEach(item => {
+        if(i < maxPeriod) {
+          chData[item.start + 1] = 0.25;
+          chData[item.end + 3] = -0.25;
+          item.crosses.forEach(cross => {
+            chData[cross + 1] = -0.125;
+          })
+        }
+        i++;
+      })
+    }
+
+    if(doTestOnPattern) {
+      const chData = x_pattern_01;
+
+      let i = 0;
+
+      patternPeriods.forEach(item => {
+        if(i < maxPeriod) {
+          chData[item.start + 1] = 0.25;
+          chData[item.end + 3] = -0.25;
+          item.crosses.forEach(cross => {
+            chData[cross + 1] = -0.125;
+          })
+        }
+        i++;
+      })
+    }
+
+    if(doRenderPeriods && false) {
+      const chData = x2;
+
+      let i = 0;
+      let volumeDelta = 0.001;
+      let volumeTemp = -1;
+
+      periods.forEach(item => {
+        if(i < maxPeriod) {
+          volumeTemp = -1;
+          for (let iCounter = item.start; iCounter < item.end; iCounter++) {
+            chData[iCounter] = volumeTemp;
+            volumeTemp = volumeTemp + volumeDelta;
+
+            if(volumeTemp > 1) {
+              volumeTemp = -1;
+            }
+          }
+        }
+        i++;
+      })
+    }
+
+    if(doRenderPeriods && false) {
+      const chData = x2;
+
+      let i = 0;
+      let volumeDelta = 0.001;
+      let volumeTemp = -1;
+
+      periods.forEach(item => {
+        if(i < maxPeriod) {
+          let iPattern = 2530;
+          for (let iCounter = item.start; iCounter < item.end; iCounter++) {
+            chData[iCounter] =  x_pattern_01[iPattern];
+
+
+            iPattern++;
+
+            // if(volumeTemp > 1) {
+            //   volumeTemp = -1;
+            // }
+          }
+        }
+        i++;
+      })
+    }
+
+    if(doRenderPeriods) {
+      const chData = x2;
+
+      let i = 0;
+      let volumeDelta = 0.001;
+      let volumeTemp = -1;
+      let patternPeriodCounter = 0;
+      let patternSampleHeader = 0;
+
+      debugger;
+      periods.forEach(item => {
+
+        patternSampleHeader = patternPeriods[patternPeriodCounter].start;
+        if(i < maxPeriod && patternPeriodCounter < patternPeriods.length) {
+          for (let iCounter = item.start; iCounter < item.end; iCounter++) {
+            chData[iCounter] = x_pattern_01[patternSampleHeader];
+
+
+            patternSampleHeader++;
+
+          }
+        }
+        i++;
+        patternPeriodCounter++;
+
+      })
+    }
+
+
+    this.channelData = x2.slice(0, 30000);
+    this.patternChannelData = x_pattern_01.slice(0, 15000);
 
     // this.applyRandomePitch(x2, notes);
 
@@ -187,7 +312,7 @@ export class AppComponent implements OnInit {
       ],
     };
 
-    const someX = 250;
+    const someX = 750;
     // let lastCross = firstNoteStart;
 
     let lastStart = note_01.start;
@@ -196,21 +321,29 @@ export class AppComponent implements OnInit {
       const periodTemp: Period = {
         start: 0,
         end: 0,
-        croses: [],
+        crosses: [],
         periodLength: 0
       };
 
-      periodTemp.croses = this.getPeriodCrosses(channelData, lastStart);
+      periodTemp.crosses = this.getPeriodCrosses(channelData, lastStart);
 
-      const periodStart = this.findPeriodLengthByNDots(channelData, lastStart, allZeroCrosses);
+      let delta = null;
+
+      if (patternFirstNoteStart) {
+        delta = 154 / 4
+      } else {
+        delta = 154 / 16
+      }
+
+      const periodEnd = this.findPeriodLengthByNDots(channelData, lastStart, allZeroCrosses, delta);
 
       periodTemp.start = lastStart;
-      periodTemp.end = periodStart;
-      periodTemp.periodLength = periodStart - lastStart;
+      periodTemp.end = periodEnd;
+      periodTemp.periodLength = periodEnd - lastStart;
 
       note_01.periods.push(periodTemp);
 
-      lastStart = periodStart;
+      lastStart = periodEnd;
     }
 
     let firstNoteEnd = 0;
@@ -227,11 +360,11 @@ export class AppComponent implements OnInit {
     return result;
   }
 
-  findPeriodLengthByNDots(x: Float32Array, start: number, allZeroCrosses: number[]): number {
+  findPeriodLengthByNDots(x: Float32Array, start: number, allZeroCrosses: number[], delta = 154 / 16): number {
     /**
      * Measuring error
      */
-    const delta = 154 / 16;
+    // const delta = 154 / 16;
     let result = 0;
     let found = false;
 
@@ -263,6 +396,39 @@ export class AppComponent implements OnInit {
           (Math.abs(delta_01 - delta_b_01) < delta) &&
           (Math.abs(delta_02 - delta_b_02) < delta)
           // (Math.abs(delta_03 - delta_b_03) < delta)
+        ) {
+          result = allZeroCrosses[i];
+          found = true;
+        }
+      }
+    }
+
+    return result;
+  }
+
+
+  findPeriodLengthByNDots2(periodStart: number, periodCrosses: number[], allZeroCrosses: number[], delta = 154 / 16): number {
+    /**
+     * Measuring error
+     */
+    delta = 154 / 4;
+    let result = 0;
+    let found = false;
+
+    const delta_01 = Math.abs(periodCrosses[0] - periodStart);
+    const delta_02 = Math.abs(periodCrosses[1] - periodCrosses[0]);
+    const delta_03 = Math.abs(periodCrosses[2] - periodCrosses[1]);
+
+    for (let i = 0; i + 2 < allZeroCrosses.length; i++) {
+      if(allZeroCrosses[i] > periodCrosses[2] && !found) {
+        const delta_b_01 = Math.abs(allZeroCrosses[i + 1] - allZeroCrosses[i]);
+        const delta_b_02 = Math.abs(allZeroCrosses[i + 2] - allZeroCrosses[i + 1]);
+        const delta_b_03 = Math.abs(allZeroCrosses[i + 3] - allZeroCrosses[i + 2]);
+
+        if(
+          (Math.abs(delta_01 - delta_b_01) < delta) &&
+          (Math.abs(delta_02 - delta_b_02) < delta) &&
+          (Math.abs(delta_03 - delta_b_03) < delta)
         ) {
           result = allZeroCrosses[i];
           found = true;
@@ -339,16 +505,51 @@ export class AppComponent implements OnInit {
 
     return result;
   }
+
+  private scanPeriods(channelData: Float32Array, start = 0): Period[] {
+    const result: Period[] = [];
+
+    const allZeroCrosses = this.getAllZeroCrosses(channelData, start);
+    let lastStart = start;
+
+    let crossTrigger = 9000;
+
+    for (let i = 0; crossTrigger > 0 && i < 4000; i++) {
+
+      const crosses = this.getPeriodCrosses(channelData, lastStart);
+      crossTrigger = crosses[0];
+
+      const periodEnd = this.findPeriodLengthByNDots2(lastStart, crosses, allZeroCrosses);
+      const periodTemp: Period = {
+        start: lastStart,
+        end: periodEnd,
+        crosses: crosses,
+        periodLength: 0
+      };
+      result.push(periodTemp)
+      lastStart = periodEnd;
+    }
+
+    return result;
+  }
 }
 
 export interface Note {
   start: number;
+  end?: number;
   length: number;
   periods: Period[];
 }
 
 
 export interface Period {
+  start?: number;
+  end?: number;
+  periodLength: number;
+  crosses: number[];
+}
+
+export interface Period2 {
   start?: number;
   end?: number;
   periodLength: number;
