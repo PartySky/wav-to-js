@@ -77,7 +77,7 @@ export class AppComponent implements OnInit {
       for (let p = 0; p < length; p++) {
         channelData[p] = Math.sin(p / sampleRate * omega) * amplitude; }}
     return audioBuffer;
-    }
+  }
 
   openSaveAsDialog (blob: Blob, fileName: string) {
     const url = URL.createObjectURL(blob);
@@ -103,6 +103,7 @@ export class AppComponent implements OnInit {
 
 
   async generateWavFile2() {
+    debugger;
     const uiParms = this.getUiParms();
     if (!uiParms) {
       return; }
@@ -125,8 +126,6 @@ export class AppComponent implements OnInit {
     x2[1320] = 0;
     x2[1319] = -0.1;
 
-    debugger;
-
     // const notes = this.scanNotes(x2);
     // const pattern_notes = this.scanNotes(x_pattern_01, 2530);
 
@@ -136,13 +135,18 @@ export class AppComponent implements OnInit {
 
 
     const testI = 1;
-    const doTest = false;
+    const doTest = true;
     const doTestOnRight = true;
-    const doTestOnPattern = false;
-    const doRenderPeriods = true;
+    const doTestOnPattern = true;
+    const renderPeriods = true;
+
+    // const doTest = false;
+    // const doTestOnRight = true;
+    // const doTestOnPattern = false;
+    // const doRenderPeriods = true;
 
 
-    const maxPeriod = 10;
+    const maxPeriod = 40; //20
 
     if(doTest) {
       const chData = x2;
@@ -164,6 +168,7 @@ export class AppComponent implements OnInit {
         }
         i++;
       })
+
     }
 
     if(doTestOnRight) {
@@ -200,7 +205,7 @@ export class AppComponent implements OnInit {
       })
     }
 
-    if(doRenderPeriods && false) {
+    if(renderPeriods && false) {
       const chData = x2;
 
       let i = 0;
@@ -223,7 +228,7 @@ export class AppComponent implements OnInit {
       })
     }
 
-    if(doRenderPeriods && false) {
+    if(renderPeriods && false) {
       const chData = x2;
 
       let i = 0;
@@ -248,32 +253,115 @@ export class AppComponent implements OnInit {
       })
     }
 
-    if(doRenderPeriods) {
+    if(renderPeriods) {
       const chData = x2;
 
       let i = 0;
       let volumeDelta = 0.001;
       let volumeTemp = -1;
-      let patternPeriodCounter = 0;
+      let patternPeriodCounter = 1;
       let patternSampleHeader = 0;
 
       debugger;
       periods.forEach(item => {
+      //
+      //   if (patternPeriodCounter >= patternPeriods.length) {
+      //     patternPeriodCounter = 0;
+      //     patternSampleHeader = 0;
+      //   }
+      //
+      //   patternSampleHeader = patternPeriods[patternPeriodCounter].start;
+      //   if (i < maxPeriod && patternPeriodCounter < patternPeriods.length) {
+      //     for (let iCounter = item.start; iCounter < item.end; iCounter++) {
+      //       chData[iCounter] = x_pattern_01[patternSampleHeader];
+      //
+      //       patternSampleHeader++;
+      //
+      //     }
+      //   }
+      //   i++;
+      //   patternPeriodCounter++;
+      //
 
-        patternSampleHeader = patternPeriods[patternPeriodCounter].start;
-        if(i < maxPeriod && patternPeriodCounter < patternPeriods.length) {
-          for (let iCounter = item.start; iCounter < item.end; iCounter++) {
-            chData[iCounter] = x_pattern_01[patternSampleHeader];
-
-
-            patternSampleHeader++;
-
-          }
-        }
-        i++;
-        patternPeriodCounter++;
-
+        // this.doCopyPeriodData(chData, x_pattern_01, item, patternPeriods[0]);
       })
+
+      // for (let i = 0; i < periods.length; i++) {
+      //   this.doCopyPeriodData(chData, x_pattern_01, periods[i], patternPeriods[0]);
+      // }
+
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[0], patternPeriods[0]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[1], patternPeriods[0]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[2], patternPeriods[0]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[3], patternPeriods[0]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[4], patternPeriods[0]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[5], patternPeriods[0]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[6], patternPeriods[0]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[7], patternPeriods[0]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[8], patternPeriods[0]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[9], patternPeriods[0]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[10], patternPeriods[0]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[11], patternPeriods[0]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[12], patternPeriods[0]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[13], patternPeriods[0]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[14], patternPeriods[0]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[15], patternPeriods[0]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[16], patternPeriods[0]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[17], patternPeriods[0]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[18], patternPeriods[0]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[19], patternPeriods[0]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[20], patternPeriods[0]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[21], patternPeriods[0]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[22], patternPeriods[0]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[23], patternPeriods[0]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[24], patternPeriods[0]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[25], patternPeriods[0]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[26], patternPeriods[0]);
+
+
+      this.copyPeriodData(chData, x_pattern_01, periods[0], patternPeriods[0]);
+      this.copyPeriodData(chData, x_pattern_01, periods[1], patternPeriods[1]);
+      this.copyPeriodData(chData, x_pattern_01, periods[2], patternPeriods[2]);
+      this.copyPeriodData(chData, x_pattern_01, periods[3], patternPeriods[3]);
+      this.copyPeriodData(chData, x_pattern_01, periods[4], patternPeriods[4]);
+      this.copyPeriodData(chData, x_pattern_01, periods[5], patternPeriods[5]);
+      this.copyPeriodData(chData, x_pattern_01, periods[6], patternPeriods[6]);
+      this.copyPeriodData(chData, x_pattern_01, periods[7], patternPeriods[7]);
+      this.copyPeriodData(chData, x_pattern_01, periods[8], patternPeriods[8]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[9], patternPeriods[9]);
+      this.copyPeriodData(chData, x_pattern_01, periods[10], patternPeriods[10]);
+      this.copyPeriodData(chData, x_pattern_01, periods[11], patternPeriods[11]);
+      this.copyPeriodData(chData, x_pattern_01, periods[12], patternPeriods[12]);
+      this.copyPeriodData(chData, x_pattern_01, periods[13], patternPeriods[13]);
+      this.copyPeriodData(chData, x_pattern_01, periods[14], patternPeriods[14]);
+      this.copyPeriodData(chData, x_pattern_01, periods[15], patternPeriods[15]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[16], patternPeriods[16]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[17], patternPeriods[17]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[18], patternPeriods[18]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[19], patternPeriods[19]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[20], patternPeriods[20]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[21], patternPeriods[21]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[22], patternPeriods[22]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[23], patternPeriods[23]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[24], patternPeriods[24]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[25], patternPeriods[25]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[26], patternPeriods[26]);
+
+
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[0], patternPeriods[15]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[1], patternPeriods[16]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[2], patternPeriods[17]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[3], patternPeriods[18]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[4], patternPeriods[19]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[5], patternPeriods[20]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[6], patternPeriods[21]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[7], patternPeriods[22]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[8], patternPeriods[23]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[9], patternPeriods[24]);
+      // this.doCopyPeriodData(chData, x_pattern_01, periods[10], patternPeriods[25]);
+
+      // this.doMorphInPeriod(chData, x_pattern_01, periods[9], patternPeriods[1]);
+      this.doMorphingInPeriod(chData, x_pattern_01, periods[9], patternPeriods[9]);
     }
 
 
@@ -529,6 +617,424 @@ export class AppComponent implements OnInit {
       result.push(periodTemp)
       lastStart = periodEnd;
     }
+
+    return result;
+  }
+
+  private copyPeriodData(chData: Float32Array, chData2: Float32Array, period: Period, period2: Period) {
+    let pattPeriodI = period2.start;
+
+    for (let i = period.start; i < period.end; i++) {
+      chData[i] = 0.0;
+
+      if (pattPeriodI <= period2.end) {
+        chData[i] = chData2[pattPeriodI];
+      }
+
+      pattPeriodI++;
+    }
+  }
+
+  private doMorphingInPeriod(chData: Float32Array, chData2: Float32Array, period: Period, period2: Period) {
+    let pattPeriodI = period2.start;
+
+    let underZeroHalfWaves: Period[] = this.halfWaves(chData, period, 0);
+    let pattUnderZeroHalfWaves: Period[] = this.halfWaves(chData2, period2, 0)
+
+    let subZeroHalfWaves: Period[] = this.halfWaves(chData, period, 1);
+    let pattSubZeroHalfWaves: Period[] = this.halfWaves(chData2, period2, 1);
+
+    const substrackted: Float32Array = this.substracktHarmonicsFromSineWaveSignal(chData, underZeroHalfWaves[7], chData2, pattUnderZeroHalfWaves[3], 1);
+
+    underZeroHalfWaves.forEach(item => {
+    //   let pattPeriodI_2 = pattUnderZeroHalfWaves[3].start;
+
+      const length = item.end - item.start;
+      const sampleRate = 44100;
+      const duration = length / sampleRate;
+      const frequency = (1 / duration) * (1 / 2); //440;
+      // const frequency = 440;
+
+      const amplitube: number = this.getMaxAmplitube(chData, item) * 6;
+      // const x: AudioBuffer = this.generateSineWaveSignal(frequency, amplitube, duration, 1, sampleRate);
+      // const xData = x.getChannelData(0);
+      // const xData: Float32Array = this.adjustSineWaveSignal(chData, item, chData2, pattUnderZeroHalfWaves[3], amplitube);
+      // const xData: Float32Array = this.addHarmonicsToSineWaveSignal(chData, item, chData2, pattUnderZeroHalfWaves[1], amplitube);
+      const xData: Float32Array = this.addHarmonicsToSineWaveSignal_2(chData, item, substrackted, 1);
+      // const xData: Float32Array = this.adjustSineWaveSignal(chData, item, xDataPre, pattUnderZeroHalfWaves[3], amplitube);
+
+
+      let pattPeriodI_2 = 0;
+
+      for (let i = item.start; i <= item.end; i++) {
+    //     // chData[i] = 0.5;
+    //     if (pattPeriodI_2 < pattUnderZeroHalfWaves[3].end) {
+    //       chData[i] = chData2[pattPeriodI_2];
+    //     }
+    //
+    //     pattPeriodI_2++;
+
+        if (pattPeriodI_2 <= xData.length) {
+          chData[i] = xData[pattPeriodI_2];
+        }
+
+        pattPeriodI_2++;
+      }
+    })
+
+
+    subZeroHalfWaves.forEach(item => {
+      //   let pattPeriodI_2 = pattUnderZeroHalfWaves[3].start;
+
+      const length = item.end - item.start;
+      const sampleRate = 44100;
+      const duration = length / sampleRate;
+      const frequency = (1 / duration) * (1 / 2); //440;
+      // const frequency = 440;
+
+      const amplitube: number = -this.getMinAmplitube(chData, item) * 6;
+      // const x = this.generateSineWaveSignal(frequency, amplitube, duration, 1, sampleRate);
+      // const xData = x.getChannelData(0);
+      // const xData: Float32Array = this.adjustSineWaveSignal(chData, item, chData2, pattSubZeroHalfWaves[1], amplitube);
+      // const xData: Float32Array = this.addHarmonicsToSineWaveSignal(chData, item, chData2, pattSubZeroHalfWaves[1], amplitube);
+      const xData: Float32Array = this.addHarmonicsToSineWaveSignal_2(chData, item, substrackted, 1);
+
+      let pattPeriodI_2 = 0;
+
+      for (let i = item.start; i <= item.end; i++) {
+        //     // chData[i] = 0.5;
+        //     if (pattPeriodI_2 < pattUnderZeroHalfWaves[3].end) {
+        //       chData[i] = chData2[pattPeriodI_2];
+        //     }
+        //
+        //     pattPeriodI_2++;
+
+        if (pattPeriodI_2 <= xData.length) {
+          chData[i] = xData[pattPeriodI_2];
+        }
+
+        pattPeriodI_2++;
+      }
+    })
+
+    // subZeroHalfWaves.forEach(item => {
+    //   let pattPeriodI_2 = pattSubZeroHalfWaves[3].start;
+    //
+    //   for (let i = item.start; i <= item.end; i++) {
+    //     // chData[i] = -0.5;
+    //     if (pattPeriodI_2 < pattSubZeroHalfWaves[3].end) {
+    //       chData[i] = chData2[pattPeriodI_2];
+    //     }
+    //
+    //     pattPeriodI_2++;
+    //   }
+    // })
+
+    for (let i = period.start; i < period.end; i++) {
+      // chData[i] = 0.0;
+
+      if (pattPeriodI <= period2.end) {
+        chData[i] = chData2[pattPeriodI];
+      }
+
+      pattPeriodI++;
+    }
+  }
+
+  private halfWaves(chData: Float32Array, period: Period, direction: number): Period[] {
+    const result: Period[] = [];
+    let lastChData = 0;
+    let lastStart = 0;
+    let lastEnd = 0;
+
+    for (let i = period.start; i < period.end; i++) {
+      /**
+       * Не понятно почему когда direction === 0, то неравенство нестрогое
+       * а когда direction === 1, то строгое
+       */
+      if (direction === 0) {
+        if(lastChData <= 0 && chData[i] >= 0) {
+          lastStart = i;
+        } else if (lastChData >= 0 && chData[i] <= 0) {
+          lastEnd = i
+        }
+      } else {
+        if(lastChData > 0 && chData[i] < 0) {
+          lastStart = i;
+        } else if (lastChData < 0 && chData[i] > 0) {
+          lastEnd = i
+        }
+      }
+
+      if (lastStart && lastEnd ) {
+        result.push(
+          {
+            start: lastStart,
+            end: lastEnd,
+            crosses: [],
+            periodLength: 0
+          });
+        lastStart = 0;
+        lastEnd = 0;
+      }
+
+      lastChData = chData[i];
+    }
+
+    return result;
+  }
+
+  private getMaxAmplitube(chData: Float32Array, item: Period): number {
+    let result = chData[0];
+
+    for (let i = item.start; i < item.end; i++) {
+      if (chData[i] > result) {
+        result = chData[i];
+      }
+    }
+
+    return result;
+  }
+
+  private getMinAmplitube(chData: Float32Array, item: Period): number {
+    let result = chData[0];
+
+    for (let i = item.start; i < item.end; i++) {
+      if (chData[i] < result) {
+        result = chData[i];
+      }
+    }
+
+    return result;
+  }
+
+  private adjustSineWaveSignal(chData: Float32Array, period: Period, chData2: Float32Array, period2: Period, amplitube: number): Float32Array {
+    const targetLength = period.end - period.start;
+    const currentLength = period2.end - period2.start;
+
+    const result: Float32Array = new Float32Array(targetLength);
+    const multiplier = currentLength / targetLength;
+
+    const chData2Temp = new Float32Array(currentLength);
+
+    let counterTemp = period2.start;
+
+    for (let i = 0; i < chData2Temp.length; i++) {
+      chData2Temp[i] = chData2[counterTemp];
+      counterTemp++;
+    }
+
+    for (let i = 0; i < result.length; i++) {
+      result[i] = chData2Temp[Math.round(i * multiplier)] * amplitube;
+    }
+
+    return result;
+  }
+
+  private addHarmonicsToSineWaveSignal(chData: Float32Array, period, chData2: Float32Array, period2: Period, amplitube: number): Float32Array {
+    const targetLength = period.end - period.start;
+    const currentLength = period2.end - period2.start;
+
+    const result: Float32Array = new Float32Array(targetLength);
+
+    let counterTemp = period.start;
+
+    for (let i = 0; i < result.length; i++) {
+      result[i] = chData[counterTemp] * 4;
+
+      if (counterTemp / 2 % 1 === 0) {
+        result[i] = result[i] + 0.05;
+      } else {
+        result[i] = result[i] - 0.05;
+      }
+
+      counterTemp++;
+    }
+
+
+    return result;
+  }
+
+  private substracktHarmonicsFromSineWaveSignal(chData: Float32Array, period: Period, chData2: Float32Array, period2: Period, number: number): Float32Array {
+    const amplitube: number = this.getMaxAmplitube(chData, period);
+    let adjusted = this.adjustSineWaveSignal(chData, period, chData2, period2, amplitube);
+
+    const targetLength = period.end - period.start;
+    const result: Float32Array = new Float32Array(targetLength);
+
+    let slopePeriods: Period[] = [];
+    let lastStart = period2.start;
+    let lastEnd = period2.start;
+    let lastSign = 1;
+    let lastValue = chData2[lastStart];
+
+    for (let i = period2.start; i < period2.end; i++) {
+      if (lastSign > 0 && chData2[i] < lastValue) {
+        lastSign = -1;
+      } else if (lastSign < 0 && chData2[i] > lastValue) {
+        lastEnd = i;
+        lastSign = +1;
+        slopePeriods.push(
+          {
+            start: lastStart,
+            end: lastEnd,
+            periodLength: 0,
+            crosses: []
+          });
+        lastStart = i;
+      }
+      lastValue = chData2[i];
+    }
+
+    let resultI = 0;
+
+    slopePeriods.forEach(item => {
+
+      console.log('test')
+      let delta = 0;
+      let deltaForItem = chData2[item.end];
+
+      if (chData2[item.start] > 0) {
+        if (chData2[item.start] > chData2[item.end]) {
+          deltaForItem = chData2[item.start];
+        } else {
+          deltaForItem = chData2[item.end];
+        }
+      } else if (chData2[item.start] < 0) {
+        if (chData2[item.start] < chData2[item.end]) {
+          deltaForItem = chData2[item.start];
+        } else {
+          deltaForItem = chData2[item.end];
+        }
+      }
+
+      let length = item.end - item.start;
+
+      if (chData2[item.end] > chData2[item.start]) {
+        delta = chData2[item.end] - chData2[item.start];
+      } else if (chData2[item.end] < chData2[item.start]) {
+        delta = chData2[item.end] - chData2[item.start];
+      }
+
+      let reducer = 1;
+
+      for (let i = item.start; i < item.end; i++) {
+        let length2 = item.end - i;
+
+        if (delta > 0) {
+          // result[resultI] = (chData2[i] * 1.6) + (delta * length2 / length) - delta * 0.01 * reducer - deltaForItem;
+          result[resultI] = (chData2[i] * 1.6) + (delta * length2 / length) - delta * 0.00001 * reducer - deltaForItem * 1.8;
+        } else if (delta < 0) {
+          // result[resultI] = (chData2[i] * 1.6) - (delta * length2 / length) + delta * 0.01 * reducer + deltaForItem;
+          result[resultI] = (chData2[i] * 1.6) - (delta * length2 / length) + delta * 0.00001 * reducer + deltaForItem * 1.8;
+        }
+
+        if( result[resultI] >= 1) {
+          result[resultI] = 0
+        }
+
+        reducer++;
+
+        resultI++;
+      }
+    })
+
+    let counterTemp = period2.start;
+
+    for (let i = 0; i < result.length; i++) {
+      // result[i] = chData[counterTemp];
+      // result[i] = adjusted[i];
+
+      // if (adjusted[i] < 0) {
+      //   result[i] = (adjusted[i] * 1.6) - chData[counterTemp];
+      // } else {
+      //   result[i] = - (adjusted[i] * 1.6) + chData[counterTemp];
+      // }
+
+      // result[i] = (chData2[counterTemp] * 1.6);
+
+      counterTemp++;
+    }
+
+
+    return result;
+  }
+
+
+  private addHarmonicsToSineWaveSignal_2(chData: Float32Array, period: Period, chData2: Float32Array, number: number): Float32Array {
+    const amplitube: number = this.getMaxAmplitube(chData, period) * 6;
+
+    const targetLength = period.end - period.start;
+    const result: Float32Array = new Float32Array(targetLength);
+
+    let testPeriod: Period = {
+      start: 0,
+      end: chData2.length,
+      crosses: [],
+      periodLength: 0
+    };
+
+
+    // const temp: Float32Array = this.adjustSineWaveSignal(chData, period, chData2, testPeriod, 1);
+
+    let counterTemp = period.start;
+    let i_second = 0;
+    for (let i = 0; i < result.length; i++) {
+      // result[i] = temp[i] * 4;
+      // result[i] = (chData[counterTemp]) * 1;
+      // result[i] = (chData[counterTemp] + (temp[i] * 2)) * 4;
+      // result[i] = ((chData[counterTemp] * 3) + (temp[i] * 5));
+      // result[i] = ((chData[counterTemp] * 3) + (chData2[i] * 5));
+
+      if (i_second >= chData2.length) {
+        i_second = 0;
+      }
+      // result[i] = ((chData[counterTemp] * 3) + (chData2[i_second] * 0.5));
+      result[i] = ((chData[counterTemp] * 3) );
+      // result[i] = ((chData2[i_second] * 1));
+
+
+
+      counterTemp++;
+      i_second++;
+
+      // if (i < temp.length) {
+        // result[i] = temp[i] * 4;
+
+        // if(result[i] < 0) {
+        //   // result[i] = result[i] - (chData2[i] * 4); // + 0.5;
+        //
+        //   result[i] = - (chData2[i] * 4);
+        // } else {
+        //   // result[i] = result[i] + (chData2[i] * 4); // + 0.5;
+        //
+        //   result[i] = (chData2[i] * 4);
+        // }
+      // }
+    }
+    // let counterTemp = period.start;
+    //
+    // for (let i = 0; i < result.length; i++) {
+    //   result[i] = chData[counterTemp];
+    //   if (i < chData2.length) {
+    //     if(result[i] < 0) {
+    //       // result[i] = result[i] - (chData2[i] * 4); // + 0.5;
+    //
+    //       result[i] = - (chData2[i] * 4);
+    //     } else {
+    //       // result[i] = result[i] + (chData2[i] * 4); // + 0.5;
+    //
+    //       result[i] = (chData2[i] * 4);
+    //     }
+    //
+    //   }
+    //
+    //   result[i] = result[i] * 3;
+    //
+    //   // result[i] = chData[counterTemp] + chData2[i];
+    //   // result[i] = - chData[counterTemp];// - chData2[i];
+    //   counterTemp++;
+    // }
 
     return result;
   }
