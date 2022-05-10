@@ -1,15 +1,8 @@
 import {Component, OnInit} from '@angular/core';
 import * as WavFileEncoder from "wav-file-encoder";
-import {CR} from "@angular/compiler/src/i18n/serializers/xml_helper";
-
-interface UiParms {
-  frequency:      number;
-  amplitude:      number;
-  duration:       number;
-  channels:       number;
-  sampleRate:     number;
-  wavFileType:    WavFileEncoder.WavFileType;
-}
+import {Note} from "./note";
+import {Period} from "./period";
+import {UiParms} from "./uiParms";
 
 @Component({
   selector: 'app-root',
@@ -19,13 +12,13 @@ interface UiParms {
 export class AppComponent implements OnInit {
   channelData: Float32Array;
   patternChannelData: Float32Array;
+
   constructor() {
   }
 
   ngOnInit() {
     this.generateWavFileButton_click();
   }
-
 
   async getFileFromUrl(url: string) {
     let response = await fetch(url);
@@ -34,40 +27,43 @@ export class AppComponent implements OnInit {
     return ab;
   }
 
-  getRadioButtonGroupValue (name: string) : string | undefined {
+  getRadioButtonGroupValue(name: string): string | undefined {
     const a = document.getElementsByName(name);
     for (let i = 0; i < a.length; i++) {
       const e = <HTMLInputElement>a[i];
       if (e.checked) {
-        return e.value; }}
-    return undefined;
+        return e.value;
+      }
     }
+    return undefined;
+  }
 
   // When a parameter is invalid, an error message is displayed, the cursor is placed within
   // the affected field and the return value is undefined.
-  getUiParms() : UiParms | undefined {
-    const frequencyElement  = <HTMLInputElement>document.getElementById("frequency")!;
-    const amplitudeElement  = <HTMLInputElement>document.getElementById("amplitude")!;
-    const durationElement   = <HTMLInputElement>document.getElementById("duration")!;
-    const channelsElement   = <HTMLInputElement>document.getElementById("channels")!;
+  getUiParms(): UiParms | undefined {
+    const frequencyElement = <HTMLInputElement>document.getElementById("frequency")!;
+    const amplitudeElement = <HTMLInputElement>document.getElementById("amplitude")!;
+    const durationElement = <HTMLInputElement>document.getElementById("duration")!;
+    const channelsElement = <HTMLInputElement>document.getElementById("channels")!;
     const sampleRateElement = <HTMLInputElement>document.getElementById("sampleRate")!;
-    if (  !frequencyElement.reportValidity() ||
-      !amplitudeElement.reportValidity()  ||
-      !durationElement.reportValidity()  ||
-      !channelsElement.reportValidity()  ||
-      !sampleRateElement.reportValidity() ) {
-      return; }
+    if (!frequencyElement.reportValidity() ||
+      !amplitudeElement.reportValidity() ||
+      !durationElement.reportValidity() ||
+      !channelsElement.reportValidity() ||
+      !sampleRateElement.reportValidity()) {
+      return;
+    }
     const uiParms = <UiParms>{};
-    uiParms.frequency  = frequencyElement.valueAsNumber;
-    uiParms.amplitude  = amplitudeElement.valueAsNumber;
-    uiParms.duration   = durationElement.valueAsNumber;
-    uiParms.channels   = channelsElement.valueAsNumber;
+    uiParms.frequency = frequencyElement.valueAsNumber;
+    uiParms.amplitude = amplitudeElement.valueAsNumber;
+    uiParms.duration = durationElement.valueAsNumber;
+    uiParms.channels = channelsElement.valueAsNumber;
     uiParms.sampleRate = sampleRateElement.valueAsNumber;
     uiParms.wavFileType = Number(this.getRadioButtonGroupValue("wavFileType"));
     return uiParms;
-    }
+  }
 
-  generateSineWaveSignal (frequency: number, amplitude: number, duration: number, channels: number, sampleRate: number) : AudioBuffer {
+  generateSineWaveSignal(frequency: number, amplitude: number, duration: number, channels: number, sampleRate: number): AudioBuffer {
     const length = duration * sampleRate;
     const audioBuffer: AudioBuffer = new (<any>AudioBuffer)({length, numberOfChannels: channels, sampleRate});
     // <any> is used because the constructor declaration is missing in TypeScript 2.8.
@@ -75,11 +71,13 @@ export class AppComponent implements OnInit {
     for (let channel = 0; channel < channels; channel++) {
       const channelData = audioBuffer.getChannelData(channel);
       for (let p = 0; p < length; p++) {
-        channelData[p] = Math.sin(p / sampleRate * omega) * amplitude; }}
+        channelData[p] = Math.sin(p / sampleRate * omega) * amplitude;
+      }
+    }
     return audioBuffer;
   }
 
-  openSaveAsDialog (blob: Blob, fileName: string) {
+  openSaveAsDialog(blob: Blob, fileName: string): void {
     const url = URL.createObjectURL(blob);
     const element = document.createElement("a");
     element.href = url;
@@ -89,24 +87,26 @@ export class AppComponent implements OnInit {
     setTimeout(() => URL.revokeObjectURL(url), 60000);
     (<any>document).dummySaveAsElementHolder = element;
   }
+
   // to prevent garbage collection
 
-  generateWavFile() {
+  generateWavFile(): void {
     const uiParms = this.getUiParms();
     if (!uiParms) {
-      return; }
+      return;
+    }
     const audioBuffer = this.generateSineWaveSignal(uiParms.frequency, uiParms.amplitude, uiParms.duration, uiParms.channels, uiParms.sampleRate);
     const wavFileData = WavFileEncoder.encodeWavFile(audioBuffer, uiParms.wavFileType);
     const blob = new Blob([wavFileData], {type: "audio/wav"});
     this.openSaveAsDialog(blob, "test.wav");
   }
 
-
   async generateWavFile2() {
     debugger;
     const uiParms = this.getUiParms();
     if (!uiParms) {
-      return; }
+      return;
+    }
     const audioBuffer = this.generateSineWaveSignal(uiParms.frequency, uiParms.amplitude, uiParms.duration, uiParms.channels, uiParms.sampleRate);
 
     const audioCtx = new AudioContext();
@@ -148,7 +148,7 @@ export class AppComponent implements OnInit {
 
     const maxPeriod = 40; //20
 
-    if(doTest) {
+    if (doTest) {
       const chData = x2;
       // x2[periods[testI].start + 1] = 0.5;
       // x2[periods[testI].crosses[0] + 1] = -0.25;
@@ -159,7 +159,7 @@ export class AppComponent implements OnInit {
       let i = 0;
 
       periods.forEach(item => {
-        if(i < maxPeriod) {
+        if (i < maxPeriod) {
           chData[item.start + 1] = 0.25;
           chData[item.end + 3] = -0.25;
           item.crosses.forEach(cross => {
@@ -171,13 +171,13 @@ export class AppComponent implements OnInit {
 
     }
 
-    if(doTestOnRight) {
+    if (doTestOnRight) {
       const chData = x2_right;
 
       let i = 0;
 
       periods.forEach(item => {
-        if(i < maxPeriod) {
+        if (i < maxPeriod) {
           chData[item.start + 1] = 0.25;
           chData[item.end + 3] = -0.25;
           item.crosses.forEach(cross => {
@@ -188,13 +188,13 @@ export class AppComponent implements OnInit {
       })
     }
 
-    if(doTestOnPattern) {
+    if (doTestOnPattern) {
       const chData = x_pattern_01;
 
       let i = 0;
 
       patternPeriods.forEach(item => {
-        if(i < maxPeriod) {
+        if (i < maxPeriod) {
           chData[item.start + 1] = 0.25;
           chData[item.end + 3] = -0.25;
           item.crosses.forEach(cross => {
@@ -205,7 +205,7 @@ export class AppComponent implements OnInit {
       })
     }
 
-    if(renderPeriods && false) {
+    if (renderPeriods && false) {
       const chData = x2;
 
       let i = 0;
@@ -213,13 +213,13 @@ export class AppComponent implements OnInit {
       let volumeTemp = -1;
 
       periods.forEach(item => {
-        if(i < maxPeriod) {
+        if (i < maxPeriod) {
           volumeTemp = -1;
           for (let iCounter = item.start; iCounter < item.end; iCounter++) {
             chData[iCounter] = volumeTemp;
             volumeTemp = volumeTemp + volumeDelta;
 
-            if(volumeTemp > 1) {
+            if (volumeTemp > 1) {
               volumeTemp = -1;
             }
           }
@@ -228,7 +228,7 @@ export class AppComponent implements OnInit {
       })
     }
 
-    if(renderPeriods && false) {
+    if (renderPeriods && false) {
       const chData = x2;
 
       let i = 0;
@@ -236,10 +236,10 @@ export class AppComponent implements OnInit {
       let volumeTemp = -1;
 
       periods.forEach(item => {
-        if(i < maxPeriod) {
+        if (i < maxPeriod) {
           let iPattern = 2530;
           for (let iCounter = item.start; iCounter < item.end; iCounter++) {
-            chData[iCounter] =  x_pattern_01[iPattern];
+            chData[iCounter] = x_pattern_01[iPattern];
 
 
             iPattern++;
@@ -253,7 +253,7 @@ export class AppComponent implements OnInit {
       })
     }
 
-    if(renderPeriods) {
+    if (renderPeriods) {
       const chData = x2;
 
       let i = 0;
@@ -264,24 +264,24 @@ export class AppComponent implements OnInit {
 
       debugger;
       periods.forEach(item => {
-      //
-      //   if (patternPeriodCounter >= patternPeriods.length) {
-      //     patternPeriodCounter = 0;
-      //     patternSampleHeader = 0;
-      //   }
-      //
-      //   patternSampleHeader = patternPeriods[patternPeriodCounter].start;
-      //   if (i < maxPeriod && patternPeriodCounter < patternPeriods.length) {
-      //     for (let iCounter = item.start; iCounter < item.end; iCounter++) {
-      //       chData[iCounter] = x_pattern_01[patternSampleHeader];
-      //
-      //       patternSampleHeader++;
-      //
-      //     }
-      //   }
-      //   i++;
-      //   patternPeriodCounter++;
-      //
+        //
+        //   if (patternPeriodCounter >= patternPeriods.length) {
+        //     patternPeriodCounter = 0;
+        //     patternSampleHeader = 0;
+        //   }
+        //
+        //   patternSampleHeader = patternPeriods[patternPeriodCounter].start;
+        //   if (i < maxPeriod && patternPeriodCounter < patternPeriods.length) {
+        //     for (let iCounter = item.start; iCounter < item.end; iCounter++) {
+        //       chData[iCounter] = x_pattern_01[patternSampleHeader];
+        //
+        //       patternSampleHeader++;
+        //
+        //     }
+        //   }
+        //   i++;
+        //   patternPeriodCounter++;
+        //
 
         // this.doCopyPeriodData(chData, x_pattern_01, item, patternPeriods[0]);
       })
@@ -382,7 +382,7 @@ export class AppComponent implements OnInit {
     let firstNoteStart = 0;
 
     for (let i = 0; firstNoteStart === 0; i++) {
-      if(Math.abs(channelData[i]) >= startScanTreshold) {
+      if (Math.abs(channelData[i]) >= startScanTreshold) {
         firstNoteStart = i;
       }
     }
@@ -396,8 +396,7 @@ export class AppComponent implements OnInit {
     const note_01: Note = {
       start: allZeroCrosses[0],
       length: 0,
-      periods: [
-      ],
+      periods: [],
     };
 
     const someX = 750;
@@ -437,7 +436,7 @@ export class AppComponent implements OnInit {
     let firstNoteEnd = 0;
 
     for (let i = 0; firstNoteStart === 0; i++) {
-      if(Math.abs(channelData[i]) >= startScanTreshold) {
+      if (Math.abs(channelData[i]) >= startScanTreshold) {
         // firstNoteStart = i;
       }
     }
@@ -452,12 +451,12 @@ export class AppComponent implements OnInit {
     /**
      * Measuring error
      */
-    // const delta = 154 / 16;
+      // const delta = 154 / 16;
     let result = 0;
     let found = false;
 
     allZeroCrosses.forEach(item => {
-      if(item >= start && !found) {
+      if (item >= start && !found) {
 
       }
     })
@@ -475,12 +474,12 @@ export class AppComponent implements OnInit {
     const delta_03 = Math.abs(periodCrosses[2] - periodCrosses[1]);
 
     for (let i = 0; i + 2 < allZeroCrosses.length; i++) {
-      if(allZeroCrosses[i] > start && allZeroCrosses[i] > periodCrosses[2] && !found) {
+      if (allZeroCrosses[i] > start && allZeroCrosses[i] > periodCrosses[2] && !found) {
         const delta_b_01 = Math.abs(allZeroCrosses[i + 1] - allZeroCrosses[i]);
         const delta_b_02 = Math.abs(allZeroCrosses[i + 2] - allZeroCrosses[i + 1]);
         const delta_b_03 = Math.abs(allZeroCrosses[i + 3] - allZeroCrosses[i + 2]);
 
-        if(
+        if (
           (Math.abs(delta_01 - delta_b_01) < delta) &&
           (Math.abs(delta_02 - delta_b_02) < delta)
           // (Math.abs(delta_03 - delta_b_03) < delta)
@@ -508,12 +507,12 @@ export class AppComponent implements OnInit {
     const delta_03 = Math.abs(periodCrosses[2] - periodCrosses[1]);
 
     for (let i = 0; i + 2 < allZeroCrosses.length; i++) {
-      if(allZeroCrosses[i] > periodCrosses[2] && !found) {
+      if (allZeroCrosses[i] > periodCrosses[2] && !found) {
         const delta_b_01 = Math.abs(allZeroCrosses[i + 1] - allZeroCrosses[i]);
         const delta_b_02 = Math.abs(allZeroCrosses[i + 2] - allZeroCrosses[i + 1]);
         const delta_b_03 = Math.abs(allZeroCrosses[i + 3] - allZeroCrosses[i + 2]);
 
-        if(
+        if (
           (Math.abs(delta_01 - delta_b_01) < delta) &&
           (Math.abs(delta_02 - delta_b_02) < delta) &&
           (Math.abs(delta_03 - delta_b_03) < delta)
@@ -527,11 +526,10 @@ export class AppComponent implements OnInit {
     return result;
   }
 
-  generateWavFileButton_click() {
+  generateWavFileButton_click(): void {
     try {
       this.generateWavFile2();
-    }
-    catch (e) {
+    } catch (e) {
       alert(e);
     }
   }
@@ -544,15 +542,15 @@ export class AppComponent implements OnInit {
     });
   }
 
-  private getNoteZeroCross(x: Float32Array, start: number) {
+  private getNoteZeroCross(x: Float32Array, start: number): number {
     // hotfix
     let result = 0;
     let lastValue = x[start];
     let found = false;
 
     for (let i = start; found === false && i < x.length; i++) {
-      if((x[i] < 0) && (lastValue >= 0) ||
-        (x[i] > 0) && (lastValue <= 0))  {
+      if ((x[i] < 0) && (lastValue >= 0) ||
+        (x[i] > 0) && (lastValue <= 0)) {
         result = i;
         found = true;
       }
@@ -572,7 +570,7 @@ export class AppComponent implements OnInit {
     // for (let i = 0; i < 8000;) {
     for (let i = 0; !stop;) {
       const cross: number = this.getNoteZeroCross(x, lastCross);
-      if(cross <= 0) {
+      if (cross <= 0) {
         stop = true;
       }
 
@@ -584,8 +582,8 @@ export class AppComponent implements OnInit {
     return result;
   }
 
-  private getPeriodCrosses(channelData: Float32Array, start: number) {
-    const result: number[]  = [];
+  private getPeriodCrosses(channelData: Float32Array, start: number): number[] {
+    const result: number[] = [];
 
     result[0] = this.getNoteZeroCross(channelData, start);
     result[1] = this.getNoteZeroCross(channelData, result[0]);
@@ -621,7 +619,7 @@ export class AppComponent implements OnInit {
     return result;
   }
 
-  private copyPeriodData(chData: Float32Array, chData2: Float32Array, period: Period, period2: Period) {
+  private copyPeriodData(chData: Float32Array, chData2: Float32Array, period: Period, period2: Period): void {
     let pattPeriodI = period2.start;
 
     for (let i = period.start; i < period.end; i++) {
@@ -635,7 +633,7 @@ export class AppComponent implements OnInit {
     }
   }
 
-  private doMorphingInPeriod(chData: Float32Array, chData2: Float32Array, period: Period, period2: Period) {
+  private doMorphingInPeriod(chData: Float32Array, chData2: Float32Array, period: Period, period2: Period): void {
     let pattPeriodI = period2.start;
 
     let underZeroHalfWaves: Period[] = this.halfWaves(chData, period, 0);
@@ -647,7 +645,7 @@ export class AppComponent implements OnInit {
     const substrackted: Float32Array = this.substracktHarmonicsFromSineWaveSignal(chData, underZeroHalfWaves[7], chData2, pattUnderZeroHalfWaves[3], 1);
 
     underZeroHalfWaves.forEach(item => {
-    //   let pattPeriodI_2 = pattUnderZeroHalfWaves[3].start;
+      //   let pattPeriodI_2 = pattUnderZeroHalfWaves[3].start;
 
       const length = item.end - item.start;
       const sampleRate = 44100;
@@ -667,12 +665,12 @@ export class AppComponent implements OnInit {
       let pattPeriodI_2 = 0;
 
       for (let i = item.start; i <= item.end; i++) {
-    //     // chData[i] = 0.5;
-    //     if (pattPeriodI_2 < pattUnderZeroHalfWaves[3].end) {
-    //       chData[i] = chData2[pattPeriodI_2];
-    //     }
-    //
-    //     pattPeriodI_2++;
+        //     // chData[i] = 0.5;
+        //     if (pattPeriodI_2 < pattUnderZeroHalfWaves[3].end) {
+        //       chData[i] = chData2[pattPeriodI_2];
+        //     }
+        //
+        //     pattPeriodI_2++;
 
         if (pattPeriodI_2 <= xData.length) {
           chData[i] = xData[pattPeriodI_2];
@@ -753,20 +751,20 @@ export class AppComponent implements OnInit {
        * а когда direction === 1, то строгое
        */
       if (direction === 0) {
-        if(lastChData <= 0 && chData[i] >= 0) {
+        if (lastChData <= 0 && chData[i] >= 0) {
           lastStart = i;
         } else if (lastChData >= 0 && chData[i] <= 0) {
           lastEnd = i
         }
       } else {
-        if(lastChData > 0 && chData[i] < 0) {
+        if (lastChData > 0 && chData[i] < 0) {
           lastStart = i;
         } else if (lastChData < 0 && chData[i] > 0) {
           lastEnd = i
         }
       }
 
-      if (lastStart && lastEnd ) {
+      if (lastStart && lastEnd) {
         result.push(
           {
             start: lastStart,
@@ -929,7 +927,7 @@ export class AppComponent implements OnInit {
           result[resultI] = (chData2[i] * 1.6) - (delta * length2 / length) + delta * 0.00001 * reducer + deltaForItem * 1.8;
         }
 
-        if( result[resultI] >= 1) {
+        if (result[resultI] >= 1) {
           result[resultI] = 0
         }
 
@@ -990,26 +988,25 @@ export class AppComponent implements OnInit {
         i_second = 0;
       }
       // result[i] = ((chData[counterTemp] * 3) + (chData2[i_second] * 0.5));
-      result[i] = ((chData[counterTemp] * 3) );
+      result[i] = ((chData[counterTemp] * 3));
       // result[i] = ((chData2[i_second] * 1));
-
 
 
       counterTemp++;
       i_second++;
 
       // if (i < temp.length) {
-        // result[i] = temp[i] * 4;
+      // result[i] = temp[i] * 4;
 
-        // if(result[i] < 0) {
-        //   // result[i] = result[i] - (chData2[i] * 4); // + 0.5;
-        //
-        //   result[i] = - (chData2[i] * 4);
-        // } else {
-        //   // result[i] = result[i] + (chData2[i] * 4); // + 0.5;
-        //
-        //   result[i] = (chData2[i] * 4);
-        // }
+      // if(result[i] < 0) {
+      //   // result[i] = result[i] - (chData2[i] * 4); // + 0.5;
+      //
+      //   result[i] = - (chData2[i] * 4);
+      // } else {
+      //   // result[i] = result[i] + (chData2[i] * 4); // + 0.5;
+      //
+      //   result[i] = (chData2[i] * 4);
+      // }
       // }
     }
     // let counterTemp = period.start;
@@ -1038,32 +1035,4 @@ export class AppComponent implements OnInit {
 
     return result;
   }
-}
-
-export interface Note {
-  start: number;
-  end?: number;
-  length: number;
-  periods: Period[];
-}
-
-
-export interface Period {
-  start?: number;
-  end?: number;
-  periodLength: number;
-  crosses: number[];
-}
-
-export interface Period2 {
-  start?: number;
-  end?: number;
-  periodLength: number;
-  croses: number[];
-}
-
-export interface NoteCrosses {
-  first: number;
-  second: number;
-  third: number;
 }
