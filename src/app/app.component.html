@@ -36,10 +36,10 @@
 <div (click)="generateWavFileButton_click()">Generate WAV file</div>
 
 
-<div *ngIf="channelData"
+<div *ngIf="dataToRender"
      class="waveFormWrapper"
      style="transform: scaleX(0.250);">
-  <div *ngFor="let item of channelData; let i = index;"
+  <div *ngFor="let item of dataToRender; let i = index;"
        class="waveFormSample"
        [style.transform]="'scaleY(' + item * 10 + ')'"
        [style.left]="i + 'px'">

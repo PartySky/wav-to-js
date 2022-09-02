@@ -12,6 +12,7 @@ import {UiParms} from "./uiParms";
 export class AppComponent implements OnInit {
   channelData: Float32Array;
   patternChannelData: Float32Array;
+  dataToRender: Float32Array;
 
   constructor() {
   }
@@ -114,6 +115,7 @@ export class AppComponent implements OnInit {
 
     const ab_pattern_01 = await this.getFileFromUrl('assets/pattern.wav');
     const ab1 = await this.getFileFromUrl('assets/test.wav');
+
 
     let audBuff_pattern_01 = await audioCtx.decodeAudioData(ab_pattern_01);
     let audioBuffer_02 = await audioCtx.decodeAudioData(ab1);
@@ -253,7 +255,7 @@ export class AppComponent implements OnInit {
       })
     }
 
-    if (renderPeriods) {
+    if (renderPeriods && false) {
       const chData = x2;
 
       let i = 0;
@@ -370,11 +372,11 @@ export class AppComponent implements OnInit {
 
     // this.applyRandomePitch(x2, notes);
 
+    // this.dataToRender = audioBuffer_02.getChannelData(0).slice(0, 150);
+
     const wavFileData = WavFileEncoder.encodeWavFile(audioBuffer_02, uiParms.wavFileType);
     const blob = new Blob([wavFileData], {type: "audio/wav"});
     this.openSaveAsDialog(blob, "test.wav");
-
-
   }
 
   scanNotes(channelData: Float32Array, patternFirstNoteStart = 0): Note[] {
