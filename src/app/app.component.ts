@@ -103,7 +103,6 @@ export class AppComponent implements OnInit {
   }
 
   async generateWavFile2() {
-    debugger;
     const uiParms = this.getUiParms();
     if (!uiParms) {
       return;
@@ -122,36 +121,27 @@ export class AppComponent implements OnInit {
 
     const x_pattern_01 = audBuff_pattern_01.getChannelData(0);
     const x1 = audioBuffer.getChannelData(0);
-    const x2 = audioBuffer_02.getChannelData(0);
-    const x2_right = audioBuffer_02.getChannelData(1);
+    const x2_channelData_Left = audioBuffer_02.getChannelData(0);
+    const x2_channelData_right = audioBuffer_02.getChannelData(1);
 
-    x2[1320] = 0;
-    x2[1319] = -0.1;
+    x2_channelData_Left[1320] = 0;
+    x2_channelData_Left[1319] = -0.1;
 
     // const notes = this.scanNotes(x2);
     // const pattern_notes = this.scanNotes(x_pattern_01, 2530);
 
-    const periods: Period[] = this.scanPeriods(x2, 1320 + 2);
+    const periods: Period[] = this.scanPeriods(x2_channelData_Left, 1320 + 2);
     const patternPeriods: Period[] = this.scanPeriods(x_pattern_01, 1695 + 2);
     // const allZeroCrosses = this.getAllZeroCrosses(x2, 1320 + 2);
 
-
-    const testI = 1;
-    const doTest = true;
-    const doTestOnRight = true;
+    const doTest = false;
+    const doTestOnRight = false;
     const doTestOnPattern = true;
     const renderPeriods = true;
-
-    // const doTest = false;
-    // const doTestOnRight = true;
-    // const doTestOnPattern = false;
-    // const doRenderPeriods = true;
-
 
     const maxPeriod = 40; //20
 
     if (doTest) {
-      const chData = x2;
       // x2[periods[testI].start + 1] = 0.5;
       // x2[periods[testI].crosses[0] + 1] = -0.25;
       // x2[periods[testI].crosses[1] + 1] = -0.25;
@@ -160,12 +150,14 @@ export class AppComponent implements OnInit {
 
       let i = 0;
 
+      debugger;
+
       periods.forEach(item => {
         if (i < maxPeriod) {
-          chData[item.start + 1] = 0.25;
-          chData[item.end + 3] = -0.25;
+          x2_channelData_Left[item.start + 1] = 0.25;
+          x2_channelData_Left[item.end + 3] = -0.25;
           item.crosses.forEach(cross => {
-            chData[cross + 1] = -0.125;
+            x2_channelData_Left[cross + 1] = -0.125;
           })
         }
         i++;
@@ -174,7 +166,7 @@ export class AppComponent implements OnInit {
     }
 
     if (doTestOnRight) {
-      const chData = x2_right;
+      const chData = x2_channelData_right;
 
       let i = 0;
 
@@ -208,7 +200,7 @@ export class AppComponent implements OnInit {
     }
 
     if (renderPeriods && false) {
-      const chData = x2;
+      const chData = x2_channelData_Left;
 
       let i = 0;
       let volumeDelta = 0.001;
@@ -231,7 +223,7 @@ export class AppComponent implements OnInit {
     }
 
     if (renderPeriods && false) {
-      const chData = x2;
+      const chData = x2_channelData_Left;
 
       let i = 0;
       let volumeDelta = 0.001;
@@ -256,7 +248,7 @@ export class AppComponent implements OnInit {
     }
 
     if (renderPeriods && false) {
-      const chData = x2;
+      const chData = x2_channelData_Left;
 
       let i = 0;
       let volumeDelta = 0.001;
@@ -264,7 +256,6 @@ export class AppComponent implements OnInit {
       let patternPeriodCounter = 1;
       let patternSampleHeader = 0;
 
-      debugger;
       periods.forEach(item => {
         //
         //   if (patternPeriodCounter >= patternPeriods.length) {
@@ -367,7 +358,7 @@ export class AppComponent implements OnInit {
     }
 
 
-    this.channelData = x2.slice(0, 30000);
+    this.channelData = x2_channelData_Left.slice(0, 30000);
     this.patternChannelData = x_pattern_01.slice(0, 15000);
 
     // this.applyRandomePitch(x2, notes);
@@ -379,7 +370,7 @@ export class AppComponent implements OnInit {
     this.openSaveAsDialog(blob, `test ${this.getDateString(new Date())}.wav`);
   }
 
-  getDateString (date: Date): string {
+  getDateString(date: Date): string {
     let result = '';
     const dt = new Date();
     const padL = (nr, len = 2, chr = `0`) => `${nr}`.padStart(2, chr);
@@ -389,10 +380,9 @@ export class AppComponent implements OnInit {
       // padL(dt.getMonth()+1)}.${
       // dt.getFullYear()}` +
       `${padL(dt.getHours())}:${
-      padL(dt.getMinutes())}:${
-      padL(dt.getSeconds())}`;
+        padL(dt.getMinutes())}:${
+        padL(dt.getSeconds())}`;
 
-    debugger;
     return result;
   }
 
