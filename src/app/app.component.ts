@@ -372,7 +372,7 @@ export class AppComponent implements OnInit {
     let outPutChData: Float32Array = outPutAB.getChannelData(0);
 
     const outPutChDataTemp = this.mixDownChDatas([
-      {chData: audioBuffer_Note_A.getChannelData(0), offset: 0},
+      {chData: audioBuffer_Note_A.getChannelData(0), offset: 150},
       {chData: audioBuffer_Note_B.getChannelData(0), offset: 0},
     ]);
 
@@ -401,7 +401,10 @@ export class AppComponent implements OnInit {
 
     for (let i = 0; i < maxLenght; i++) {
       chDataList.forEach(item => {
-        const valueTemp = item.chData[i + item.offset];
+        const valueTemp = item.chData[i - item.offset];
+        if (!result[i]) {
+          result[i] = 0;
+        }
         if (valueTemp) {
           result[i] = result[i] + valueTemp;
         }
