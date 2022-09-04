@@ -113,16 +113,18 @@ export class AppComponent implements OnInit {
     const buffer = audioCtx.createBuffer(2, 22050, 44100);
 
     const ab_pattern_01 = await this.getFileFromUrl('assets/pattern.wav');
-    const ab1 = await this.getFileFromUrl('assets/test.wav');
+    const AB_Note_A = await this.getFileFromUrl('assets/note_a.wav');
+    const AB_Note_B = await this.getFileFromUrl('assets/note_b.wav');
 
 
     let audBuff_pattern_01 = await audioCtx.decodeAudioData(ab_pattern_01);
-    let audioBuffer_02 = await audioCtx.decodeAudioData(ab1);
+    let audioBuffer_Note_A = await audioCtx.decodeAudioData(AB_Note_A);
+    let audioBuffer_Note_B = await audioCtx.decodeAudioData(AB_Note_B);
 
     const x_pattern_01 = audBuff_pattern_01.getChannelData(0);
     const x1 = audioBuffer.getChannelData(0);
-    const x2_channelData_Left = audioBuffer_02.getChannelData(0);
-    const x2_channelData_right = audioBuffer_02.getChannelData(1);
+    const x2_channelData_Left = audioBuffer_Note_A.getChannelData(0);
+    const x2_channelData_right = audioBuffer_Note_A.getChannelData(1);
 
     x2_channelData_Left[1320] = 0;
     x2_channelData_Left[1319] = -0.1;
@@ -365,9 +367,48 @@ export class AppComponent implements OnInit {
 
     // this.dataToRender = audioBuffer_02.getChannelData(0).slice(0, 150);
 
-    const wavFileData = WavFileEncoder.encodeWavFile(audioBuffer_02, uiParms.wavFileType);
+
+    const outPutAB: AudioBuffer = audioBuffer_Note_B;
+    let outPutChData: Float32Array = outPutAB.getChannelData(0);
+
+    const outPutChDataTemp = this.mixDownChDatas([
+      {chData: audioBuffer_Note_A.getChannelData(0), offset: 0},
+      {chData: audioBuffer_Note_B.getChannelData(0), offset: 0},
+    ]);
+
+    for (let i = 0; i < outPutChDataTemp.length; i++) {
+      outPutChData[i] = outPutChDataTemp[i];
+    }
+
+    const wavFileData = WavFileEncoder.encodeWavFile(outPutAB, uiParms.wavFileType);
     const blob = new Blob([wavFileData], {type: "audio/wav"});
     this.openSaveAsDialog(blob, `test ${this.getDateString(new Date())}.wav`);
+  }
+
+  mixDownChDatas(chDataList: { chData: Float32Array, offset: number }[]): Float32Array {
+    // todo: init it
+    // @ts-ignore
+    let result: Float32Array = [];
+
+    let maxLenght = 0;
+
+    chDataList.forEach(item => {
+      const lengthTemp = item.offset + item.chData.length;
+      if (lengthTemp > maxLenght) {
+        maxLenght = lengthTemp;
+      }
+    })
+
+    for (let i = 0; i < maxLenght; i++) {
+      chDataList.forEach(item => {
+        const valueTemp = item.chData[i + item.offset];
+        if (valueTemp) {
+          result[i] = result[i] + valueTemp;
+        }
+      });
+    }
+
+    return result;
   }
 
   getDateString(date: Date): string {
