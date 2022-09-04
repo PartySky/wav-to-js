@@ -376,7 +376,24 @@ export class AppComponent implements OnInit {
 
     const wavFileData = WavFileEncoder.encodeWavFile(audioBuffer_02, uiParms.wavFileType);
     const blob = new Blob([wavFileData], {type: "audio/wav"});
-    this.openSaveAsDialog(blob, "test.wav");
+    this.openSaveAsDialog(blob, `test ${this.getDateString(new Date())}.wav`);
+  }
+
+  getDateString (date: Date): string {
+    let result = '';
+    const dt = new Date();
+    const padL = (nr, len = 2, chr = `0`) => `${nr}`.padStart(2, chr);
+
+    result =
+      // `${padL(dt.getDate())}.${
+      // padL(dt.getMonth()+1)}.${
+      // dt.getFullYear()}` +
+      `${padL(dt.getHours())}:${
+      padL(dt.getMinutes())}:${
+      padL(dt.getSeconds())}`;
+
+    debugger;
+    return result;
   }
 
   scanNotes(channelData: Float32Array, patternFirstNoteStart = 0): Note[] {
