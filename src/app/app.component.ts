@@ -115,8 +115,7 @@ export class AppComponent implements OnInit {
 
     const ab_pattern_01 = await this.getFileFromUrl('assets/pattern.wav');
     const AB_Note_Zero = await this.getFileFromUrl('assets/Note Zero.wav');
-    // const AB_Note_A = await this.getFileFromUrl('assets/Eb2 Up2.wav');
-    const AB_Note_A = await this.getFileFromUrl('assets/F2 Up2.wav');
+    const AB_Note_A = await this.getFileFromUrl('assets/Eb2 Up2.wav');
     const AB_Note_B = await this.getFileFromUrl('assets/F2 Up2.wav');
 
     let audBuff_pattern_01 = await audioCtx.decodeAudioData(ab_pattern_01);
@@ -483,10 +482,14 @@ export class AppComponent implements OnInit {
       lastValue = chData[i];
     }
 
-    result.forEach(item => {
-      item.chData[0] = 1;
-      item.chData[1] = -1;
-    })
+    const drawEdges = true;
+
+    if (drawEdges) {
+      result.forEach(item => {
+        item.chData[0] = 1;
+        item.chData[1] = -1;
+      })
+    }
 
     return result;
   }
