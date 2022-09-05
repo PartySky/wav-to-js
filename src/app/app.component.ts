@@ -421,26 +421,38 @@ export class AppComponent implements OnInit {
           nextChDataStart
         });
 
+        let usedPeriodsNum = this.getUsedPeriodsForNearestNextChDataStart({
+          periodList: periodListTemp,
+          offset: 0, target:
+          nextChDataStart
+        });
+
         if (nextChDataStart) {
-          let chDataTemp = chDataList[chDataNum + 1];
-          chDataTemp.offset = nextChDataStart;
+          let nextChDataTemp = chDataList[chDataNum + 1];
+          nextChDataTemp.offset = nextChDataStart;
 
           const adjustedPeriodListTemp: Period3[] = [];
           const numPeriodsToCrossfade = 5;
 
-          // // todo: тут нужно не с начала periodListTemp идти, с периода,
-          // // котрый соответсвтует nextChDataStart
-          // let crossfadePeriodCounter = 0;
-          // periodListTemp.forEach(item => {
-          //   chDataTemp.chData = this.getAdjustedChDataForPeriod({chData: item.chData, targetLength: 100});
-          //
-          //   let adjustedPeriodTemp = item.chData;
-          //   if (crossfadePeriodCounter < numPeriodsToCrossfade) {
-          //     adjustedPeriodTemp = this.getAdjustedChDataForPeriod({chData: item.chData, targetLength: 100});
-          //   }
-          //   adjustedPeriodListTemp.push({chData: adjustedPeriodTemp});
-          //   crossfadePeriodCounter++;
-          // })
+          let periodCounter = 0;
+          let crossfadePeriodCounter = 0;
+          // todo: тут нужно не с начала periodListTemp идти, а с периода,
+          // котрый соответсвтует nextChDataStart
+          periodListTemp.forEach(item => {
+            if (periodCounter >= usedPeriodsNum) {
+
+              if (crossfadePeriodCounter < numPeriodsToCrossfade) {
+                nextChDataTemp.periodList[crossfadePeriodCounter].chData =
+                  this.getAdjustedChDataForPeriod({
+                    chData: nextChDataTemp.periodList[crossfadePeriodCounter].chData,
+                    targetLength: item.chData.length
+                  });
+              }
+              crossfadePeriodCounter++;
+            }
+
+            periodCounter++;
+          })
         }
       }
 
@@ -530,6 +542,28 @@ export class AppComponent implements OnInit {
         item.chData[1] = -1;
       })
     }
+
+    return result;
+  }
+
+  getUsedPeriodsForNearestNextChDataStart(dto: { periodList: Period3[], offset: number, target: number }): number {
+    let nearestNextChDataStart = 0;
+    let lastSubstract = 0;
+    let head = 0;
+    let result = 0;
+    let periodCounter = 0;
+
+    dto.periodList.forEach(item => {
+      const periodEndTemp = item.chData.length + head + dto.offset;
+      let currentSubstract = Math.abs(dto.target - periodEndTemp);
+      if (!lastSubstract || (currentSubstract < lastSubstract)) {
+        lastSubstract = currentSubstract;
+        nearestNextChDataStart = periodEndTemp;
+        result = periodCounter;
+      }
+      head = head + item.chData.length;
+      periodCounter++;
+    })
 
     return result;
   }
@@ -990,7 +1024,15 @@ export class AppComponent implements OnInit {
   }
 
   getAdjustedChDataForPeriod(dto: { chData: Float32Array; targetLength: number }): Float32Array {
-    return null;
+    // @ts-ignore
+    let result: Float32Array = [];
+
+    // todo: доделать растягивание/сжатие периода
+    for (let i = 0; i < dto.targetLength; i++) {
+      result[i] = dto.chData[i];
+    }
+
+    return result;
   }
 
   private adjustSineWaveSignal(chData: Float32Array, period: Period, chData2: Float32Array, period2: Period, amplitube: number): Float32Array {
