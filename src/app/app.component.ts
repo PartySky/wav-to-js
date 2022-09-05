@@ -404,13 +404,11 @@ export class AppComponent implements OnInit {
     debugger;
 
     for (let chDataNum = 0; chDataNum < chDataList.length; chDataNum++) {
-      // const nextChDataEnd = chDataList[chDataNum + 1] ?
-      //   chDataList[chDataNum + 1]?.chData?.length + chDataList[chDataNum + 1]?.offset : 0;
-
+      // todo: use crossfade length there
       const nextChDataStart = chDataList[chDataNum + 1] ? chDataList[chDataNum + 1]?.offset : 0;
 
       for (let i = 0; i < maxLenght; i++) {
-        if (!nextChDataStart || (nextChDataStart > 0 && i < nextChDataStart)) {
+        if (!renderMono || (!nextChDataStart || (nextChDataStart > 0 && i < nextChDataStart))) {
           const valueTemp = chDataList[chDataNum].chData[i - chDataList[chDataNum].offset];
           if (!result[i]) {
             result[i] = 0;
