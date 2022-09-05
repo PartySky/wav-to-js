@@ -372,8 +372,8 @@ export class AppComponent implements OnInit {
     let outPutChData: Float32Array = outPutAB.getChannelData(0);
 
     const outPutChDataTemp = this.mixDownChDatas([
-      {chData: audioBuffer_Note_A.getChannelData(0), offset: 150},
-      {chData: audioBuffer_Note_B.getChannelData(0), offset: 0},
+      {chData: audioBuffer_Note_A.getChannelData(0), offset: 0},
+      {chData: audioBuffer_Note_B.getChannelData(0), offset: 10},
     ]);
 
     for (let i = 0; i < outPutChDataTemp.length; i++) {
@@ -386,6 +386,8 @@ export class AppComponent implements OnInit {
   }
 
   mixDownChDatas(chDataList: { chData: Float32Array, offset: number }[]): Float32Array {
+    const crossFadeLenght = 5;
+    const renderMono = true;
     // todo: init it
     // @ts-ignore
     let result: Float32Array = [];
@@ -399,16 +401,25 @@ export class AppComponent implements OnInit {
       }
     })
 
-    for (let i = 0; i < maxLenght; i++) {
-      chDataList.forEach(item => {
-        const valueTemp = item.chData[i - item.offset];
-        if (!result[i]) {
-          result[i] = 0;
+    debugger;
+
+    for (let chDataNum = 0; chDataNum < chDataList.length; chDataNum++) {
+      // const nextChDataEnd = chDataList[chDataNum + 1] ?
+      //   chDataList[chDataNum + 1]?.chData?.length + chDataList[chDataNum + 1]?.offset : 0;
+
+      const nextChDataStart = chDataList[chDataNum + 1] ? chDataList[chDataNum + 1]?.offset : 0;
+
+      for (let i = 0; i < maxLenght; i++) {
+        if (!nextChDataStart || (nextChDataStart > 0 && i < nextChDataStart)) {
+          const valueTemp = chDataList[chDataNum].chData[i - chDataList[chDataNum].offset];
+          if (!result[i]) {
+            result[i] = 0;
+          }
+          if (valueTemp) {
+            result[i] = result[i] + valueTemp;
+          }
         }
-        if (valueTemp) {
-          result[i] = result[i] + valueTemp;
-        }
-      });
+      }
     }
 
     return result;
