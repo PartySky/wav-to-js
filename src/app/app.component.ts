@@ -378,7 +378,7 @@ export class AppComponent implements OnInit {
 
     const outPutChDataTemp = this.mixDownChDatas([
       {chData: audioBuffer_Note_A.getChannelData(0), offset: 0},
-      {chData: audioBuffer_Note_B.getChannelData(0), offset: 300}, // 3000
+      {chData: audioBuffer_Note_B.getChannelData(0), offset: 1200}, // 3000
     ]);
 
     for (let i = 0; i < outPutChDataTemp.length; i++) {
@@ -407,8 +407,6 @@ export class AppComponent implements OnInit {
     })
 
     for (let chDataNum = 0; chDataNum < chDataList.length; chDataNum++) {
-      const nextChDataStartOld = chDataList[chDataNum + 1] ? chDataList[chDataNum + 1]?.offset : 0;
-
       const periodListTemp = this.getChanelDataList(chDataList[chDataNum].chData);
 
       let nextChDataStart = chDataList[chDataNum + 1] ? chDataList[chDataNum + 1]?.offset : 0;
@@ -419,9 +417,13 @@ export class AppComponent implements OnInit {
           offset: 0, target:
           nextChDataStart
         });
+
+        if (nextChDataStart) {
+          let chDataTemp = chDataList[chDataNum + 1];
+          chDataTemp.offset = nextChDataStart;
+        }
       }
 
-      // nextChDataStart = chDataList[chDataNum + 1] ? chDataList[chDataNum + 1]?.offset : 0;
       if (nextChDataStart) {
         result[nextChDataStart] = -2;
         result[nextChDataStart + 1] = -2;
@@ -434,22 +436,23 @@ export class AppComponent implements OnInit {
         result[nextChDataStart + 8] = -2;
       }
 
-      const drawTempPosition = 600;
+      // const drawTempPosition = 600;
+      //
+      // if (drawTempPosition) {
+      //   result[drawTempPosition] = -2;
+      //   result[drawTempPosition + 1] = -2;
+      //   result[drawTempPosition + 2] = -2;
+      //   result[drawTempPosition + 3] = -2;
+      //   result[drawTempPosition + 4] = -2;
+      //   result[drawTempPosition + 5] = -2;
+      //   result[drawTempPosition + 6] = -2;
+      //   result[drawTempPosition + 7] = -2;
+      //   result[drawTempPosition + 8] = -2;
+      // }
 
-      if (drawTempPosition) {
-        result[drawTempPosition] = -2;
-        result[drawTempPosition + 1] = -2;
-        result[drawTempPosition + 2] = -2;
-        result[drawTempPosition + 3] = -2;
-        result[drawTempPosition + 4] = -2;
-        result[drawTempPosition + 5] = -2;
-        result[drawTempPosition + 6] = -2;
-        result[drawTempPosition + 7] = -2;
-        result[drawTempPosition + 8] = -2;
-      }
 
-
-      let i = 0;
+      const offsetTemp = chDataList[chDataNum].offset
+      let i = offsetTemp;
       periodListTemp.forEach(period => {
         period.chData.forEach(chData => {
           if (i < maxLenght) {
@@ -532,9 +535,6 @@ export class AppComponent implements OnInit {
     let result = 0;
     let lastSubstract = 0;
     let head = 0;
-
-
-    debugger;
 
     dto.periodList.forEach(item => {
       const periodEndTemp = item.chData.length + head + dto.offset;
