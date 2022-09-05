@@ -414,6 +414,8 @@ export class AppComponent implements OnInit {
 
       let nextChDataStart = chDataList[chDataNum + 1] ? chDataList[chDataNum + 1]?.offset : 0;
 
+      let usedPeriodsNum = 0;
+      const numPeriodsToCrossfade = 5;
       if (chDataList[chDataNum + 1]) {
         nextChDataStart = this.getNearestNextChDataStart({
           periodList: periodListTemp,
@@ -421,7 +423,7 @@ export class AppComponent implements OnInit {
           nextChDataStart
         });
 
-        let usedPeriodsNum = this.getUsedPeriodsForNearestNextChDataStart({
+        usedPeriodsNum = this.getUsedPeriodsForNearestNextChDataStart({
           periodList: periodListTemp,
           offset: 0, target:
           nextChDataStart
@@ -432,13 +434,14 @@ export class AppComponent implements OnInit {
           nextChDataTemp.offset = nextChDataStart;
 
           const adjustedPeriodListTemp: Period3[] = [];
-          const numPeriodsToCrossfade = 5;
 
           let periodCounter = 0;
           let crossfadePeriodCounter = 0;
-          // todo: тут нужно не с начала periodListTemp идти, а с периода,
-          // котрый соответсвтует nextChDataStart
           periodListTemp.forEach(item => {
+            /**
+             * Тут нужно не с начала periodListTemp идти, а с периода,
+             * котрый соответсвтует nextChDataStart
+             */
             if (periodCounter >= usedPeriodsNum) {
 
               if (crossfadePeriodCounter < numPeriodsToCrossfade) {
@@ -468,35 +471,24 @@ export class AppComponent implements OnInit {
         result[nextChDataStart + 8] = -2;
       }
 
-      // const drawTempPosition = 600;
-      //
-      // if (drawTempPosition) {
-      //   result[drawTempPosition] = -2;
-      //   result[drawTempPosition + 1] = -2;
-      //   result[drawTempPosition + 2] = -2;
-      //   result[drawTempPosition + 3] = -2;
-      //   result[drawTempPosition + 4] = -2;
-      //   result[drawTempPosition + 5] = -2;
-      //   result[drawTempPosition + 6] = -2;
-      //   result[drawTempPosition + 7] = -2;
-      //   result[drawTempPosition + 8] = -2;
-      // }
-
-
       const offsetTemp = chDataList[chDataNum].offset
       let i = offsetTemp;
+      let periodCounter = 0;
       periodListTemp.forEach(period => {
-        period.chData.forEach(chData => {
-          if (i < maxLenght) {
-            if (!result[i]) {
-              result[i] = 0;
+        if (!renderMono || !usedPeriodsNum || (periodCounter < (usedPeriodsNum + numPeriodsToCrossfade))) {
+          period.chData.forEach(chData => {
+            if (i < maxLenght) {
+              if (!result[i]) {
+                result[i] = 0;
+              }
+              if (chData) {
+                result[i] = result[i] + chData;
+              }
             }
-            if (chData) {
-              result[i] = result[i] + chData;
-            }
-          }
-          i++;
-        })
+            i++;
+          })
+        }
+        periodCounter++;
       })
     }
 
