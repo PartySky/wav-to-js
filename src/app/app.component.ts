@@ -377,8 +377,8 @@ export class AppComponent implements OnInit {
     }
 
     const outPutChDataTemp = this.mixDownChDatas([
-      {chData: audioBuffer_Note_A.getChannelData(0), offset: 0},
-      {chData: audioBuffer_Note_B.getChannelData(0), offset: 1200}, // 3000
+      {periodList: this.getChanelDataList(audioBuffer_Note_A.getChannelData(0)), offset: 0},
+      {periodList: this.getChanelDataList(audioBuffer_Note_B.getChannelData(0)), offset: 1200}, // 3000
     ]);
 
     for (let i = 0; i < outPutChDataTemp.length; i++) {
@@ -390,7 +390,7 @@ export class AppComponent implements OnInit {
     this.openSaveAsDialog(blob, `test ${this.getDateString(new Date())}.wav`);
   }
 
-  mixDownChDatas(chDataList: { chData: Float32Array, offset: number }[]): Float32Array {
+  mixDownChDatas(chDataList: { periodList: Period3[], offset: number }[]): Float32Array {
     const crossFadeLenght = 500;
     const renderMono = true;
     // todo: init it
@@ -400,14 +400,17 @@ export class AppComponent implements OnInit {
     let maxLenght = 0;
 
     chDataList.forEach(item => {
-      const lengthTemp = item.offset + item.chData.length;
+      let lengthTemp = item.offset;
+      item.periodList.forEach(period => {
+        lengthTemp = lengthTemp + period.chData.length;
+      })
       if (lengthTemp > maxLenght) {
         maxLenght = lengthTemp;
       }
     })
 
     for (let chDataNum = 0; chDataNum < chDataList.length; chDataNum++) {
-      const periodListTemp = this.getChanelDataList(chDataList[chDataNum].chData);
+      const periodListTemp = chDataList[chDataNum].periodList;
 
       let nextChDataStart = chDataList[chDataNum + 1] ? chDataList[chDataNum + 1]?.offset : 0;
 
@@ -421,6 +424,23 @@ export class AppComponent implements OnInit {
         if (nextChDataStart) {
           let chDataTemp = chDataList[chDataNum + 1];
           chDataTemp.offset = nextChDataStart;
+
+          const adjustedPeriodListTemp: Period3[] = [];
+          const numPeriodsToCrossfade = 5;
+
+          // // todo: тут нужно не с начала periodListTemp идти, с периода,
+          // // котрый соответсвтует nextChDataStart
+          // let crossfadePeriodCounter = 0;
+          // periodListTemp.forEach(item => {
+          //   chDataTemp.chData = this.getAdjustedChDataForPeriod({chData: item.chData, targetLength: 100});
+          //
+          //   let adjustedPeriodTemp = item.chData;
+          //   if (crossfadePeriodCounter < numPeriodsToCrossfade) {
+          //     adjustedPeriodTemp = this.getAdjustedChDataForPeriod({chData: item.chData, targetLength: 100});
+          //   }
+          //   adjustedPeriodListTemp.push({chData: adjustedPeriodTemp});
+          //   crossfadePeriodCounter++;
+          // })
         }
       }
 
@@ -466,23 +486,6 @@ export class AppComponent implements OnInit {
           i++;
         })
       })
-
-
-      // for (let i = 0; i < maxLenght; i++) {
-      //   if (!renderMono || (
-      //     !nextChDataStart || (nextChDataStart > 0 && i < (nextChDataStart + crossFadeLenght))
-      //   )) {
-      //     // const valueTemp = periodListTemp[0].chData[i];
-      //     const valueTemp = chDataList[chDataNum].chData[i - chDataList[chDataNum].offset];
-      //
-      //     if (!result[i]) {
-      //       result[i] = 0;
-      //     }
-      //     if (valueTemp) {
-      //       result[i] = result[i] + valueTemp;
-      //     }
-      //   }
-      // }
     }
 
     return result;
@@ -984,6 +987,10 @@ export class AppComponent implements OnInit {
     }
 
     return result;
+  }
+
+  getAdjustedChDataForPeriod(dto: { chData: Float32Array; targetLength: number }): Float32Array {
+    return null;
   }
 
   private adjustSineWaveSignal(chData: Float32Array, period: Period, chData2: Float32Array, period2: Period, amplitube: number): Float32Array {
