@@ -3,6 +3,7 @@ import * as WavFileEncoder from "wav-file-encoder";
 import {Note} from "./note";
 import {Period} from "./period";
 import {UiParms} from "./uiParms";
+import {Period3} from "./period2";
 
 @Component({
   selector: 'app-root',
@@ -113,10 +114,13 @@ export class AppComponent implements OnInit {
     const buffer = audioCtx.createBuffer(2, 22050, 44100);
 
     const ab_pattern_01 = await this.getFileFromUrl('assets/pattern.wav');
-    const AB_Note_A = await this.getFileFromUrl('assets/Eb2 Up2.wav');
+    const AB_Note_Zero = await this.getFileFromUrl('assets/Note Zero.wav');
+    // const AB_Note_A = await this.getFileFromUrl('assets/Eb2 Up2.wav');
+    const AB_Note_A = await this.getFileFromUrl('assets/F2 Up2.wav');
     const AB_Note_B = await this.getFileFromUrl('assets/F2 Up2.wav');
 
     let audBuff_pattern_01 = await audioCtx.decodeAudioData(ab_pattern_01);
+    let audioBuffer_Note_Zero = await audioCtx.decodeAudioData(AB_Note_Zero);
     let audioBuffer_Note_A = await audioCtx.decodeAudioData(AB_Note_A);
     let audioBuffer_Note_B = await audioCtx.decodeAudioData(AB_Note_B);
 
@@ -368,8 +372,12 @@ export class AppComponent implements OnInit {
     // this.dataToRender = audioBuffer_02.getChannelData(0).slice(0, 150);
 
 
-    const outPutAB: AudioBuffer = audioBuffer_Note_B;
+    const outPutAB: AudioBuffer = audioBuffer_Note_Zero;
     let outPutChData: Float32Array = outPutAB.getChannelData(0);
+
+    for (let i = 0; i < outPutChData.length; i++) {
+      outPutChData[i] = 0;
+    }
 
     const outPutChDataTemp = this.mixDownChDatas([
       {chData: audioBuffer_Note_A.getChannelData(0), offset: 0},
@@ -406,21 +414,79 @@ export class AppComponent implements OnInit {
     for (let chDataNum = 0; chDataNum < chDataList.length; chDataNum++) {
       const nextChDataStart = chDataList[chDataNum + 1] ? chDataList[chDataNum + 1]?.offset : 0;
 
-      for (let i = 0; i < maxLenght; i++) {
-        // todo: use crossfade length there
-        if (!renderMono || (
-          !nextChDataStart || (nextChDataStart > 0 && i < (nextChDataStart + crossFadeLenght))
-        )) {
-          const valueTemp = chDataList[chDataNum].chData[i - chDataList[chDataNum].offset];
-          if (!result[i]) {
-            result[i] = 0;
+      const periodListTemp = this.getChanelDataList(chDataList[chDataNum].chData);
+
+      let i = 0;
+      periodListTemp.forEach(period => {
+        period.chData.forEach(chData => {
+          if (i < maxLenght) {
+            if (!result[i]) {
+              result[i] = 0;
+            }
+            if (chData) {
+              result[i] = result[i] + chData;
+            }
           }
-          if (valueTemp) {
-            result[i] = result[i] + valueTemp;
-          }
-        }
-      }
+          i++;
+        })
+      })
+
+
+      // for (let i = 0; i < maxLenght; i++) {
+      //   if (!renderMono || (
+      //     !nextChDataStart || (nextChDataStart > 0 && i < (nextChDataStart + crossFadeLenght))
+      //   )) {
+      //     // const valueTemp = periodListTemp[0].chData[i];
+      //     const valueTemp = chDataList[chDataNum].chData[i - chDataList[chDataNum].offset];
+      //
+      //     if (!result[i]) {
+      //       result[i] = 0;
+      //     }
+      //     if (valueTemp) {
+      //       result[i] = result[i] + valueTemp;
+      //     }
+      //   }
+      // }
     }
+
+    return result;
+  }
+
+  getChanelDataList(chData: Float32Array): Period3[] {
+    let result: Period3[] = [];
+    let found = false;
+    const tracholdLength = 200;
+
+    let lastValue = 0;
+
+    // @ts-ignore
+    let chDataTemp: Float32Array = [];
+    let chDataTempCounter = 0;
+
+    for (let i = 0; i < chData.length; i++) {
+      chDataTemp[chDataTempCounter] = chData[i];
+      chDataTempCounter++;
+
+      const zeroCrossDetected = (chData[i] < 0) && (lastValue >= 0) ||
+        (chData[i] > 0) && (lastValue <= 0);
+
+      if (zeroCrossDetected && chDataTemp.length > tracholdLength) {
+        found = true;
+      }
+      if (found) {
+        result.push({chData: chDataTemp});
+        // @ts-ignore
+        chDataTemp = [];
+        chDataTempCounter = 0;
+        found = false;
+      }
+      lastValue = chData[i];
+    }
+
+    result.forEach(item => {
+      item.chData[0] = 1;
+      item.chData[1] = -1;
+    })
 
     return result;
   }
@@ -596,14 +662,6 @@ export class AppComponent implements OnInit {
     } catch (e) {
       alert(e);
     }
-  }
-
-  private applyRandomePitch(x: Float32Array, notes: Note[]) {
-    notes.forEach(item => {
-      for (let i = item.start; i < item.length; i++) {
-        x[i] = -0.1;
-      }
-    });
   }
 
   private getNoteZeroCross(x: Float32Array, start: number): number {
