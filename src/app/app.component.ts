@@ -378,7 +378,7 @@ export class AppComponent implements OnInit {
 
     const outPutChDataTemp = this.mixDownChDatas([
       {periodList: this.getChanelDataList(audioBuffer_Note_A.getChannelData(0)), offset: 0},
-      {periodList: this.getChanelDataList(audioBuffer_Note_B.getChannelData(0)), offset: 1200}, // 3000
+      {periodList: this.getChanelDataList(audioBuffer_Note_B.getChannelData(0)), offset: 6000}, // 1200
     ]);
 
     for (let i = 0; i < outPutChDataTemp.length; i++) {
@@ -459,16 +459,11 @@ export class AppComponent implements OnInit {
         }
       }
 
-      if (nextChDataStart) {
-        result[nextChDataStart] = -2;
-        result[nextChDataStart + 1] = -2;
-        result[nextChDataStart + 2] = -2;
-        result[nextChDataStart + 3] = -2;
-        result[nextChDataStart + 4] = -2;
-        result[nextChDataStart + 5] = -2;
-        result[nextChDataStart + 6] = -2;
-        result[nextChDataStart + 7] = -2;
-        result[nextChDataStart + 8] = -2;
+      const drawNextChDataStart = false;
+      if (drawNextChDataStart && nextChDataStart) {
+        for (let i = 0; i < 8; i++) {
+          result[nextChDataStart + i] = -2;
+        }
       }
 
       const offsetTemp = chDataList[chDataNum].offset
@@ -526,7 +521,7 @@ export class AppComponent implements OnInit {
       lastValue = chData[i];
     }
 
-    const drawEdges = true;
+    const drawEdges = false;
 
     if (drawEdges) {
       result.forEach(item => {
