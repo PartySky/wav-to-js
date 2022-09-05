@@ -155,8 +155,6 @@ export class AppComponent implements OnInit {
 
       let i = 0;
 
-      debugger;
-
       periods.forEach(item => {
         if (i < maxPeriod) {
           x2_channelData_Left[item.start + 1] = 0.25;
@@ -380,7 +378,7 @@ export class AppComponent implements OnInit {
 
     const outPutChDataTemp = this.mixDownChDatas([
       {chData: audioBuffer_Note_A.getChannelData(0), offset: 0},
-      {chData: audioBuffer_Note_B.getChannelData(0), offset: 3000},
+      {chData: audioBuffer_Note_B.getChannelData(0), offset: 300}, // 3000
     ]);
 
     for (let i = 0; i < outPutChDataTemp.length; i++) {
@@ -408,12 +406,48 @@ export class AppComponent implements OnInit {
       }
     })
 
-    debugger;
-
     for (let chDataNum = 0; chDataNum < chDataList.length; chDataNum++) {
-      const nextChDataStart = chDataList[chDataNum + 1] ? chDataList[chDataNum + 1]?.offset : 0;
+      const nextChDataStartOld = chDataList[chDataNum + 1] ? chDataList[chDataNum + 1]?.offset : 0;
 
       const periodListTemp = this.getChanelDataList(chDataList[chDataNum].chData);
+
+      let nextChDataStart = chDataList[chDataNum + 1] ? chDataList[chDataNum + 1]?.offset : 0;
+
+      if (chDataList[chDataNum + 1]) {
+        nextChDataStart = this.getNearestNextChDataStart({
+          periodList: periodListTemp,
+          offset: 0, target:
+          nextChDataStart
+        });
+      }
+
+      // nextChDataStart = chDataList[chDataNum + 1] ? chDataList[chDataNum + 1]?.offset : 0;
+      if (nextChDataStart) {
+        result[nextChDataStart] = -2;
+        result[nextChDataStart + 1] = -2;
+        result[nextChDataStart + 2] = -2;
+        result[nextChDataStart + 3] = -2;
+        result[nextChDataStart + 4] = -2;
+        result[nextChDataStart + 5] = -2;
+        result[nextChDataStart + 6] = -2;
+        result[nextChDataStart + 7] = -2;
+        result[nextChDataStart + 8] = -2;
+      }
+
+      const drawTempPosition = 600;
+
+      if (drawTempPosition) {
+        result[drawTempPosition] = -2;
+        result[drawTempPosition + 1] = -2;
+        result[drawTempPosition + 2] = -2;
+        result[drawTempPosition + 3] = -2;
+        result[drawTempPosition + 4] = -2;
+        result[drawTempPosition + 5] = -2;
+        result[drawTempPosition + 6] = -2;
+        result[drawTempPosition + 7] = -2;
+        result[drawTempPosition + 8] = -2;
+      }
+
 
       let i = 0;
       periodListTemp.forEach(period => {
@@ -490,6 +524,27 @@ export class AppComponent implements OnInit {
         item.chData[1] = -1;
       })
     }
+
+    return result;
+  }
+
+  getNearestNextChDataStart(dto: { periodList: Period3[], offset: number, target: number }): number {
+    let result = 0;
+    let lastSubstract = 0;
+    let head = 0;
+
+
+    debugger;
+
+    dto.periodList.forEach(item => {
+      const periodEndTemp = item.chData.length + head + dto.offset;
+      let currentSubstract = Math.abs(dto.target - periodEndTemp);
+      if (!lastSubstract || (currentSubstract < lastSubstract)) {
+        lastSubstract = currentSubstract;
+        result = periodEndTemp;
+      }
+      head = head + item.chData.length;
+    })
 
     return result;
   }
