@@ -113,9 +113,8 @@ export class AppComponent implements OnInit {
     const buffer = audioCtx.createBuffer(2, 22050, 44100);
 
     const ab_pattern_01 = await this.getFileFromUrl('assets/pattern.wav');
-    const AB_Note_A = await this.getFileFromUrl('assets/note_a.wav');
-    const AB_Note_B = await this.getFileFromUrl('assets/note_b.wav');
-
+    const AB_Note_A = await this.getFileFromUrl('assets/Eb2 Up2.wav');
+    const AB_Note_B = await this.getFileFromUrl('assets/F2 Up2.wav');
 
     let audBuff_pattern_01 = await audioCtx.decodeAudioData(ab_pattern_01);
     let audioBuffer_Note_A = await audioCtx.decodeAudioData(AB_Note_A);
@@ -124,7 +123,8 @@ export class AppComponent implements OnInit {
     const x_pattern_01 = audBuff_pattern_01.getChannelData(0);
     const x1 = audioBuffer.getChannelData(0);
     const x2_channelData_Left = audioBuffer_Note_A.getChannelData(0);
-    const x2_channelData_right = audioBuffer_Note_A.getChannelData(1);
+    const x2_channelData_right = audioBuffer_Note_A.numberOfChannels > 1 ?
+      audioBuffer_Note_A.getChannelData(1) : audioBuffer_Note_A.getChannelData(0);
 
     x2_channelData_Left[1320] = 0;
     x2_channelData_Left[1319] = -0.1;
@@ -373,7 +373,7 @@ export class AppComponent implements OnInit {
 
     const outPutChDataTemp = this.mixDownChDatas([
       {chData: audioBuffer_Note_A.getChannelData(0), offset: 0},
-      {chData: audioBuffer_Note_B.getChannelData(0), offset: 10},
+      {chData: audioBuffer_Note_B.getChannelData(0), offset: 3000},
     ]);
 
     for (let i = 0; i < outPutChDataTemp.length; i++) {
