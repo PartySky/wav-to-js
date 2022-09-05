@@ -386,7 +386,7 @@ export class AppComponent implements OnInit {
   }
 
   mixDownChDatas(chDataList: { chData: Float32Array, offset: number }[]): Float32Array {
-    const crossFadeLenght = 5;
+    const crossFadeLenght = 500;
     const renderMono = true;
     // todo: init it
     // @ts-ignore
@@ -404,11 +404,13 @@ export class AppComponent implements OnInit {
     debugger;
 
     for (let chDataNum = 0; chDataNum < chDataList.length; chDataNum++) {
-      // todo: use crossfade length there
       const nextChDataStart = chDataList[chDataNum + 1] ? chDataList[chDataNum + 1]?.offset : 0;
 
       for (let i = 0; i < maxLenght; i++) {
-        if (!renderMono || (!nextChDataStart || (nextChDataStart > 0 && i < nextChDataStart))) {
+        // todo: use crossfade length there
+        if (!renderMono || (
+          !nextChDataStart || (nextChDataStart > 0 && i < (nextChDataStart + crossFadeLenght))
+        )) {
           const valueTemp = chDataList[chDataNum].chData[i - chDataList[chDataNum].offset];
           if (!result[i]) {
             result[i] = 0;
