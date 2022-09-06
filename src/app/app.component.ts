@@ -15,6 +15,7 @@ export class AppComponent implements OnInit {
   dataToRender: Float32Array;
   notesToRender: Note[] = [];
   notesReadMode = true;
+  drawMarkers = false;
 
   constructor() {
   }
@@ -26,7 +27,8 @@ export class AppComponent implements OnInit {
   @HostListener('document:keypress', ['$event'])
   handleKeyboardEvent(event: KeyboardEvent) {
     let key = event.code;
-    const maxNoteAmount = 3;
+
+    const maxNoteAmount = 30;
     let noteId = 0;
     if (key === "KeyA") {
       noteId = 1;
@@ -34,13 +36,20 @@ export class AppComponent implements OnInit {
       noteId = 2;
     } else if (key === "KeyG") {
       noteId = 3;
-    } else if (key === "KeyM") {
-      this.generateWavFile();
-    } else {
-      this.notesToRender = [];
-      return;
     }
 
+    if (key === "KeyM") {
+      this.generateWavFile();
+    } else if (key === "KeyL") {
+      this.drawMarkers = true;
+      this.generateWavFile();
+    } else if (key === "KeyR") {
+      this.notesToRender = [];
+    }
+
+    if (!noteId) {
+      return;
+    }
     const sampleRate = 44100;
 
     if (this.notesToRender.length < maxNoteAmount) {
@@ -48,8 +57,6 @@ export class AppComponent implements OnInit {
         offset: (new Date().getTime() * 0.001) * sampleRate,
         noteId: noteId,
       });
-    } else {
-      // this.generateWavFile();
     }
   }
 
@@ -156,8 +163,10 @@ export class AppComponent implements OnInit {
         } else if (item.noteId === 3) {
           noteABTemp = audioBuffer_Note_C;
         }
+        const periodList = this.getChanelDataList(noteABTemp.getChannelData(0));
+
         chDataListForMixDown.push({
-          periodList: this.getChanelDataList(noteABTemp.getChannelData(0)),
+          periodList: periodList,
           offset: item.offset,
         });
       })
@@ -207,14 +216,14 @@ export class AppComponent implements OnInit {
       if (chDataList[chDataNum + 1]) {
         nextChDataStart = this.getNearestNextChDataStart({
           periodList: periodListTemp,
-          offset: 0, target:
-          nextChDataStart
+          offset: chDataList[chDataNum].offset,
+          target: nextChDataStart
         });
 
         usedPeriodsNum = this.getUsedPeriodsForNearestNextChDataStart({
           periodList: periodListTemp,
-          offset: 0, target:
-          nextChDataStart
+          offset: chDataList[chDataNum].offset,
+          target: nextChDataStart
         });
 
         if (nextChDataStart) {
@@ -247,9 +256,10 @@ export class AppComponent implements OnInit {
         }
       }
 
-      const drawNextChDataStart = true;
+      const drawNextChDataStart = true && this.drawMarkers;
       if (drawNextChDataStart && nextChDataStart) {
-        for (let i = 0; i < 8; i++) {
+        const markerWidth = 30; // 8
+        for (let i = 0; i < markerWidth; i++) {
           result[nextChDataStart + i] = -2;
         }
       }
@@ -311,7 +321,7 @@ export class AppComponent implements OnInit {
       lastValue = chData[i];
     }
 
-    const drawEdges = true;
+    const drawEdges = true && this.drawMarkers;
 
     if (drawEdges) {
       result.forEach(item => {
