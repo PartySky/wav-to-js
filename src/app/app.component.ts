@@ -184,12 +184,14 @@ export class AppComponent implements OnInit {
              * котрый соответсвтует nextChDataStart
              */
             if (periodCounter >= usedPeriodsNum) {
+              let amplitude = crossfadePeriodCounter / numPeriodsToCrossfade;
 
               if (crossfadePeriodCounter < numPeriodsToCrossfade) {
                 nextChDataTemp.periodList[crossfadePeriodCounter].chData =
                   this.getAdjustedChDataForPeriod({
                     chData: nextChDataTemp.periodList[crossfadePeriodCounter].chData,
-                    targetLength: item.chData.length
+                    targetLength: item.chData.length,
+                    amplitude: amplitude
                   });
               }
               crossfadePeriodCounter++;
@@ -212,13 +214,17 @@ export class AppComponent implements OnInit {
       let periodCounter = 0;
       periodListTemp.forEach(period => {
         if (!renderMono || !usedPeriodsNum || (periodCounter < (usedPeriodsNum + numPeriodsToCrossfade))) {
+          let amplitude = 1;
+          if (usedPeriodsNum && periodCounter >= usedPeriodsNum) {
+            amplitude = (numPeriodsToCrossfade - (periodCounter - usedPeriodsNum)) / numPeriodsToCrossfade;
+          }
           period.chData.forEach(chData => {
             if (i < maxLenght) {
               if (!result[i]) {
                 result[i] = 0;
               }
               if (chData) {
-                result[i] = result[i] + chData;
+                result[i] = result[i] + chData * amplitude;
               }
             }
             i++;
