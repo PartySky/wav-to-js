@@ -1,7 +1,8 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, HostListener, OnInit} from '@angular/core';
 import * as WavFileEncoder from "wav-file-encoder";
 import {UiParms} from "./uiParms";
 import {Period} from "./period";
+import {Note} from "./note";
 
 @Component({
   selector: 'app-root',
@@ -12,12 +13,44 @@ export class AppComponent implements OnInit {
   channelData: Float32Array;
   patternChannelData: Float32Array;
   dataToRender: Float32Array;
+  notesToRender: Note[] = [];
+  notesReadMode = true;
 
   constructor() {
   }
 
   ngOnInit() {
     this.generateWavFileButton_click();
+  }
+
+  @HostListener('document:keypress', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent) {
+    let key = event.code;
+    const maxNoteAmount = 3;
+    let noteId = 0;
+    if (key === "KeyA") {
+      noteId = 1;
+    } else if (key === "KeyD") {
+      noteId = 2;
+    } else if (key === "KeyG") {
+      noteId = 3;
+    } else if (key === "KeyM") {
+      this.generateWavFile();
+    } else {
+      this.notesToRender = [];
+      return;
+    }
+
+    const sampleRate = 44100;
+
+    if (this.notesToRender.length < maxNoteAmount) {
+      this.notesToRender.push({
+        offset: (new Date().getTime() * 0.001) * sampleRate,
+        noteId: noteId,
+      });
+    } else {
+      // this.generateWavFile();
+    }
   }
 
   async getFileFromUrl(url: string) {
@@ -83,13 +116,15 @@ export class AppComponent implements OnInit {
 
     const ab_pattern_01 = await this.getFileFromUrl('assets/pattern.wav');
     const AB_Note_Zero = await this.getFileFromUrl('assets/Note Zero.wav');
-    const AB_Note_A = await this.getFileFromUrl('assets/Eb2 Up2.wav');
-    const AB_Note_B = await this.getFileFromUrl('assets/F2 Up2.wav');
+    const AB_Note_A = await this.getFileFromUrl('assets/Tenor Sax Eb.wav'); // Eb2 Up2.wav
+    const AB_Note_B = await this.getFileFromUrl('assets/Tenor Sax F.wav'); // F2 Up2.wav
+    const AB_Note_C = await this.getFileFromUrl('assets/Tenor Sax G.wav');
 
     let audBuff_pattern_01 = await audioCtx.decodeAudioData(ab_pattern_01);
     let audioBuffer_Note_Zero = await audioCtx.decodeAudioData(AB_Note_Zero);
     let audioBuffer_Note_A = await audioCtx.decodeAudioData(AB_Note_A);
     let audioBuffer_Note_B = await audioCtx.decodeAudioData(AB_Note_B);
+    let audioBuffer_Note_C = await audioCtx.decodeAudioData(AB_Note_C);
 
     const x_pattern_01 = audBuff_pattern_01.getChannelData(0);
     const x2_channelData_Left = audioBuffer_Note_A.getChannelData(0);
@@ -106,10 +141,36 @@ export class AppComponent implements OnInit {
       outPutChData[i] = 0;
     }
 
-    const outPutChDataTemp = this.mixDownChDatas([
-      {periodList: this.getChanelDataList(audioBuffer_Note_A.getChannelData(0)), offset: 0},
-      {periodList: this.getChanelDataList(audioBuffer_Note_B.getChannelData(0)), offset: 6000}, // 1200
-    ]);
+    let chDataListForMixDown: { periodList: Period[], offset: number }[] = [];
+
+    if (this.notesReadMode && this.notesToRender.length) {
+      const zeroOffset = this.notesToRender[0].offset;
+
+      this.notesToRender.forEach(item => {
+        item.offset = item.offset - zeroOffset;
+        let noteABTemp: AudioBuffer;
+        if (item.noteId === 1) {
+          noteABTemp = audioBuffer_Note_A;
+        } else if (item.noteId === 2) {
+          noteABTemp = audioBuffer_Note_B;
+        } else if (item.noteId === 3) {
+          noteABTemp = audioBuffer_Note_C;
+        }
+        chDataListForMixDown.push({
+          periodList: this.getChanelDataList(noteABTemp.getChannelData(0)),
+          offset: item.offset,
+        });
+      })
+      this.notesToRender = [];
+      debugger;
+    } else {
+      chDataListForMixDown = [
+        {periodList: this.getChanelDataList(audioBuffer_Note_A.getChannelData(0)), offset: 0},
+        {periodList: this.getChanelDataList(audioBuffer_Note_B.getChannelData(0)), offset: 6000}, // 1200
+      ];
+    }
+
+    const outPutChDataTemp = this.mixDownChDatas(chDataListForMixDown);
 
     for (let i = 0; i < outPutChDataTemp.length; i++) {
       outPutChData[i] = outPutChDataTemp[i];
