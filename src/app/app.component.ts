@@ -90,19 +90,6 @@ export class AppComponent implements OnInit {
     (<any>document).dummySaveAsElementHolder = element;
   }
 
-  // to prevent garbage collection
-
-  generateWavFile(): void {
-    const uiParms = this.getUiParms();
-    if (!uiParms) {
-      return;
-    }
-    const audioBuffer = this.generateSineWaveSignal(uiParms.frequency, uiParms.amplitude, uiParms.duration, uiParms.channels, uiParms.sampleRate);
-    const wavFileData = WavFileEncoder.encodeWavFile(audioBuffer, uiParms.wavFileType);
-    const blob = new Blob([wavFileData], {type: "audio/wav"});
-    this.openSaveAsDialog(blob, "test.wav");
-  }
-
   async generateWavFile2() {
     const uiParms = this.getUiParms();
     if (!uiParms) {
@@ -189,8 +176,6 @@ export class AppComponent implements OnInit {
           let nextChDataTemp = chDataList[chDataNum + 1];
           nextChDataTemp.offset = nextChDataStart;
 
-          const adjustedPeriodListTemp: Period3[] = [];
-
           let periodCounter = 0;
           let crossfadePeriodCounter = 0;
           periodListTemp.forEach(item => {
@@ -215,7 +200,7 @@ export class AppComponent implements OnInit {
         }
       }
 
-      const drawNextChDataStart = false;
+      const drawNextChDataStart = true;
       if (drawNextChDataStart && nextChDataStart) {
         for (let i = 0; i < 8; i++) {
           result[nextChDataStart + i] = -2;
@@ -277,7 +262,7 @@ export class AppComponent implements OnInit {
       lastValue = chData[i];
     }
 
-    const drawEdges = false;
+    const drawEdges = true;
 
     if (drawEdges) {
       result.forEach(item => {
@@ -669,13 +654,12 @@ export class AppComponent implements OnInit {
     return result;
   }
 
-  getAdjustedChDataForPeriod(dto: { chData: Float32Array; targetLength: number }): Float32Array {
-    // @ts-ignore
-    let result: Float32Array = [];
-
-    // todo: доделать растягивание/сжатие периода
-    for (let i = 0; i < dto.targetLength; i++) {
-      result[i] = dto.chData[i];
+  getAdjustedChDataForPeriod(dto: { chData: Float32Array; targetLength: number; amplitude?: number }): Float32Array {
+    let result: Float32Array = new Float32Array(dto.targetLength);
+    const multiplier = dto.chData.length / dto.targetLength;
+    const amplitude = dto.amplitude ? dto.amplitude : 1;
+    for (let i = 0; i < result.length; i++) {
+      result[i] = dto.chData[Math.round(i * multiplier)] * amplitude;
     }
 
     return result;
