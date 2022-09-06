@@ -108,10 +108,7 @@ export class AppComponent implements OnInit {
     if (!uiParms) {
       return;
     }
-    const audioBuffer = this.generateSineWaveSignal(uiParms.frequency, uiParms.amplitude, uiParms.duration, uiParms.channels, uiParms.sampleRate);
-
     const audioCtx = new AudioContext();
-    const buffer = audioCtx.createBuffer(2, 22050, 44100);
 
     const ab_pattern_01 = await this.getFileFromUrl('assets/pattern.wav');
     const AB_Note_Zero = await this.getFileFromUrl('assets/Note Zero.wav');
@@ -124,250 +121,12 @@ export class AppComponent implements OnInit {
     let audioBuffer_Note_B = await audioCtx.decodeAudioData(AB_Note_B);
 
     const x_pattern_01 = audBuff_pattern_01.getChannelData(0);
-    const x1 = audioBuffer.getChannelData(0);
     const x2_channelData_Left = audioBuffer_Note_A.getChannelData(0);
     const x2_channelData_right = audioBuffer_Note_A.numberOfChannels > 1 ?
       audioBuffer_Note_A.getChannelData(1) : audioBuffer_Note_A.getChannelData(0);
 
-    x2_channelData_Left[1320] = 0;
-    x2_channelData_Left[1319] = -0.1;
-
-    // const notes = this.scanNotes(x2);
-    // const pattern_notes = this.scanNotes(x_pattern_01, 2530);
-
-    const periods: Period[] = this.scanPeriods(x2_channelData_Left, 1320 + 2);
-    const patternPeriods: Period[] = this.scanPeriods(x_pattern_01, 1695 + 2);
-    // const allZeroCrosses = this.getAllZeroCrosses(x2, 1320 + 2);
-
-    const doTest = false;
-    const doTestOnRight = false;
-    const doTestOnPattern = true;
-    const renderPeriods = true;
-
-    const maxPeriod = 40; //20
-
-    if (doTest) {
-      // x2[periods[testI].start + 1] = 0.5;
-      // x2[periods[testI].crosses[0] + 1] = -0.25;
-      // x2[periods[testI].crosses[1] + 1] = -0.25;
-      // x2[periods[testI].crosses[2] + 1] = -0.25;
-      // x2[periods[testI].end + 1] = -0.5;
-
-      let i = 0;
-
-      periods.forEach(item => {
-        if (i < maxPeriod) {
-          x2_channelData_Left[item.start + 1] = 0.25;
-          x2_channelData_Left[item.end + 3] = -0.25;
-          item.crosses.forEach(cross => {
-            x2_channelData_Left[cross + 1] = -0.125;
-          })
-        }
-        i++;
-      })
-
-    }
-
-    if (doTestOnRight) {
-      const chData = x2_channelData_right;
-
-      let i = 0;
-
-      periods.forEach(item => {
-        if (i < maxPeriod) {
-          chData[item.start + 1] = 0.25;
-          chData[item.end + 3] = -0.25;
-          item.crosses.forEach(cross => {
-            chData[cross + 1] = -0.125;
-          })
-        }
-        i++;
-      })
-    }
-
-    if (doTestOnPattern) {
-      const chData = x_pattern_01;
-
-      let i = 0;
-
-      patternPeriods.forEach(item => {
-        if (i < maxPeriod) {
-          chData[item.start + 1] = 0.25;
-          chData[item.end + 3] = -0.25;
-          item.crosses.forEach(cross => {
-            chData[cross + 1] = -0.125;
-          })
-        }
-        i++;
-      })
-    }
-
-    if (renderPeriods && false) {
-      const chData = x2_channelData_Left;
-
-      let i = 0;
-      let volumeDelta = 0.001;
-      let volumeTemp = -1;
-
-      periods.forEach(item => {
-        if (i < maxPeriod) {
-          volumeTemp = -1;
-          for (let iCounter = item.start; iCounter < item.end; iCounter++) {
-            chData[iCounter] = volumeTemp;
-            volumeTemp = volumeTemp + volumeDelta;
-
-            if (volumeTemp > 1) {
-              volumeTemp = -1;
-            }
-          }
-        }
-        i++;
-      })
-    }
-
-    if (renderPeriods && false) {
-      const chData = x2_channelData_Left;
-
-      let i = 0;
-      let volumeDelta = 0.001;
-      let volumeTemp = -1;
-
-      periods.forEach(item => {
-        if (i < maxPeriod) {
-          let iPattern = 2530;
-          for (let iCounter = item.start; iCounter < item.end; iCounter++) {
-            chData[iCounter] = x_pattern_01[iPattern];
-
-
-            iPattern++;
-
-            // if(volumeTemp > 1) {
-            //   volumeTemp = -1;
-            // }
-          }
-        }
-        i++;
-      })
-    }
-
-    if (renderPeriods && false) {
-      const chData = x2_channelData_Left;
-
-      let i = 0;
-      let volumeDelta = 0.001;
-      let volumeTemp = -1;
-      let patternPeriodCounter = 1;
-      let patternSampleHeader = 0;
-
-      periods.forEach(item => {
-        //
-        //   if (patternPeriodCounter >= patternPeriods.length) {
-        //     patternPeriodCounter = 0;
-        //     patternSampleHeader = 0;
-        //   }
-        //
-        //   patternSampleHeader = patternPeriods[patternPeriodCounter].start;
-        //   if (i < maxPeriod && patternPeriodCounter < patternPeriods.length) {
-        //     for (let iCounter = item.start; iCounter < item.end; iCounter++) {
-        //       chData[iCounter] = x_pattern_01[patternSampleHeader];
-        //
-        //       patternSampleHeader++;
-        //
-        //     }
-        //   }
-        //   i++;
-        //   patternPeriodCounter++;
-        //
-
-        // this.doCopyPeriodData(chData, x_pattern_01, item, patternPeriods[0]);
-      })
-
-      // for (let i = 0; i < periods.length; i++) {
-      //   this.doCopyPeriodData(chData, x_pattern_01, periods[i], patternPeriods[0]);
-      // }
-
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[0], patternPeriods[0]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[1], patternPeriods[0]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[2], patternPeriods[0]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[3], patternPeriods[0]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[4], patternPeriods[0]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[5], patternPeriods[0]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[6], patternPeriods[0]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[7], patternPeriods[0]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[8], patternPeriods[0]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[9], patternPeriods[0]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[10], patternPeriods[0]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[11], patternPeriods[0]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[12], patternPeriods[0]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[13], patternPeriods[0]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[14], patternPeriods[0]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[15], patternPeriods[0]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[16], patternPeriods[0]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[17], patternPeriods[0]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[18], patternPeriods[0]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[19], patternPeriods[0]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[20], patternPeriods[0]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[21], patternPeriods[0]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[22], patternPeriods[0]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[23], patternPeriods[0]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[24], patternPeriods[0]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[25], patternPeriods[0]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[26], patternPeriods[0]);
-
-
-      this.copyPeriodData(chData, x_pattern_01, periods[0], patternPeriods[0]);
-      this.copyPeriodData(chData, x_pattern_01, periods[1], patternPeriods[1]);
-      this.copyPeriodData(chData, x_pattern_01, periods[2], patternPeriods[2]);
-      this.copyPeriodData(chData, x_pattern_01, periods[3], patternPeriods[3]);
-      this.copyPeriodData(chData, x_pattern_01, periods[4], patternPeriods[4]);
-      this.copyPeriodData(chData, x_pattern_01, periods[5], patternPeriods[5]);
-      this.copyPeriodData(chData, x_pattern_01, periods[6], patternPeriods[6]);
-      this.copyPeriodData(chData, x_pattern_01, periods[7], patternPeriods[7]);
-      this.copyPeriodData(chData, x_pattern_01, periods[8], patternPeriods[8]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[9], patternPeriods[9]);
-      this.copyPeriodData(chData, x_pattern_01, periods[10], patternPeriods[10]);
-      this.copyPeriodData(chData, x_pattern_01, periods[11], patternPeriods[11]);
-      this.copyPeriodData(chData, x_pattern_01, periods[12], patternPeriods[12]);
-      this.copyPeriodData(chData, x_pattern_01, periods[13], patternPeriods[13]);
-      this.copyPeriodData(chData, x_pattern_01, periods[14], patternPeriods[14]);
-      this.copyPeriodData(chData, x_pattern_01, periods[15], patternPeriods[15]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[16], patternPeriods[16]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[17], patternPeriods[17]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[18], patternPeriods[18]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[19], patternPeriods[19]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[20], patternPeriods[20]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[21], patternPeriods[21]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[22], patternPeriods[22]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[23], patternPeriods[23]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[24], patternPeriods[24]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[25], patternPeriods[25]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[26], patternPeriods[26]);
-
-
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[0], patternPeriods[15]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[1], patternPeriods[16]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[2], patternPeriods[17]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[3], patternPeriods[18]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[4], patternPeriods[19]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[5], patternPeriods[20]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[6], patternPeriods[21]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[7], patternPeriods[22]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[8], patternPeriods[23]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[9], patternPeriods[24]);
-      // this.doCopyPeriodData(chData, x_pattern_01, periods[10], patternPeriods[25]);
-
-      // this.doMorphInPeriod(chData, x_pattern_01, periods[9], patternPeriods[1]);
-      this.doMorphingInPeriod(chData, x_pattern_01, periods[9], patternPeriods[9]);
-    }
-
-
     this.channelData = x2_channelData_Left.slice(0, 30000);
     this.patternChannelData = x_pattern_01.slice(0, 15000);
-
-    // this.applyRandomePitch(x2, notes);
-
-    // this.dataToRender = audioBuffer_02.getChannelData(0).slice(0, 150);
-
 
     const outPutAB: AudioBuffer = audioBuffer_Note_Zero;
     let outPutChData: Float32Array = outPutAB.getChannelData(0);
@@ -391,11 +150,8 @@ export class AppComponent implements OnInit {
   }
 
   mixDownChDatas(chDataList: { periodList: Period3[], offset: number }[]): Float32Array {
-    const crossFadeLenght = 500;
     const renderMono = true;
-    // todo: init it
-    // @ts-ignore
-    let result: Float32Array = [];
+    let result: number[] = [];
 
     let maxLenght = 0;
 
@@ -415,7 +171,7 @@ export class AppComponent implements OnInit {
       let nextChDataStart = chDataList[chDataNum + 1] ? chDataList[chDataNum + 1]?.offset : 0;
 
       let usedPeriodsNum = 0;
-      const numPeriodsToCrossfade = 5;
+      const numPeriodsToCrossfade = 15; // 5
       if (chDataList[chDataNum + 1]) {
         nextChDataStart = this.getNearestNextChDataStart({
           periodList: periodListTemp,
@@ -487,7 +243,7 @@ export class AppComponent implements OnInit {
       })
     }
 
-    return result;
+    return new Float32Array(result);
   }
 
   getChanelDataList(chData: Float32Array): Period3[] {
@@ -586,76 +342,6 @@ export class AppComponent implements OnInit {
         padL(dt.getMinutes())}:${
         padL(dt.getSeconds())}`;
 
-    return result;
-  }
-
-  scanNotes(channelData: Float32Array, patternFirstNoteStart = 0): Note[] {
-    const startScanTreshold = 0.035;
-    let firstNoteStart = 0;
-
-    for (let i = 0; firstNoteStart === 0; i++) {
-      if (Math.abs(channelData[i]) >= startScanTreshold) {
-        firstNoteStart = i;
-      }
-    }
-
-    if (patternFirstNoteStart) {
-      firstNoteStart = patternFirstNoteStart;
-    }
-
-    const allZeroCrosses = this.getAllZeroCrosses(channelData, firstNoteStart);
-
-    const note_01: Note = {
-      start: allZeroCrosses[0],
-      length: 0,
-      periods: [],
-    };
-
-    const someX = 750;
-    // let lastCross = firstNoteStart;
-
-    let lastStart = note_01.start;
-
-    for (let i = 0; i < someX; i++) {
-      const periodTemp: Period = {
-        start: 0,
-        end: 0,
-        crosses: [],
-        periodLength: 0
-      };
-
-      periodTemp.crosses = this.getPeriodCrosses(channelData, lastStart);
-
-      let delta = null;
-
-      if (patternFirstNoteStart) {
-        delta = 154 / 4
-      } else {
-        delta = 154 / 16
-      }
-
-      const periodEnd = this.findPeriodLengthByNDots(channelData, lastStart, allZeroCrosses, delta);
-
-      periodTemp.start = lastStart;
-      periodTemp.end = periodEnd;
-      periodTemp.periodLength = periodEnd - lastStart;
-
-      note_01.periods.push(periodTemp);
-
-      lastStart = periodEnd;
-    }
-
-    let firstNoteEnd = 0;
-
-    for (let i = 0; firstNoteStart === 0; i++) {
-      if (Math.abs(channelData[i]) >= startScanTreshold) {
-        // firstNoteStart = i;
-      }
-    }
-
-    let result: Note[] = [
-      note_01
-    ];
     return result;
   }
 
@@ -792,33 +478,6 @@ export class AppComponent implements OnInit {
     result[0] = this.getNoteZeroCross(channelData, start);
     result[1] = this.getNoteZeroCross(channelData, result[0]);
     result[2] = this.getNoteZeroCross(channelData, result[1]);
-
-    return result;
-  }
-
-  private scanPeriods(channelData: Float32Array, start = 0): Period[] {
-    const result: Period[] = [];
-
-    const allZeroCrosses = this.getAllZeroCrosses(channelData, start);
-    let lastStart = start;
-
-    let crossTrigger = 9000;
-
-    for (let i = 0; crossTrigger > 0 && i < 4000; i++) {
-
-      const crosses = this.getPeriodCrosses(channelData, lastStart);
-      crossTrigger = crosses[0];
-
-      const periodEnd = this.findPeriodLengthByNDots2(lastStart, crosses, allZeroCrosses);
-      const periodTemp: Period = {
-        start: lastStart,
-        end: periodEnd,
-        crosses: crosses,
-        periodLength: 0
-      };
-      result.push(periodTemp)
-      lastStart = periodEnd;
-    }
 
     return result;
   }
