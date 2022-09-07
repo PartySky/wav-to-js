@@ -3,6 +3,7 @@ import * as WavFileEncoder from "wav-file-encoder";
 import {UiParms} from "./uiParms";
 import {Period} from "./period";
 import {Note} from "./note";
+import {getTransitionSampleName} from "./getTransitionSampleName";
 
 @Component({
   selector: 'app-root',
@@ -123,15 +124,21 @@ export class AppComponent implements OnInit {
 
     const ab_pattern_01 = await this.getFileFromUrl('assets/pattern.wav');
     const AB_Note_Zero = await this.getFileFromUrl('assets/Note Zero.wav');
-    const AB_Note_A = await this.getFileFromUrl('assets/Tenor Sax Eb.wav'); // Eb2 Up2.wav
-    const AB_Note_B = await this.getFileFromUrl('assets/Tenor Sax F.wav'); // F2 Up2.wav
+    const AB_Note_A = await this.getFileFromUrl('assets/Tenor Sax Eb.wav');
+    const AB_Note_B = await this.getFileFromUrl('assets/Tenor Sax F.wav');
     const AB_Note_C = await this.getFileFromUrl('assets/Tenor Sax G.wav');
+
+    const AB_Transition_Eb_F = await this.getFileFromUrl('assets/Eb2 Up2.wav');
+    const AB_Transition_F_G = await this.getFileFromUrl('assets/F2 Up2.wav');
 
     let audBuff_pattern_01 = await audioCtx.decodeAudioData(ab_pattern_01);
     let audioBuffer_Note_Zero = await audioCtx.decodeAudioData(AB_Note_Zero);
     let audioBuffer_Note_A = await audioCtx.decodeAudioData(AB_Note_A);
     let audioBuffer_Note_B = await audioCtx.decodeAudioData(AB_Note_B);
     let audioBuffer_Note_C = await audioCtx.decodeAudioData(AB_Note_C);
+
+    let audioBuffer_Transition_Eb_F = await audioCtx.decodeAudioData(AB_Transition_Eb_F);
+    let audioBuffer_Transition_F_G = await audioCtx.decodeAudioData(AB_Transition_F_G);
 
     const x_pattern_01 = audBuff_pattern_01.getChannelData(0);
     const x2_channelData_Left = audioBuffer_Note_A.getChannelData(0);
@@ -153,14 +160,25 @@ export class AppComponent implements OnInit {
     if (this.notesReadMode && this.notesToRender.length) {
       const zeroOffset = this.notesToRender[0].offset;
 
+      let i = 0;
       this.notesToRender.forEach(item => {
         item.offset = item.offset - zeroOffset;
         let noteABTemp: AudioBuffer;
-        if (item.noteId === 1) {
+        let nextItem = this.notesToRender[i + 1];
+        let nextNoteId = nextItem ? nextItem.noteId : null;
+        let sampleName = getTransitionSampleName([
+          item.noteId,
+          nextNoteId
+        ]);
+        if (sampleName === 'Eb2 F') {
+          noteABTemp = audioBuffer_Transition_Eb_F;
+        } else if (sampleName === 'F G') {
+          noteABTemp = audioBuffer_Transition_F_G;
+        } else if (sampleName === 'Eb') {
           noteABTemp = audioBuffer_Note_A;
-        } else if (item.noteId === 2) {
+        } else if (sampleName === 'F') {
           noteABTemp = audioBuffer_Note_B;
-        } else if (item.noteId === 3) {
+        } else if (sampleName === 'G') {
           noteABTemp = audioBuffer_Note_C;
         }
         const periodList = this.getChanelDataList(noteABTemp.getChannelData(0));
@@ -169,9 +187,9 @@ export class AppComponent implements OnInit {
           periodList: periodList,
           offset: item.offset,
         });
+        i++;
       })
       this.notesToRender = [];
-      debugger;
     } else {
       chDataListForMixDown = [
         {periodList: this.getChanelDataList(audioBuffer_Note_A.getChannelData(0)), offset: 0},
