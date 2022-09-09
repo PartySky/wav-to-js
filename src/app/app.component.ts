@@ -22,7 +22,28 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.initMidi();
     this.generateWavFileButton_click();
+  }
+
+  initMidi(): void {
+    // @ts-ignore
+    navigator.requestMIDIAccess()
+      .then(this.onMIDISuccess.bind(this), this.onMIDIFailure)
+  }
+
+  onMIDIFailure(): void {
+    console.log('Could not access your MIDI devices.');
+  }
+
+  onMIDISuccess(midiAccess): void {
+    for (let input of midiAccess.inputs.values()) {
+      input.onmidimessage = this.getMIDIMessage;
+    }
+  }
+
+  getMIDIMessage(midiMessage) {
+    console.log(midiMessage);
   }
 
   @HostListener('document:keypress', ['$event'])
