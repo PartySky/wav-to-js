@@ -167,6 +167,19 @@ export class AppComponent implements OnInit {
     let audioBuffer_Transition_Eb_F = await audioCtx.decodeAudioData(AB_Transition_Eb_F);
     let audioBuffer_Transition_F_G = await audioCtx.decodeAudioData(AB_Transition_F_G);
 
+    let audioBuffer_Transition_Dictionary: {[key: string]: AudioBuffer} = {};
+
+    audioBuffer_Transition_Dictionary[`${midiNoteNumbers.Eb2_39} ${midiNoteNumbers.F2_41}`] =
+      audioBuffer_Transition_Eb_F;
+    audioBuffer_Transition_Dictionary[`${midiNoteNumbers.F2_41} ${midiNoteNumbers.G2_43}`] =
+      audioBuffer_Transition_F_G;
+    audioBuffer_Transition_Dictionary[`${midiNoteNumbers.Eb2_39}`] =
+      audioBuffer_Note_A;
+    audioBuffer_Transition_Dictionary[`${midiNoteNumbers.F2_41}`] =
+      audioBuffer_Note_B;
+    audioBuffer_Transition_Dictionary[`${midiNoteNumbers.G2_43}`] =
+      audioBuffer_Note_C;
+
     const x_pattern_01 = audBuff_pattern_01.getChannelData(0);
     const x2_channelData_Left = audioBuffer_Note_A.getChannelData(0);
     const x2_channelData_right = audioBuffer_Note_A.numberOfChannels > 1 ?
@@ -197,17 +210,9 @@ export class AppComponent implements OnInit {
           item.noteId,
           nextNoteId
         ]);
-        if (sampleName === 'Eb2 F') {
-          noteABTemp = audioBuffer_Transition_Eb_F;
-        } else if (sampleName === 'F G') {
-          noteABTemp = audioBuffer_Transition_F_G;
-        } else if (sampleName === 'Eb') {
-          noteABTemp = audioBuffer_Note_A;
-        } else if (sampleName === 'F') {
-          noteABTemp = audioBuffer_Note_B;
-        } else if (sampleName === 'G') {
-          noteABTemp = audioBuffer_Note_C;
-        }
+
+        noteABTemp = audioBuffer_Transition_Dictionary[sampleName];
+
         const periodList = this.getChanelDataList(noteABTemp.getChannelData(0));
 
         chDataListForMixDown.push({
