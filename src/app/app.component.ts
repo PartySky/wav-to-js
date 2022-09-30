@@ -444,6 +444,8 @@ export class AppComponent implements OnInit {
     let audioBuffer_FastSprite_35_Down = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Fast Sprite 35.wav'));
     let audioBuffer_FastSprite_35_Up = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Fast Sprite 35.wav'));
 
+    let audioBuffer_FastSprite_35_Down_List = this.getX(audioBuffer_FastSprite_35);
+
     let audioBuffer_FastSprite_39_Down = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Fast Sprite 39.wav'));
     let audioBuffer_FastSprite_39_Up = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Fast Sprite 39.wav'));
 
@@ -461,6 +463,14 @@ export class AppComponent implements OnInit {
     let audioBuffer_Transition_F_G = await audioCtx.decodeAudioData(AB_Transition_F_G);
 
     let result: { [key: string]: AudioBuffer } = {};
+
+    if (false) {
+      let roundRobinCounter = 0;
+      audioBuffer_FastSprite_35_Down_List.forEach(item => {
+        result[`${midiNoteNumbers.N_B1_35} ${articulations.fastDown} RR${roundRobinCounter}`] =
+          item;
+      })
+    }
 
     result[`${midiNoteNumbers.N_B1_35} ${articulations.fastDown}`] =
       audioBuffer_FastSprite_35_Down;
@@ -495,4 +505,10 @@ export class AppComponent implements OnInit {
 
     return result;
   }
+
+  getX(audioBuffer_FastSprite_35: AudioBuffer): AudioBuffer[] {
+    let x: AudioBuffer[];
+    return x;
+  }
 }
+
