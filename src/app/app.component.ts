@@ -4,6 +4,7 @@ import {UiParms} from "./uiParms";
 import {Period} from "./period";
 import {Note} from "./note";
 import {getTransitionSampleName} from "./getTransitionSampleName";
+import {midiNoteNumbers} from "./midiNoteNumbers";
 
 @Component({
   selector: 'app-root',
@@ -53,11 +54,13 @@ export class AppComponent implements OnInit {
     const maxNoteAmount = 30;
     let noteId = 0;
     if (key === "KeyA") {
-      noteId = 1;
+      noteId = midiNoteNumbers.Eb2_39;
     } else if (key === "KeyD") {
-      noteId = 2;
+      noteId = midiNoteNumbers.F2_41;
     } else if (key === "KeyG") {
-      noteId = 3;
+      noteId = midiNoteNumbers.G2_43;
+    } else if (key === "KeyP") {
+      noteId = midiNoteNumbers.C1_24_VibratoTrigger;
     }
 
     if (key === "KeyM") {
@@ -145,6 +148,9 @@ export class AppComponent implements OnInit {
 
     const ab_pattern_01 = await this.getFileFromUrl('assets/pattern.wav');
     const AB_Note_Zero = await this.getFileFromUrl('assets/Note Zero.wav');
+
+    const AB_Fast_Sprite_35 = await this.getFileFromUrl('assets/Fast Sprite 35.wav');
+
     const AB_Note_A = await this.getFileFromUrl('assets/Tenor Sax Eb.wav');
     const AB_Note_B = await this.getFileFromUrl('assets/Tenor Sax F.wav');
     const AB_Note_C = await this.getFileFromUrl('assets/Tenor Sax G.wav');
