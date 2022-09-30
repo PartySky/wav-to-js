@@ -149,36 +149,14 @@ export class AppComponent implements OnInit {
     const ab_pattern_01 = await this.getFileFromUrl('assets/pattern.wav');
     const AB_Note_Zero = await this.getFileFromUrl('assets/Note Zero.wav');
 
-    const AB_Fast_Sprite_35 = await this.getFileFromUrl('assets/Fast Sprite 35.wav');
-
     const AB_Note_A = await this.getFileFromUrl('assets/Tenor Sax Eb.wav');
-    const AB_Note_B = await this.getFileFromUrl('assets/Tenor Sax F.wav');
-    const AB_Note_C = await this.getFileFromUrl('assets/Tenor Sax G.wav');
 
-    const AB_Transition_Eb_F = await this.getFileFromUrl('assets/Eb2 Up2.wav');
-    const AB_Transition_F_G = await this.getFileFromUrl('assets/F2 Up2.wav');
 
     let audBuff_pattern_01 = await audioCtx.decodeAudioData(ab_pattern_01);
     let audioBuffer_Note_Zero = await audioCtx.decodeAudioData(AB_Note_Zero);
     let audioBuffer_Note_A = await audioCtx.decodeAudioData(AB_Note_A);
-    let audioBuffer_Note_B = await audioCtx.decodeAudioData(AB_Note_B);
-    let audioBuffer_Note_C = await audioCtx.decodeAudioData(AB_Note_C);
 
-    let audioBuffer_Transition_Eb_F = await audioCtx.decodeAudioData(AB_Transition_Eb_F);
-    let audioBuffer_Transition_F_G = await audioCtx.decodeAudioData(AB_Transition_F_G);
-
-    let audioBuffer_Transition_Dictionary: {[key: string]: AudioBuffer} = {};
-
-    audioBuffer_Transition_Dictionary[`${midiNoteNumbers.Eb2_39} ${midiNoteNumbers.F2_41}`] =
-      audioBuffer_Transition_Eb_F;
-    audioBuffer_Transition_Dictionary[`${midiNoteNumbers.F2_41} ${midiNoteNumbers.G2_43}`] =
-      audioBuffer_Transition_F_G;
-    audioBuffer_Transition_Dictionary[`${midiNoteNumbers.Eb2_39}`] =
-      audioBuffer_Note_A;
-    audioBuffer_Transition_Dictionary[`${midiNoteNumbers.F2_41}`] =
-      audioBuffer_Note_B;
-    audioBuffer_Transition_Dictionary[`${midiNoteNumbers.G2_43}`] =
-      audioBuffer_Note_C;
+    let audioBuffer_Transition_Dictionary: {[key: string]: AudioBuffer} = await this.loadAudioBufferForSamples();
 
     const x_pattern_01 = audBuff_pattern_01.getChannelData(0);
     const x2_channelData_Left = audioBuffer_Note_A.getChannelData(0);
@@ -222,11 +200,6 @@ export class AppComponent implements OnInit {
         i++;
       })
       this.notesToRender = [];
-    } else {
-      chDataListForMixDown = [
-        {periodList: this.getChanelDataList(audioBuffer_Note_A.getChannelData(0)), offset: 0},
-        {periodList: this.getChanelDataList(audioBuffer_Note_B.getChannelData(0)), offset: 6000}, // 1200
-      ];
     }
 
     const outPutChDataTemp = this.mixDownChDatas(chDataListForMixDown);
@@ -454,6 +427,40 @@ export class AppComponent implements OnInit {
     for (let i = 0; i < result.length; i++) {
       result[i] = dto.chData[Math.round(i * multiplier)] * amplitude;
     }
+
+    return result;
+  }
+
+  async loadAudioBufferForSamples(): Promise<{[key: string]: AudioBuffer}> {
+    const AB_Fast_Sprite_35 = await this.getFileFromUrl('assets/Fast Sprite 35.wav');
+
+    const AB_Note_A = await this.getFileFromUrl('assets/Tenor Sax Eb.wav');
+    const AB_Note_B = await this.getFileFromUrl('assets/Tenor Sax F.wav');
+    const AB_Note_C = await this.getFileFromUrl('assets/Tenor Sax G.wav');
+
+    const AB_Transition_Eb_F = await this.getFileFromUrl('assets/Eb2 Up2.wav');
+    const AB_Transition_F_G = await this.getFileFromUrl('assets/F2 Up2.wav');
+
+    const audioCtx = new AudioContext();
+
+    let audioBuffer_Note_A = await audioCtx.decodeAudioData(AB_Note_A);
+    let audioBuffer_Note_B = await audioCtx.decodeAudioData(AB_Note_B);
+    let audioBuffer_Note_C = await audioCtx.decodeAudioData(AB_Note_C);
+    let audioBuffer_Transition_Eb_F = await audioCtx.decodeAudioData(AB_Transition_Eb_F);
+    let audioBuffer_Transition_F_G = await audioCtx.decodeAudioData(AB_Transition_F_G);
+
+    let result: {[key: string]: AudioBuffer} = {};
+
+    result[`${midiNoteNumbers.Eb2_39} ${midiNoteNumbers.F2_41}`] =
+      audioBuffer_Transition_Eb_F;
+    result[`${midiNoteNumbers.F2_41} ${midiNoteNumbers.G2_43}`] =
+      audioBuffer_Transition_F_G;
+    result[`${midiNoteNumbers.Eb2_39}`] =
+      audioBuffer_Note_A;
+    result[`${midiNoteNumbers.F2_41}`] =
+      audioBuffer_Note_B;
+    result[`${midiNoteNumbers.G2_43}`] =
+      audioBuffer_Note_C;
 
     return result;
   }
