@@ -5,6 +5,7 @@ import {Period} from "./period";
 import {Note} from "./note";
 import {getTransitionSampleName} from "./getTransitionSampleName";
 import {midiNoteNumbers} from "./midiNoteNumbers";
+import {articulations} from "./articulations";
 
 @Component({
   selector: 'app-root',
@@ -53,14 +54,16 @@ export class AppComponent implements OnInit {
 
     const maxNoteAmount = 30;
     let noteId = 0;
-    if (key === "KeyA") {
-      noteId = midiNoteNumbers.Eb2_39;
-    } else if (key === "KeyD") {
-      noteId = midiNoteNumbers.F2_41;
+    if (key === "KeyH") {
+      noteId = midiNoteNumbers.N_G2_43;
     } else if (key === "KeyG") {
-      noteId = midiNoteNumbers.G2_43;
+      noteId = midiNoteNumbers.N_F2_41;
+    } else if (key === "KeyD") {
+      noteId = midiNoteNumbers.N_Eb2_39;
+    } else if (key === "KeyA") {
+      noteId = midiNoteNumbers.N_B1_35;
     } else if (key === "KeyP") {
-      noteId = midiNoteNumbers.C1_24_VibratoTrigger;
+      noteId = midiNoteNumbers.N_C1_24_VibratoTrigger;
     }
 
     if (key === "KeyM") {
@@ -156,7 +159,7 @@ export class AppComponent implements OnInit {
     let audioBuffer_Note_Zero = await audioCtx.decodeAudioData(AB_Note_Zero);
     let audioBuffer_Note_A = await audioCtx.decodeAudioData(AB_Note_A);
 
-    let audioBuffer_Transition_Dictionary: {[key: string]: AudioBuffer} = await this.loadAudioBufferForSamples();
+    let audioBuffer_Transition_Dictionary: { [key: string]: AudioBuffer } = await this.loadAudioBufferForSamples();
 
     const x_pattern_01 = audBuff_pattern_01.getChannelData(0);
     const x2_channelData_Left = audioBuffer_Note_A.getChannelData(0);
@@ -431,35 +434,63 @@ export class AppComponent implements OnInit {
     return result;
   }
 
-  async loadAudioBufferForSamples(): Promise<{[key: string]: AudioBuffer}> {
-    const AB_Fast_Sprite_35 = await this.getFileFromUrl('assets/Fast Sprite 35.wav');
-
-    const AB_Note_A = await this.getFileFromUrl('assets/Tenor Sax Eb.wav');
-    const AB_Note_B = await this.getFileFromUrl('assets/Tenor Sax F.wav');
-    const AB_Note_C = await this.getFileFromUrl('assets/Tenor Sax G.wav');
-
+  async loadAudioBufferForSamples(): Promise<{ [key: string]: AudioBuffer }> {
     const AB_Transition_Eb_F = await this.getFileFromUrl('assets/Eb2 Up2.wav');
     const AB_Transition_F_G = await this.getFileFromUrl('assets/F2 Up2.wav');
 
     const audioCtx = new AudioContext();
 
-    let audioBuffer_Note_A = await audioCtx.decodeAudioData(AB_Note_A);
-    let audioBuffer_Note_B = await audioCtx.decodeAudioData(AB_Note_B);
-    let audioBuffer_Note_C = await audioCtx.decodeAudioData(AB_Note_C);
+    let audioBuffer_FastSprite_35 = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Fast Sprite 35.wav'));
+    let audioBuffer_FastSprite_35_Down = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Fast Sprite 35.wav'));
+    let audioBuffer_FastSprite_35_Up = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Fast Sprite 35.wav'));
+
+    let audioBuffer_FastSprite_39_Down = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Fast Sprite 39.wav'));
+    let audioBuffer_FastSprite_39_Up = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Fast Sprite 39.wav'));
+
+    let audioBuffer_FastSprite_41_Down = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Fast Sprite 41.wav'));
+    let audioBuffer_FastSprite_41_Up = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Fast Sprite 41.wav'));
+
+    let audioBuffer_FastSprite_43_Down = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Fast Sprite 43.wav'));
+    let audioBuffer_FastSprite_43_Up = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Fast Sprite 43.wav'));
+
+
+    let audioBuffer_Note_A = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Tenor Sax Eb.wav'));
+    let audioBuffer_Note_B = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Tenor Sax F.wav'));
+    let audioBuffer_Note_C = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Tenor Sax G.wav'));
     let audioBuffer_Transition_Eb_F = await audioCtx.decodeAudioData(AB_Transition_Eb_F);
     let audioBuffer_Transition_F_G = await audioCtx.decodeAudioData(AB_Transition_F_G);
 
-    let result: {[key: string]: AudioBuffer} = {};
+    let result: { [key: string]: AudioBuffer } = {};
 
-    result[`${midiNoteNumbers.Eb2_39} ${midiNoteNumbers.F2_41}`] =
+    result[`${midiNoteNumbers.N_B1_35} ${articulations.fastDown}`] =
+      audioBuffer_FastSprite_35_Down;
+    result[`${midiNoteNumbers.N_B1_35} ${articulations.fastUp}`] =
+      audioBuffer_FastSprite_35_Up;
+
+    result[`${midiNoteNumbers.N_Eb2_39} ${articulations.fastDown}`] =
+      audioBuffer_FastSprite_39_Down;
+    result[`${midiNoteNumbers.N_Eb2_39} ${articulations.fastUp}`] =
+      audioBuffer_FastSprite_39_Up;
+
+    result[`${midiNoteNumbers.N_F2_41} ${articulations.fastDown}`] =
+      audioBuffer_FastSprite_41_Down;
+    result[`${midiNoteNumbers.N_F2_41} ${articulations.fastUp}`] =
+      audioBuffer_FastSprite_41_Up;
+
+    result[`${midiNoteNumbers.N_G2_43} ${articulations.fastDown}`] =
+      audioBuffer_FastSprite_43_Down;
+    result[`${midiNoteNumbers.N_G2_43} ${articulations.fastUp}`] =
+      audioBuffer_FastSprite_43_Up;
+
+    result[`${midiNoteNumbers.N_Eb2_39} ${midiNoteNumbers.N_F2_41}`] =
       audioBuffer_Transition_Eb_F;
-    result[`${midiNoteNumbers.F2_41} ${midiNoteNumbers.G2_43}`] =
+    result[`${midiNoteNumbers.N_F2_41} ${midiNoteNumbers.N_G2_43}`] =
       audioBuffer_Transition_F_G;
-    result[`${midiNoteNumbers.Eb2_39}`] =
+    result[`${midiNoteNumbers.N_Eb2_39}`] =
       audioBuffer_Note_A;
-    result[`${midiNoteNumbers.F2_41}`] =
+    result[`${midiNoteNumbers.N_F2_41}`] =
       audioBuffer_Note_B;
-    result[`${midiNoteNumbers.G2_43}`] =
+    result[`${midiNoteNumbers.N_G2_43}`] =
       audioBuffer_Note_C;
 
     return result;
