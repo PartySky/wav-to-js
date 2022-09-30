@@ -440,6 +440,13 @@ export class AppComponent implements OnInit {
 
     const audioCtx = new AudioContext();
 
+    const lowestFastNoteFromSprite = 35;
+    const highestFastNoteFromSprite = 71;
+
+    for (let i = lowestFastNoteFromSprite; i <= highestFastNoteFromSprite; i++) {
+      let x = `assets/Fast Sprite ${i}.wav`;
+    }
+
     let audioBuffer_FastSprite_35 = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Fast Sprite 35.wav'));
     let audioBuffer_FastSprite_35_Down = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Fast Sprite 35.wav'));
     let audioBuffer_FastSprite_35_Up = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Fast Sprite 35.wav'));
