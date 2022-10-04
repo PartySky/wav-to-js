@@ -443,24 +443,30 @@ export class AppComponent implements OnInit {
     const lowestFastNoteFromSprite = 35;
     const highestFastNoteFromSprite = 71;
 
+    let audioBuffer_FastSprite_Dictionary: {[key: string]: AudioBuffer};
     for (let i = lowestFastNoteFromSprite; i <= highestFastNoteFromSprite; i++) {
-      let x = `assets/Fast Sprite ${i}.wav`;
+      audioBuffer_FastSprite_Dictionary[i] = await audioCtx.decodeAudioData(await this.getFileFromUrl(`assets/lib/Fast Sprite ${i}.wav`));
     }
 
-    let audioBuffer_FastSprite_35 = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Fast Sprite 35.wav'));
-    let audioBuffer_FastSprite_35_Down = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Fast Sprite 35.wav'));
-    let audioBuffer_FastSprite_35_Up = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Fast Sprite 35.wav'));
+    let audioBuffer_FastSprite_Down_Dictionary: {[key: string]: AudioBuffer};
+    for (let i = lowestFastNoteFromSprite; i <= highestFastNoteFromSprite; i++) {
+      audioBuffer_FastSprite_Down_Dictionary[i] = await audioCtx.decodeAudioData(await this.getFileFromUrl(`assets/lib/Fast Sprite ${i}.wav`));
+    }
+
+    let audioBuffer_FastSprite_35 = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Fast Sprite 35.wav'));
+    let audioBuffer_FastSprite_35_Down = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Fast Sprite 35.wav'));
+    let audioBuffer_FastSprite_35_Up = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Fast Sprite 35.wav'));
 
     let audioBuffer_FastSprite_35_Down_List = this.getX(audioBuffer_FastSprite_35);
 
-    let audioBuffer_FastSprite_39_Down = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Fast Sprite 39.wav'));
-    let audioBuffer_FastSprite_39_Up = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Fast Sprite 39.wav'));
+    let audioBuffer_FastSprite_39_Down = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Fast Sprite 39.wav'));
+    let audioBuffer_FastSprite_39_Up = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Fast Sprite 39.wav'));
 
-    let audioBuffer_FastSprite_41_Down = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Fast Sprite 41.wav'));
-    let audioBuffer_FastSprite_41_Up = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Fast Sprite 41.wav'));
+    let audioBuffer_FastSprite_41_Down = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Fast Sprite 41.wav'));
+    let audioBuffer_FastSprite_41_Up = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Fast Sprite 41.wav'));
 
-    let audioBuffer_FastSprite_43_Down = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Fast Sprite 43.wav'));
-    let audioBuffer_FastSprite_43_Up = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Fast Sprite 43.wav'));
+    let audioBuffer_FastSprite_43_Down = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Fast Sprite 43.wav'));
+    let audioBuffer_FastSprite_43_Up = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Fast Sprite 43.wav'));
 
 
     let audioBuffer_Note_A = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Tenor Sax Eb.wav'));
