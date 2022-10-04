@@ -1,5 +1,6 @@
 import {midiNoteNumbers} from "./midiNoteNumbers";
 import {articulations} from "./articulations";
+import {getFormattedName} from "./getFormattedName";
 
 export function getTransitionSampleName(noteIdList: number[]): string {
   let result = '';
@@ -19,9 +20,15 @@ export function getTransitionSampleName(noteIdList: number[]): string {
     }
   }
 
+  let roundRobin = 1;
+
   if (!result) {
     if (noteIdList[0] >= lowerNoteId && noteIdList[0] <= higherNoteId) {
-      result = `${noteIdList[0]} ${articulations.fastDown}`;
+      result = getFormattedName({
+        midiNum: noteIdList[0],
+        art: articulations.fastDown,
+        rr: roundRobin,
+      });
     }
   }
 
