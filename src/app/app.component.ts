@@ -216,7 +216,7 @@ export class AppComponent implements OnInit {
       outPutChDataTemp = [];
       let counter = 0;
       // 35 ArtFastDown RR1
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < 10; i++) {
         outPutChDataTemp[counter] = 1;
         counter++;
         outPutChDataTemp[counter] = 1;
@@ -585,12 +585,13 @@ export class AppComponent implements OnInit {
   gerChannelDataListFromSprites(AB: Float32Array): Float32Array[] {
     let result: Float32Array[] = [];
     let tempArray: number[] = [];
+    const minNoteLength = 1000;
 
     AB.forEach(item => {
       if (item !== 0) {
         tempArray.push(item);
       }
-      if (item === 0 && tempArray.length) {
+      if (item === 0 && tempArray.length > minNoteLength) {
         result.push(new Float32Array(tempArray));
         tempArray = [];
       }
