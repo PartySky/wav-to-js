@@ -6,7 +6,6 @@ import {Note} from "./note";
 import {getTransitionSampleName} from "./getTransitionSampleName";
 import {midiNoteNumbers} from "./midiNoteNumbers";
 import {articulations} from "./articulations";
-import {ParamsForSampleName} from "./paramsForSampleName";
 import {getFormattedName} from "./getFormattedName";
 
 @Component({
@@ -217,7 +216,7 @@ export class AppComponent implements OnInit {
       let counter = 0;
       // 35 ArtFastDown RR1
 
-      const drawMarker = true;
+      const drawMarker = false;
 
       for (let i = 0; i < 10; i++) {
         if (drawMarker) {
@@ -502,12 +501,11 @@ export class AppComponent implements OnInit {
     }
 
     let audioBuffer_FastSprite_35 = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Fast/Fast Sprite 35.wav'));
-    let audioBuffer_FastSprite_35_Down = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Fast/Fast Sprite 35.wav'));
-    let audioBuffer_FastSprite_35_Up = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Fast/Fast Sprite 35.wav'));
     let audioBuffer_Vibrato_42 = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Vibrato/Vibrato Sprite 42.wav'));
 
-    let audioBuffer_FastSprite_35_Down_List = this.gerChannelDataListFromSprites(audioBuffer_FastSprite_35.getChannelData(0));
-    let audioBuffer_FastSprite_35_Up_List = this.gerChannelDataListFromSprites(audioBuffer_FastSprite_35.getChannelData(0));
+    let audioBuffer_FastSprite_35_Down_Up_List = this.gerChannelDataListFromSprites(audioBuffer_FastSprite_35.getChannelData(0));
+    let audioBuffer_FastSprite_35_Down_List = this.getStrokesList(audioBuffer_FastSprite_35_Down_Up_List, 'Down');
+    let audioBuffer_FastSprite_35_Up_List = this.getStrokesList(audioBuffer_FastSprite_35_Down_Up_List, 'Up');
     let audioBuffer_FastSprite_42_Vib_List = this.gerChannelDataListFromSprites(audioBuffer_Vibrato_42.getChannelData(0));
 
     let audioBuffer_FastSprite_39_Down = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Fast/Fast Sprite 39.wav'));
@@ -557,11 +555,6 @@ export class AppComponent implements OnInit {
       roundRobinCounter++;
     })
 
-    result[`${midiNoteNumbers.N_B1_35} ${articulations.fastDown}`] =
-      audioBuffer_FastSprite_35_Down.getChannelData(0);
-    result[`${midiNoteNumbers.N_B1_35} ${articulations.fastUp}`] =
-      audioBuffer_FastSprite_35_Up.getChannelData(0);
-
     result[`${midiNoteNumbers.N_Eb2_39} ${articulations.fastDown}`] =
       audioBuffer_FastSprite_39_Down.getChannelData(0);
     result[`${midiNoteNumbers.N_Eb2_39} ${articulations.fastUp}`] =
@@ -593,17 +586,13 @@ export class AppComponent implements OnInit {
 
   gerChannelDataListFromSprites(chData: Float32Array): Float32Array[] {
     let periodsFromChData = this.getChanelDataList(chData);
-    let periodsForNotes: Period[] = [];
-    let lastMax = 0;
-    let lastMin = 0;
     let lastPeriodMax = 0;
     const minPeriodsInNote = 4;
-    let periodsForCurrentNote: Period[] = [];
     let chDateForCurrentNote: number[] = [];
     let result: Float32Array[] = [];
     let periodCounter = 0;
     const delta = 0.05;
-    const drawMarker = true;
+    const drawMarker = false;
 
     periodsFromChData.forEach(item => {
       let currentMax = 0;
@@ -653,6 +642,26 @@ export class AppComponent implements OnInit {
       periodCounter++;
 
 
+    })
+
+    return result;
+  }
+
+  private getStrokesList(dataList: Float32Array[], stroke: string): Float32Array[] {
+    let result: Float32Array[] = []
+
+    let i = 0;
+    dataList.forEach(item => {
+      if (stroke === 'Down') {
+        if (!(i & 1)) {
+          result.push(item);
+        }
+      } else if (stroke === 'Up') {
+        if (i & 1) {
+          result.push(item);
+        }
+      }
+      i++;
     })
 
     return result;
