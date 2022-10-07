@@ -216,33 +216,42 @@ export class AppComponent implements OnInit {
       outPutChDataTemp = [];
       let counter = 0;
       // 35 ArtFastDown RR1
+
+      const drawMarker = false;
+
       for (let i = 0; i < 10; i++) {
-        outPutChDataTemp[counter] = 1;
-        counter++;
-        outPutChDataTemp[counter] = 1;
-        counter++;
-        outPutChDataTemp[counter] = 1;
-        counter++;
-        outPutChDataTemp[counter] = 1;
-        counter++;
-        outPutChDataTemp[counter] = 1;
-        counter++;
+        if (drawMarker) {
+          outPutChDataTemp[counter] = 1;
+          counter++;
+          outPutChDataTemp[counter] = 1;
+          counter++;
+          outPutChDataTemp[counter] = 1;
+          counter++;
+          outPutChDataTemp[counter] = 1;
+          counter++;
+          outPutChDataTemp[counter] = 1;
+          counter++;
+        }
+
         let noteABTemp = channelData_Transition_Dictionary[`35 ArtFastDown RR${i}`];
         noteABTemp.forEach(item => {
           outPutChDataTemp[counter] = item;
           counter++;
         })
 
-        outPutChDataTemp[counter] = -1;
-        counter++;
-        outPutChDataTemp[counter] = -1;
-        counter++;
-        outPutChDataTemp[counter] = -1;
-        counter++;
-        outPutChDataTemp[counter] = -1;
-        counter++;
-        outPutChDataTemp[counter] = -1;
-        counter++;
+        if (drawMarker) {
+          outPutChDataTemp[counter] = -1;
+          counter++;
+          outPutChDataTemp[counter] = -1;
+          counter++;
+          outPutChDataTemp[counter] = -1;
+          counter++;
+          outPutChDataTemp[counter] = -1;
+          counter++;
+          outPutChDataTemp[counter] = -1;
+          counter++;
+
+        }
       }
 
     }
@@ -360,7 +369,7 @@ export class AppComponent implements OnInit {
   getChanelDataList(chData: Float32Array): Period[] {
     let result: Period[] = [];
     let found = false;
-    const tracholdLength = 200;
+    const tracholdLength = 300; // 200
 
     let lastValue = 0;
 
@@ -582,19 +591,128 @@ export class AppComponent implements OnInit {
     return result;
   }
 
-  gerChannelDataListFromSprites(AB: Float32Array): Float32Array[] {
+  gerChannelDataListFromSprites(chData: Float32Array): Float32Array[] {
+    let periodsFromChData = this.getChanelDataList(chData);
+    let periodsForNotes: Period[] = [];
+    let lastMax = 0;
+    let lastMin = 0;
+    let lastPeriodMax = 0;
+    const minPeriodsInNote = 4;
+    let periodsForCurrentNote: Period[] = [];
+    let chDateForCurrentNote: number[] = [];
+    let result: Float32Array[] = [];
+    let periodCounter = 0;
+    const delta = 0.1;
+    const drawMarker = false;
+
+    periodsFromChData.forEach(item => {
+      let currentMax = 0;
+
+      item.chData.forEach(chDataItem => {
+        if (chDataItem > currentMax) {
+          currentMax = chDataItem;
+        }
+      })
+
+      if (periodCounter <= 1) {
+        if (drawMarker) {
+          chDateForCurrentNote.push(-0.25);
+        }
+        item.chData.forEach(chDataItem => {
+          chDateForCurrentNote.push(chDataItem);
+        })
+      } else if (currentMax - delta <= lastPeriodMax || periodCounter < minPeriodsInNote) {
+        /**
+         * Нужно писать chData ноты в текущую ноту в result
+         */
+        if (drawMarker) {
+          chDateForCurrentNote.push(-0.5);
+        }
+        item.chData.forEach(chDataItem => {
+          chDateForCurrentNote.push(chDataItem);
+        })
+      } else {
+        /**
+         * Началась новая нота
+         */
+        result.push(new Float32Array(chDateForCurrentNote));
+        chDateForCurrentNote = [];
+
+        if (drawMarker) {
+          chDateForCurrentNote.push(-0.75);
+        }
+
+        item.chData.forEach(chDataItem => {
+          chDateForCurrentNote.push(chDataItem);
+        })
+        lastPeriodMax = 0;
+        periodCounter = 0;
+      }
+
+      lastPeriodMax = currentMax;
+      periodCounter++;
+
+
+    })
+
+    return result;
+  }
+
+  gerChannelDataListFromSpritesOld(chData: Float32Array): Float32Array[] {
     let result: Float32Array[] = [];
     let tempArray: number[] = [];
-    const minNoteLength = 1000;
+    const minNoteLength = 2000;
+    const maxAmplitube = 0.1;
+    let pickMax = 0;
+    let pickMin = 0;
+    let direction = 0;
 
-    AB.forEach(item => {
-      if (item !== 0) {
-        tempArray.push(item);
+
+    const tracholdLength = 200;
+    let found = false;
+    let lastValue = 0;
+
+    let chDataTemp: number[] = [];
+    let chDataTempCounter = 0;
+
+    let i = 0;
+    chData.forEach(item => {
+      const closeToZero = Math.abs(item) < maxAmplitube;
+
+      chDataTemp[chDataTempCounter] = chData[i];
+      chDataTempCounter++;
+
+      const zeroCrossDetected = (chData[i] < 0) && (lastValue >= 0) ||
+        (chData[i] > 0) && (lastValue <= 0);
+
+      if (zeroCrossDetected && chDataTemp.length > tracholdLength) {
+        found = true;
       }
-      if (item === 0 && tempArray.length > minNoteLength) {
+      if (found) {
+        // @ts-ignore
+        result.push({chData: new Float32Array(chDataTemp)});
+        chDataTemp = [];
+        chDataTempCounter = 0;
+        found = false;
+      }
+      lastValue = chData[i];
+
+      if (!closeToZero) {
+        if (item < 0) {
+          if (pickMin < item) {
+            pickMin = item;
+          }
+        }
+
+
+        tempArray.push(item);
+      } else if (tempArray.length > minNoteLength) {
         result.push(new Float32Array(tempArray));
         tempArray = [];
+      } else {
+        tempArray.push(item);
       }
+      i++;
     })
     return result;
   }
