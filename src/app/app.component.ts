@@ -217,7 +217,7 @@ export class AppComponent implements OnInit {
       let counter = 0;
       // 35 ArtFastDown RR1
 
-      const drawMarker = false;
+      const drawMarker = true;
 
       for (let i = 0; i < 10; i++) {
         if (drawMarker) {
@@ -602,8 +602,8 @@ export class AppComponent implements OnInit {
     let chDateForCurrentNote: number[] = [];
     let result: Float32Array[] = [];
     let periodCounter = 0;
-    const delta = 0.1;
-    const drawMarker = false;
+    const delta = 0.05;
+    const drawMarker = true;
 
     periodsFromChData.forEach(item => {
       let currentMax = 0;
