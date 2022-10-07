@@ -6,5 +6,6 @@ export const midiNoteNumbers = {
   N_D2_36: 38,
   N_C2_36: 36,
   N_B1_35: 35,
+  N_D2b_25_SomeTrigger: 25,
   N_C1_24_VibratoTrigger: 24,
 }

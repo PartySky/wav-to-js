@@ -20,13 +20,18 @@ export class AppComponent implements OnInit {
   notesToRender: Note[] = [];
   notesReadMode = true;
   drawMarkers = false;
+  channelData_Transition_Dictionary: { [key: string]: Float32Array };
 
   constructor() {
   }
 
-  ngOnInit() {
+  async ngOnInit() {
+    await this.x();
     this.initMidi();
-    this.generateWavFileButton_click();
+  }
+
+  async x() {
+    this.channelData_Transition_Dictionary = await this.loadAudioBufferForSamples();
   }
 
   initMidi(): void {
@@ -144,6 +149,8 @@ export class AppComponent implements OnInit {
   }
 
   async generateWavFile() {
+    console.log('start generateWavFile')
+
     const uiParms = this.getUiParms();
     if (!uiParms) {
       return;
@@ -151,19 +158,11 @@ export class AppComponent implements OnInit {
     const audioCtx = new AudioContext();
 
     const ab_pattern_01 = await this.getFileFromUrl('assets/pattern.wav');
-    const AB_Note_A = await this.getFileFromUrl('assets/Tenor Sax Eb.wav');
 
     let audBuff_pattern_01 = await audioCtx.decodeAudioData(ab_pattern_01);
-    let audioBuffer_Note_A = await audioCtx.decodeAudioData(AB_Note_A);
-
-    let channelData_Transition_Dictionary: { [key: string]: Float32Array } = await this.loadAudioBufferForSamples();
 
     const x_pattern_01 = audBuff_pattern_01.getChannelData(0);
-    const x2_channelData_Left = audioBuffer_Note_A.getChannelData(0);
-    const x2_channelData_right = audioBuffer_Note_A.numberOfChannels > 1 ?
-      audioBuffer_Note_A.getChannelData(1) : audioBuffer_Note_A.getChannelData(0);
 
-    this.channelData = x2_channelData_Left.slice(0, 30000);
     this.patternChannelData = x_pattern_01.slice(0, 15000);
 
     let chDataListForMixDown: { periodList: Period[], offset: number }[] = [];
@@ -177,19 +176,24 @@ export class AppComponent implements OnInit {
         let noteABTemp: Float32Array;
         let nextItem = this.notesToRender[i + 1];
         let nextNoteId = nextItem ? nextItem.noteId : null;
+        let previousItem = this.notesToRender[i - 1];
+        let previousNoteId = previousItem ? previousItem.noteId : null;
         let sampleName = getTransitionSampleName([
           item.noteId,
-          nextNoteId
+          nextNoteId,
+          previousNoteId,
         ]);
 
-        noteABTemp = channelData_Transition_Dictionary[sampleName];
+        if (sampleName) {
+          noteABTemp = this.channelData_Transition_Dictionary[sampleName];
 
-        const periodList = this.getChanelDataList(noteABTemp);
+          const periodList = this.getChanelDataList(noteABTemp);
 
-        chDataListForMixDown.push({
-          periodList: periodList,
-          offset: item.offset,
-        });
+          chDataListForMixDown.push({
+            periodList: periodList,
+            offset: item.offset,
+          });
+        }
         i++;
       })
       this.notesToRender = [];
@@ -197,7 +201,7 @@ export class AppComponent implements OnInit {
 
     let outPutChDataTemp = this.mixDownChDatas(chDataListForMixDown);
 
-    let test = true;
+    let test = false;
     if (test) {
       debugger;
       // @ts-ignore
@@ -221,7 +225,7 @@ export class AppComponent implements OnInit {
           counter++;
         }
 
-        let noteABTemp = channelData_Transition_Dictionary[`35 ArtFastDown RR${i}`];
+        let noteABTemp = this.channelData_Transition_Dictionary[`35 ArtFastDown RR${i}`];
         // let noteABTemp = channelData_Transition_Dictionary[`35 vib RR${3}`];
 
         noteABTemp.forEach(item => {
@@ -229,7 +233,7 @@ export class AppComponent implements OnInit {
           counter++;
         })
 
-        let noteABTemp1 = channelData_Transition_Dictionary[`35 vib RR${i}`];
+        let noteABTemp1 = this.channelData_Transition_Dictionary[`35 vib RR${i}`];
 
         noteABTemp1.forEach(item => {
           outPutChDataTemp[counter] = item;
@@ -485,6 +489,7 @@ export class AppComponent implements OnInit {
   }
 
   async loadAudioBufferForSamples(): Promise<{ [key: string]: Float32Array }> {
+    console.log('start loadAudioBufferForSamples')
     const AB_Transition_Eb_F = await this.getFileFromUrl('assets/Eb2 Up2.wav');
     const AB_Transition_F_G = await this.getFileFromUrl('assets/F2 Up2.wav');
 
@@ -506,11 +511,22 @@ export class AppComponent implements OnInit {
     let audioBuffer_FastSprite_35 = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Fast/Fast Sprite 35.wav'));
     let audioBuffer_Vibrato_42 = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Vibrato/Vibrato Sprite 42.wav'));
 
+
+    let audioBuffer_FastSprite_43 = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Fast/Fast Sprite 43.wav'));
+    let audioBuffer_Vibrato_43 = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Vibrato/Vibrato Sprite 43.wav'));
+
+
     let audioBuffer_FastSprite_35_Down_Up_List = this.gerChannelDataListFromSprites(audioBuffer_FastSprite_35.getChannelData(0));
     let audioBuffer_FastSprite_35_Down_List = this.getStrokesList(audioBuffer_FastSprite_35_Down_Up_List, 'Down');
     let audioBuffer_FastSprite_35_Up_List = this.getStrokesList(audioBuffer_FastSprite_35_Down_Up_List, 'Up');
 
+
+    let audioBuffer_FastSprite_43_Down_Up_List = this.gerChannelDataListFromSprites(audioBuffer_FastSprite_43.getChannelData(0));
+    let audioBuffer_FastSprite_43_Down_List = this.getStrokesList(audioBuffer_FastSprite_43_Down_Up_List, 'Down');
+    let audioBuffer_FastSprite_43_Up_List = this.getStrokesList(audioBuffer_FastSprite_43_Down_Up_List, 'Up');
+
     let audioBuffer_FastSprite_42_Vib_List = this.gerChannelDataListFromSprites(audioBuffer_Vibrato_42.getChannelData(0));
+    let audioBuffer_FastSprite_43_Vib_List = this.gerChannelDataListFromSprites(audioBuffer_Vibrato_43.getChannelData(0));
 
     let audioBuffer_FastSprite_39_Down = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Fast/Fast Sprite 39.wav'));
     let audioBuffer_FastSprite_39_Up = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Fast/Fast Sprite 39.wav'));
@@ -559,6 +575,39 @@ export class AppComponent implements OnInit {
       roundRobinCounter++;
     })
 
+    roundRobinCounter = 0;
+    audioBuffer_FastSprite_43_Down_List.forEach(item => {
+      result[getFormattedName({
+        midiNum: midiNoteNumbers.N_G2_43,
+        art: articulations.fastDown,
+        rr: roundRobinCounter
+      })] =
+        item;
+      roundRobinCounter++;
+    })
+
+    roundRobinCounter = 0;
+    audioBuffer_FastSprite_43_Up_List.forEach(item => {
+      result[getFormattedName({
+        midiNum: midiNoteNumbers.N_G2_43,
+        art: articulations.fastUp,
+        rr: roundRobinCounter
+      })] =
+        item;
+      roundRobinCounter++;
+    })
+
+    roundRobinCounter = 0;
+    audioBuffer_FastSprite_43_Vib_List.forEach(item => {
+      result[getFormattedName({
+        midiNum: midiNoteNumbers.N_G2_43,
+        art: articulations.vib,
+        rr: roundRobinCounter
+      })] =
+        item;
+      roundRobinCounter++;
+    })
+
     result[`${midiNoteNumbers.N_Eb2_39} ${articulations.fastDown}`] =
       audioBuffer_FastSprite_39_Down.getChannelData(0);
     result[`${midiNoteNumbers.N_Eb2_39} ${articulations.fastUp}`] =
@@ -584,6 +633,9 @@ export class AppComponent implements OnInit {
       audioBuffer_Note_B.getChannelData(0);
     result[`${midiNoteNumbers.N_G2_43}`] =
       audioBuffer_Note_C.getChannelData(0);
+
+
+    console.log('end loadAudioBufferForSamples')
 
     return result;
   }
