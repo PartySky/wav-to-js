@@ -21,6 +21,7 @@ export class AppComponent implements OnInit {
   notesReadMode = true;
   drawMarkers = false;
   channelData_Transition_Dictionary: { [key: string]: Float32Array };
+  onInitDateString: string;
 
   constructor() {
   }
@@ -28,6 +29,7 @@ export class AppComponent implements OnInit {
   async ngOnInit() {
     await this.x();
     this.initMidi();
+    this.onInitDateString = this.getDateString(new Date());
   }
 
   async x() {
@@ -161,6 +163,11 @@ export class AppComponent implements OnInit {
     if (this.notesReadMode && this.notesToRender.length) {
       const zeroOffset = this.notesToRender[0].offset;
 
+      /**
+       * Для соединения быстрых нот и вибрато
+       */
+      this.notesToRender[1].offset = this.notesToRender[0].offset + 1000;
+
       let i = 0;
       this.notesToRender.forEach(item => {
         item.offset = item.offset - zeroOffset;
@@ -177,6 +184,9 @@ export class AppComponent implements OnInit {
 
         if (sampleName) {
           noteABTemp = this.channelData_Transition_Dictionary[sampleName];
+          if (nextNoteId === midiNoteNumbers.N_C1_24_VibratoTrigger) {
+            noteABTemp = this.trimNFromEnd(noteABTemp, 1500)
+          }
 
           const periodList = this.getChanelDataList(noteABTemp);
 
@@ -283,7 +293,11 @@ export class AppComponent implements OnInit {
       let nextChDataStart = chDataList[chDataNum + 1] ? chDataList[chDataNum + 1]?.offset : 0;
 
       let usedPeriodsNum = 0;
-      const numPeriodsToCrossfade = 15; // 5
+      /**
+       * Обычное значение 15
+       * 5 для соединения короткой ноты и вибрато
+       */
+      const numPeriodsToCrossfade = 5; // 15;
       if (chDataList[chDataNum + 1]) {
         nextChDataStart = this.getNearestNextChDataStart({
           periodList: periodListTemp,
@@ -516,8 +530,13 @@ export class AppComponent implements OnInit {
     let audioBuffer_FastSprite_43_Down_List = this.getStrokesList(audioBuffer_FastSprite_43_Down_Up_List, 'Down');
     let audioBuffer_FastSprite_43_Up_List = this.getStrokesList(audioBuffer_FastSprite_43_Down_Up_List, 'Up');
 
-    let audioBuffer_FastSprite_42_Vib_List = this.gerChannelDataListFromSprites(audioBuffer_Vibrato_42.getChannelData(0));
-    let audioBuffer_FastSprite_43_Vib_List = this.gerChannelDataListFromSprites(audioBuffer_Vibrato_43.getChannelData(0));
+    const trimVibFromStart = 2500;
+    let audioBuffer_FastSprite_42_Vib_List = this.trimNFromStartForArray(
+      this.gerChannelDataListFromSprites(audioBuffer_Vibrato_42.getChannelData(0)), trimVibFromStart
+    );
+    let audioBuffer_FastSprite_43_Vib_List = this.trimNFromStartForArray(
+      this.gerChannelDataListFromSprites(audioBuffer_Vibrato_43.getChannelData(0)), trimVibFromStart
+    );
 
     let audioBuffer_FastSprite_39_Down = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Fast/Fast Sprite 39.wav'));
     let audioBuffer_FastSprite_39_Up = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Fast/Fast Sprite 39.wav'));
@@ -712,5 +731,35 @@ export class AppComponent implements OnInit {
     })
 
     return result;
+  }
+
+  trimNFromStartForArray(chData: Float32Array[], length: number): Float32Array[] {
+    let result: Float32Array[] = [];
+
+    chData.forEach(item => {
+      result.push(this.trimNFromStart(item, length));
+    })
+
+    return result;
+  }
+
+  trimNFromStart(chData: Float32Array, length: number): Float32Array {
+    let result: number[] = [];
+
+    for (let i = length; i < chData.length; i++) {
+      result.push(chData[i]);
+    }
+
+    return new Float32Array(result);
+  }
+
+  trimNFromEnd(chData: Float32Array, length: number): Float32Array {
+    let result: number[] = [];
+
+    for (let i = 0; i < chData.length - length; i++) {
+      result.push(chData[i]);
+    }
+
+    return new Float32Array(result);
   }
 }
