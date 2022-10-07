@@ -7,32 +7,19 @@ export function getTransitionSampleName(noteIdList: number[]): string {
 
   const higherNoteId = midiNoteNumbers.N_G2_43;
   const lowerNoteId = midiNoteNumbers.N_B1_35;
-
-
   const higherTriggerNoteId = midiNoteNumbers.N_D2b_25_SomeTrigger;
   const lowerTriggerNoteId = midiNoteNumbers.N_C1_24_VibratoTrigger;
-
   const previousItem = noteIdList[2];
 
-  let roundRobin = 3;
+  let roundRobin = 4;
 
   if (noteIdList[1]) {
-    // if (noteIdList[0] >= lowerNoteId && noteIdList[0] <= higherNoteId &&
-    //   noteIdList[1] === midiNoteNumbers.N_C1_24_VibratoTrigger) {
-    //   result = getFormattedName({
-    //     midiNum: noteIdList[0],
-    //     art: articulations.vib,
-    //     rr: roundRobin,
-    //   });
-    // }
-
     if (noteIdList[0] >= lowerNoteId && noteIdList[0] <= higherNoteId &&
       noteIdList[1] >= lowerNoteId && noteIdList[0] <= higherNoteId) {
       result = `${noteIdList[0]} ${noteIdList[1]}`;
     }
   }
 
-  roundRobin = 3;
 
   if (!result) {
     if (noteIdList[0] >= lowerNoteId && noteIdList[0] <= higherNoteId) {
@@ -44,7 +31,6 @@ export function getTransitionSampleName(noteIdList: number[]): string {
     }
   }
 
-  roundRobin = 3;
 
   if (!result) {
     if (previousItem &&

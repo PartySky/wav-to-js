@@ -155,15 +155,6 @@ export class AppComponent implements OnInit {
     if (!uiParms) {
       return;
     }
-    const audioCtx = new AudioContext();
-
-    const ab_pattern_01 = await this.getFileFromUrl('assets/pattern.wav');
-
-    let audBuff_pattern_01 = await audioCtx.decodeAudioData(ab_pattern_01);
-
-    const x_pattern_01 = audBuff_pattern_01.getChannelData(0);
-
-    this.patternChannelData = x_pattern_01.slice(0, 15000);
 
     let chDataListForMixDown: { periodList: Period[], offset: number }[] = [];
 
