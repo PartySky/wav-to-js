@@ -151,13 +151,9 @@ export class AppComponent implements OnInit {
     const audioCtx = new AudioContext();
 
     const ab_pattern_01 = await this.getFileFromUrl('assets/pattern.wav');
-    const AB_Note_Zero = await this.getFileFromUrl('assets/Note Zero.wav');
-
     const AB_Note_A = await this.getFileFromUrl('assets/Tenor Sax Eb.wav');
 
-
     let audBuff_pattern_01 = await audioCtx.decodeAudioData(ab_pattern_01);
-    let audioBuffer_Note_Zero = await audioCtx.decodeAudioData(AB_Note_Zero);
     let audioBuffer_Note_A = await audioCtx.decodeAudioData(AB_Note_A);
 
     let channelData_Transition_Dictionary: { [key: string]: Float32Array } = await this.loadAudioBufferForSamples();
@@ -169,13 +165,6 @@ export class AppComponent implements OnInit {
 
     this.channelData = x2_channelData_Left.slice(0, 30000);
     this.patternChannelData = x_pattern_01.slice(0, 15000);
-
-    const outPutAB: AudioBuffer = audioBuffer_Note_Zero;
-    let outPutChData: Float32Array = outPutAB.getChannelData(0);
-
-    for (let i = 0; i < outPutChData.length; i++) {
-      outPutChData[i] = 0;
-    }
 
     let chDataListForMixDown: { periodList: Period[], offset: number }[] = [];
 
@@ -218,7 +207,7 @@ export class AppComponent implements OnInit {
 
       const drawMarker = false;
 
-      for (let i = 0; i < 10; i++) {
+      for (let i = 0; i < 5; i++) {
         if (drawMarker) {
           outPutChDataTemp[counter] = 1;
           counter++;
@@ -233,7 +222,16 @@ export class AppComponent implements OnInit {
         }
 
         let noteABTemp = channelData_Transition_Dictionary[`35 ArtFastDown RR${i}`];
+        // let noteABTemp = channelData_Transition_Dictionary[`35 vib RR${3}`];
+
         noteABTemp.forEach(item => {
+          outPutChDataTemp[counter] = item;
+          counter++;
+        })
+
+        let noteABTemp1 = channelData_Transition_Dictionary[`35 vib RR${i}`];
+
+        noteABTemp1.forEach(item => {
           outPutChDataTemp[counter] = item;
           counter++;
         })
@@ -249,14 +247,19 @@ export class AppComponent implements OnInit {
           counter++;
           outPutChDataTemp[counter] = -1;
           counter++;
-
         }
       }
 
+      outPutChDataTemp = new Float32Array(outPutChDataTemp);
     }
-    for (let i = 0; i < outPutChDataTemp.length; i++) {
-      outPutChData[i] = outPutChDataTemp[i];
-    }
+
+    const outPutAB: AudioBuffer = new AudioBuffer({
+      length: outPutChDataTemp.length,
+      numberOfChannels: 2,
+      sampleRate: uiParms.sampleRate,
+    });
+
+    outPutAB.copyToChannel(outPutChDataTemp, 0);
 
     const wavFileData = WavFileEncoder.encodeWavFile(outPutAB, uiParms.wavFileType);
     const blob = new Blob([wavFileData], {type: "audio/wav"});
@@ -506,6 +509,7 @@ export class AppComponent implements OnInit {
     let audioBuffer_FastSprite_35_Down_Up_List = this.gerChannelDataListFromSprites(audioBuffer_FastSprite_35.getChannelData(0));
     let audioBuffer_FastSprite_35_Down_List = this.getStrokesList(audioBuffer_FastSprite_35_Down_Up_List, 'Down');
     let audioBuffer_FastSprite_35_Up_List = this.getStrokesList(audioBuffer_FastSprite_35_Down_Up_List, 'Up');
+
     let audioBuffer_FastSprite_42_Vib_List = this.gerChannelDataListFromSprites(audioBuffer_Vibrato_42.getChannelData(0));
 
     let audioBuffer_FastSprite_39_Down = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Fast/Fast Sprite 39.wav'));
