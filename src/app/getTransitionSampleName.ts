@@ -5,7 +5,7 @@ import {getFormattedName} from "./getFormattedName";
 export function getTransitionSampleName(noteIdList: number[]): string {
   let result = '';
 
-  const higherNoteId = midiNoteNumbers.N_G2_43;
+  const higherNoteId = midiNoteNumbers.N_A2_45;
   const lowerNoteId = midiNoteNumbers.N_B1_35;
   const higherTriggerNoteId = midiNoteNumbers.N_D2b_25_SomeTrigger;
   const lowerTriggerNoteId = midiNoteNumbers.N_C1_24_VibratoTrigger;
