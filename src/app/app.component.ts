@@ -520,22 +520,19 @@ export class AppComponent implements OnInit {
       audioBuffer_FastSprite_Down_Dictionary[i] = await audioCtx.decodeAudioData(await this.getFileFromUrl(`assets/lib/Fast/Fast Sprite ${i}.wav`));
     }
 
-    let audioBuffer_FastSprite_35 = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Fast/Fast Sprite 35.wav'));
     let audioBuffer_Vibrato_42 = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Vibrato/Vibrato Sprite 42.wav'));
-
-
-    let audioBuffer_FastSprite_43 = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Fast/Fast Sprite 43.wav'));
     let audioBuffer_Vibrato_43 = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Vibrato/Vibrato Sprite 43.wav'));
 
+    let audioBuffer_FastSprite_Down_Up_midiNum_List: Float32Array[][] = [];
+    let audioBuffer_FastSprite_Down_midiNum_List: Float32Array[][] = [];
+    let audioBuffer_FastSprite_Up_midiNum_List: Float32Array[][] = [];
 
-    let audioBuffer_FastSprite_35_Down_Up_List = this.gerChannelDataListFromSprites(audioBuffer_FastSprite_35.getChannelData(0));
-    let audioBuffer_FastSprite_35_Down_List = this.getStrokesList(audioBuffer_FastSprite_35_Down_Up_List, 'Down');
-    let audioBuffer_FastSprite_35_Up_List = this.getStrokesList(audioBuffer_FastSprite_35_Down_Up_List, 'Up');
-
-
-    let audioBuffer_FastSprite_43_Down_Up_List = this.gerChannelDataListFromSprites(audioBuffer_FastSprite_43.getChannelData(0));
-    let audioBuffer_FastSprite_43_Down_List = this.getStrokesList(audioBuffer_FastSprite_43_Down_Up_List, 'Down');
-    let audioBuffer_FastSprite_43_Up_List = this.getStrokesList(audioBuffer_FastSprite_43_Down_Up_List, 'Up');
+    for (let i = 35; i < 71; i++) {
+      const audioBufferTemp = await audioCtx.decodeAudioData(await this.getFileFromUrl(`assets/lib/Fast/Fast Sprite ${i}.wav`));
+      audioBuffer_FastSprite_Down_Up_midiNum_List[i] = this.gerChannelDataListFromSprites(audioBufferTemp.getChannelData(0));
+      audioBuffer_FastSprite_Down_midiNum_List[i] = this.getStrokesList(audioBuffer_FastSprite_Down_Up_midiNum_List[i], 'Down');
+      audioBuffer_FastSprite_Up_midiNum_List[i] = this.getStrokesList(audioBuffer_FastSprite_Down_Up_midiNum_List[i], 'Up');
+    }
 
     const trimVibFromStart = 2500;
     let audioBuffer_FastSprite_42_Vib_List = this.trimNFromStartForArray(
@@ -545,16 +542,6 @@ export class AppComponent implements OnInit {
       this.gerChannelDataListFromSprites(audioBuffer_Vibrato_43.getChannelData(0)), trimVibFromStart
     );
 
-    let audioBuffer_FastSprite_39_Down = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Fast/Fast Sprite 39.wav'));
-    let audioBuffer_FastSprite_39_Up = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Fast/Fast Sprite 39.wav'));
-
-    let audioBuffer_FastSprite_41_Down = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Fast/Fast Sprite 41.wav'));
-    let audioBuffer_FastSprite_41_Up = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Fast/Fast Sprite 41.wav'));
-
-    let audioBuffer_FastSprite_43_Down = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Fast/Fast Sprite 43.wav'));
-    let audioBuffer_FastSprite_43_Up = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Fast/Fast Sprite 43.wav'));
-
-
     let audioBuffer_Note_A = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Tenor Sax Eb.wav'));
     let audioBuffer_Note_B = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Tenor Sax F.wav'));
     let audioBuffer_Note_C = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Tenor Sax G.wav'));
@@ -563,53 +550,40 @@ export class AppComponent implements OnInit {
 
     let result: { [key: string]: Float32Array } = {};
 
+    audioBuffer_FastSprite_Down_midiNum_List.forEach((audioBuffer, index) => {
+      if (audioBuffer) {
+        let localRR = 0;
+        audioBuffer.forEach(item => {
+          result[getFormattedName({
+            midiNum: index,
+            art: articulations.fastDown,
+            rr: localRR
+          })] =
+            item;
+          localRR++;
+        })
+      }
+    })
+
+    audioBuffer_FastSprite_Up_midiNum_List.forEach((audioBuffer, index) => {
+      if (audioBuffer) {
+        let localRR = 0;
+        audioBuffer.forEach(item => {
+          result[getFormattedName({
+            midiNum: index,
+            art: articulations.fastUp,
+            rr: localRR
+          })] =
+            item;
+          localRR++;
+        })
+      }
+    })
+
     let roundRobinCounter = 0;
-    audioBuffer_FastSprite_35_Down_List.forEach(item => {
-      result[getFormattedName({
-        midiNum: midiNoteNumbers.N_B1_35,
-        art: articulations.fastDown,
-        rr: roundRobinCounter
-      })] =
-        item;
-      roundRobinCounter++;
-    })
 
-    roundRobinCounter = 0;
-    audioBuffer_FastSprite_35_Up_List.forEach(item => {
-      result[getFormattedName({
-        midiNum: midiNoteNumbers.N_B1_35,
-        art: articulations.fastUp,
-        rr: roundRobinCounter
-      })] =
-        item;
-      roundRobinCounter++;
-    })
-
-    roundRobinCounter = 0;
     audioBuffer_FastSprite_42_Vib_List.forEach(item => {
       result[getFormattedName({midiNum: midiNoteNumbers.N_B1_35, art: articulations.vib, rr: roundRobinCounter})] =
-        item;
-      roundRobinCounter++;
-    })
-
-    roundRobinCounter = 0;
-    audioBuffer_FastSprite_43_Down_List.forEach(item => {
-      result[getFormattedName({
-        midiNum: midiNoteNumbers.N_G2_43,
-        art: articulations.fastDown,
-        rr: roundRobinCounter
-      })] =
-        item;
-      roundRobinCounter++;
-    })
-
-    roundRobinCounter = 0;
-    audioBuffer_FastSprite_43_Up_List.forEach(item => {
-      result[getFormattedName({
-        midiNum: midiNoteNumbers.N_G2_43,
-        art: articulations.fastUp,
-        rr: roundRobinCounter
-      })] =
         item;
       roundRobinCounter++;
     })
@@ -624,21 +598,6 @@ export class AppComponent implements OnInit {
         item;
       roundRobinCounter++;
     })
-
-    result[`${midiNoteNumbers.N_Eb2_39} ${articulations.fastDown}`] =
-      audioBuffer_FastSprite_39_Down.getChannelData(0);
-    result[`${midiNoteNumbers.N_Eb2_39} ${articulations.fastUp}`] =
-      audioBuffer_FastSprite_39_Up.getChannelData(0);
-
-    result[`${midiNoteNumbers.N_F2_41} ${articulations.fastDown}`] =
-      audioBuffer_FastSprite_41_Down.getChannelData(0);
-    result[`${midiNoteNumbers.N_F2_41} ${articulations.fastUp}`] =
-      audioBuffer_FastSprite_41_Up.getChannelData(0);
-
-    result[`${midiNoteNumbers.N_G2_43} ${articulations.fastDown}`] =
-      audioBuffer_FastSprite_43_Down.getChannelData(0);
-    result[`${midiNoteNumbers.N_G2_43} ${articulations.fastUp}`] =
-      audioBuffer_FastSprite_43_Up.getChannelData(0);
 
     result[`${midiNoteNumbers.N_Eb2_39} ${midiNoteNumbers.N_F2_41}`] =
       audioBuffer_Transition_Eb_F.getChannelData(0);
