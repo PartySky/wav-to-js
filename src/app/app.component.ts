@@ -505,27 +505,14 @@ export class AppComponent implements OnInit {
     const AB_Transition_Eb_F = await this.getFileFromUrl('assets/Eb2 Up2.wav');
     const AB_Transition_F_G = await this.getFileFromUrl('assets/F2 Up2.wav');
 
-    const audioCtx = new AudioContext();
-
-    const lowestFastNoteFromSprite = 35;
-    const highestFastNoteFromSprite = 71;
-
-    let audioBuffer_FastSprite_Dictionary: { [key: string]: AudioBuffer } = {};
-    for (let i = lowestFastNoteFromSprite; i <= highestFastNoteFromSprite; i++) {
-      audioBuffer_FastSprite_Dictionary[i] = await audioCtx.decodeAudioData(await this.getFileFromUrl(`assets/lib/Fast/Fast Sprite ${i}.wav`));
-    }
-
-    let audioBuffer_FastSprite_Down_Dictionary: { [key: string]: AudioBuffer } = {};
-    for (let i = lowestFastNoteFromSprite; i <= highestFastNoteFromSprite; i++) {
-      audioBuffer_FastSprite_Down_Dictionary[i] = await audioCtx.decodeAudioData(await this.getFileFromUrl(`assets/lib/Fast/Fast Sprite ${i}.wav`));
-    }
-
-    let audioBuffer_Vibrato_42 = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Vibrato/Vibrato Sprite 42.wav'));
-    let audioBuffer_Vibrato_43 = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/lib/Vibrato/Vibrato Sprite 43.wav'));
 
     let audioBuffer_FastSprite_Down_Up_midiNum_List: Float32Array[][] = [];
     let audioBuffer_FastSprite_Down_midiNum_List: Float32Array[][] = [];
     let audioBuffer_FastSprite_Up_midiNum_List: Float32Array[][] = [];
+
+    let audioBuffer_VibratoSprite_midiNum_List: Float32Array[][] = [];
+
+    const audioCtx = new AudioContext();
 
     for (let i = 35; i < 71; i++) {
       const audioBufferTemp = await audioCtx.decodeAudioData(await this.getFileFromUrl(`assets/lib/Fast/Fast Sprite ${i}.wav`));
@@ -535,12 +522,12 @@ export class AppComponent implements OnInit {
     }
 
     const trimVibFromStart = 2500;
-    let audioBuffer_FastSprite_42_Vib_List = this.trimNFromStartForArray(
-      this.gerChannelDataListFromSprites(audioBuffer_Vibrato_42.getChannelData(0)), trimVibFromStart
-    );
-    let audioBuffer_FastSprite_43_Vib_List = this.trimNFromStartForArray(
-      this.gerChannelDataListFromSprites(audioBuffer_Vibrato_43.getChannelData(0)), trimVibFromStart
-    );
+    for (let i = 42; i < 72; i++) {
+      const audioBufferTemp = await audioCtx.decodeAudioData(await this.getFileFromUrl(`assets/lib/Vibrato/Vibrato Sprite ${i}.wav`));
+      audioBuffer_VibratoSprite_midiNum_List[i] = this.trimNFromStartForArray(
+        this.gerChannelDataListFromSprites(audioBufferTemp.getChannelData(0)), trimVibFromStart
+      );
+    }
 
     let audioBuffer_Note_A = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Tenor Sax Eb.wav'));
     let audioBuffer_Note_B = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Tenor Sax F.wav'));
@@ -580,23 +567,19 @@ export class AppComponent implements OnInit {
       }
     })
 
-    let roundRobinCounter = 0;
-
-    audioBuffer_FastSprite_42_Vib_List.forEach(item => {
-      result[getFormattedName({midiNum: midiNoteNumbers.N_B1_35, art: articulations.vib, rr: roundRobinCounter})] =
-        item;
-      roundRobinCounter++;
-    })
-
-    roundRobinCounter = 0;
-    audioBuffer_FastSprite_43_Vib_List.forEach(item => {
-      result[getFormattedName({
-        midiNum: midiNoteNumbers.N_G2_43,
-        art: articulations.vib,
-        rr: roundRobinCounter
-      })] =
-        item;
-      roundRobinCounter++;
+    audioBuffer_VibratoSprite_midiNum_List.forEach((audioBuffer, index) => {
+      if (audioBuffer) {
+        let localRR = 0;
+        audioBuffer.forEach(item => {
+          result[getFormattedName({
+            midiNum: index,
+            art: articulations.vib,
+            rr: localRR
+          })] =
+            item;
+          localRR++;
+        })
+      }
     })
 
     result[`${midiNoteNumbers.N_Eb2_39} ${midiNoteNumbers.N_F2_41}`] =
