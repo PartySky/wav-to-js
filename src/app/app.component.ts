@@ -22,18 +22,20 @@ export class AppComponent implements OnInit {
   drawMarkers = false;
   channelData_Transition_Dictionary: { [key: string]: Float32Array };
   onInitDateString: string;
+  isDataReady = false;
 
   constructor() {
   }
 
   async ngOnInit() {
-    await this.x();
+    await this.loadData();
     this.initMidi();
     this.onInitDateString = this.getDateString(new Date());
   }
 
-  async x() {
+  async loadData() {
     this.channelData_Transition_Dictionary = await this.loadAudioBufferForSamples();
+    this.isDataReady = true;
   }
 
   initMidi(): void {
@@ -58,6 +60,11 @@ export class AppComponent implements OnInit {
 
   @HostListener('document:keypress', ['$event'])
   handleKeyboardEvent(event: KeyboardEvent) {
+    if (!this.isDataReady) {
+      console.log(`Data hasn't been loaded`);
+      return;
+    }
+
     let key = event.code;
 
     const maxNoteAmount = 30;
