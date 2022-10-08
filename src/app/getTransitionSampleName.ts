@@ -11,7 +11,7 @@ export function getTransitionSampleName(noteIdList: number[]): string {
   const lowerTriggerNoteId = midiNoteNumbers.N_C1_24_VibratoTrigger;
   const previousItem = noteIdList[2];
 
-  let roundRobin = 5;
+  let roundRobin = 3;
 
   if (noteIdList[1]) {
     if (noteIdList[0] >= lowerNoteId && noteIdList[0] <= higherNoteId &&

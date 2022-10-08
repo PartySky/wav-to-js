@@ -1,4 +1,6 @@
 export const midiNoteNumbers = {
+  N_A2_45: 45,
+  N_Ab2_44: 44,
   N_G2_43: 43,
   N_F2_41: 41,
   N_E2_40: 40,

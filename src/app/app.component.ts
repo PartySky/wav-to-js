@@ -69,7 +69,11 @@ export class AppComponent implements OnInit {
 
     const maxNoteAmount = 30;
     let noteId = 0;
-    if (key === "KeyH") {
+    if (key === "KeyK") {
+      noteId = midiNoteNumbers.N_A2_45;
+    } else if (key === "KeyJ") {
+      noteId = midiNoteNumbers.N_Ab2_44;
+    } else if (key === "KeyH") {
       noteId = midiNoteNumbers.N_G2_43;
     } else if (key === "KeyG") {
       noteId = midiNoteNumbers.N_F2_41;
@@ -173,7 +177,9 @@ export class AppComponent implements OnInit {
       /**
        * Для соединения быстрых нот и вибрато
        */
-      this.notesToRender[1].offset = this.notesToRender[0].offset + 1000;
+      if (false && this.notesToRender[1]) {
+        this.notesToRender[1].offset = this.notesToRender[0].offset + 1000;
+      }
 
       let i = 0;
       this.notesToRender.forEach(item => {
