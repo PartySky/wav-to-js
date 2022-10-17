@@ -763,12 +763,36 @@ export class AppComponent implements OnInit {
   }
 
   getLegatoPairSamplesFromSprite(dataList: Float32Array, freq_01?: number, freq_02?: number): Float32Array[] {
-    let result: Float32Array[] = [];
+    let dataListTrimmed: number[] = [];
+    let endOfTrimming = false;
+    const trimTrashold = 0.1;
+
+    for (let i = 0; i < dataList.length; i++) {
+      if (!endOfTrimming) {
+        if (dataList[i] < trimTrashold ) {
+          /**
+           * Do nothing
+           */
+        } else {
+          endOfTrimming = true;
+        }
+      } else {
+        dataListTrimmed.push(dataList[i]);
+      }
+    }
+
+    const periodList = this.getChanelDataList(new Float32Array(dataListTrimmed));
 
     let resultTemp = [];
-    for (let i = 0; i < 10000; i++) {
-      resultTemp[i] = dataList[i];
-    }
+    let i = 0;
+    periodList.forEach(item => {
+      item.chData.forEach(chData => {
+        resultTemp[i] = chData;
+        i++;
+      });
+    })
+
+    let result: Float32Array[] = [];
 
     result.push(new Float32Array(resultTemp));
 
