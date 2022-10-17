@@ -4,4 +4,5 @@ export const articulations = {
   down: 'ArtDown',
   up: 'ArtUp',
   vib: 'vib',
+  leg: 'leg',
 }

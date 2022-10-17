@@ -215,7 +215,7 @@ export class AppComponent implements OnInit {
 
     let outPutChDataTemp = this.mixDownChDatas(chDataListForMixDown);
 
-    let test = false;
+    let test = true;
     if (test) {
       debugger;
       // @ts-ignore
@@ -225,7 +225,7 @@ export class AppComponent implements OnInit {
 
       const drawMarker = false;
 
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 1; i++) {
         if (drawMarker) {
           outPutChDataTemp[counter] = 1;
           counter++;
@@ -239,17 +239,30 @@ export class AppComponent implements OnInit {
           counter++;
         }
 
-        let noteABTemp = this.channelData_Transition_Dictionary[`35 ArtFastDown RR${i}`];
-        // let noteABTemp = channelData_Transition_Dictionary[`35 vib RR${3}`];
+        // let noteABTemp = this.channelData_Transition_Dictionary[`35 ArtFastDown RR${i}`];
+        //
+        // noteABTemp.forEach(item => {
+        //   outPutChDataTemp[counter] = item;
+        //   counter++;
+        // })
+        //
+        // let noteABTemp1 = this.channelData_Transition_Dictionary[`35 vib RR${i}`];
+        //
+        // noteABTemp1.forEach(item => {
+        //   outPutChDataTemp[counter] = item;
+        //   counter++;
+        // })
+
+        const indexTemp = 52;
+        const interval = 1;
+        let noteABTemp = this.channelData_Transition_Dictionary[getFormattedName({
+          midiNum: indexTemp,
+          midiNumSecond: indexTemp + interval,
+          art: articulations.leg,
+          rr: i
+        })];
 
         noteABTemp.forEach(item => {
-          outPutChDataTemp[counter] = item;
-          counter++;
-        })
-
-        let noteABTemp1 = this.channelData_Transition_Dictionary[`35 vib RR${i}`];
-
-        noteABTemp1.forEach(item => {
           outPutChDataTemp[counter] = item;
           counter++;
         })
@@ -392,6 +405,11 @@ export class AppComponent implements OnInit {
 
   getChanelDataList(chData: Float32Array): Period[] {
     let result: Period[] = [];
+
+    if (!chData) {
+      return result;
+    }
+
     let found = false;
     const tracholdLength = 300; // 200
 
@@ -511,28 +529,37 @@ export class AppComponent implements OnInit {
     const AB_Transition_Eb_F = await this.getFileFromUrl('assets/Eb2 Up2.wav');
     const AB_Transition_F_G = await this.getFileFromUrl('assets/F2 Up2.wav');
 
-
-    let audioBuffer_FastSprite_Down_Up_midiNum_List: Float32Array[][] = [];
     let audioBuffer_FastSprite_Down_midiNum_List: Float32Array[][] = [];
     let audioBuffer_FastSprite_Up_midiNum_List: Float32Array[][] = [];
 
     let audioBuffer_VibratoSprite_midiNum_List: Float32Array[][] = [];
 
+    let audioBuffer_LegatoPairs_Up_01_midiNum_List: Float32Array[][] = [];
+
     const audioCtx = new AudioContext();
 
-    for (let i = 35; i < 71; i++) {
-      const audioBufferTemp = await audioCtx.decodeAudioData(await this.getFileFromUrl(`assets/lib/Fast/Fast Sprite ${i}.wav`));
-      audioBuffer_FastSprite_Down_Up_midiNum_List[i] = this.gerChannelDataListFromSprites(audioBufferTemp.getChannelData(0));
-      audioBuffer_FastSprite_Down_midiNum_List[i] = this.getStrokesList(audioBuffer_FastSprite_Down_Up_midiNum_List[i], 'Down');
-      audioBuffer_FastSprite_Up_midiNum_List[i] = this.getStrokesList(audioBuffer_FastSprite_Down_Up_midiNum_List[i], 'Up');
+    const skipped = true;
+
+    if (!skipped) {
+      for (let i = 35; i < 71; i++) {
+        const audioBufferTemp = await audioCtx.decodeAudioData(await this.getFileFromUrl(`assets/lib/Fast/Fast Sprite ${i}.wav`));
+        const audioBuffer_FastSprite_Down_Up_midiNum_List = this.gerChannelDataListFromSprites(audioBufferTemp.getChannelData(0));
+        audioBuffer_FastSprite_Down_midiNum_List[i] = this.getStrokesList(audioBuffer_FastSprite_Down_Up_midiNum_List, 'Down');
+        audioBuffer_FastSprite_Up_midiNum_List[i] = this.getStrokesList(audioBuffer_FastSprite_Down_Up_midiNum_List, 'Up');
+      }
+
+      const trimVibFromStart = 2500;
+      for (let i = 42; i < 72; i++) {
+        const audioBufferTemp = await audioCtx.decodeAudioData(await this.getFileFromUrl(`assets/lib/Vibrato/Vibrato Sprite ${i}.wav`));
+        audioBuffer_VibratoSprite_midiNum_List[i] = this.trimNFromStartForArray(
+          this.gerChannelDataListFromSprites(audioBufferTemp.getChannelData(0)), trimVibFromStart
+        );
+      }
     }
 
-    const trimVibFromStart = 2500;
-    for (let i = 42; i < 72; i++) {
-      const audioBufferTemp = await audioCtx.decodeAudioData(await this.getFileFromUrl(`assets/lib/Vibrato/Vibrato Sprite ${i}.wav`));
-      audioBuffer_VibratoSprite_midiNum_List[i] = this.trimNFromStartForArray(
-        this.gerChannelDataListFromSprites(audioBufferTemp.getChannelData(0)), trimVibFromStart
-      );
+    for (let i = 52; i < 71; i++) {
+      const audioBufferTemp = await audioCtx.decodeAudioData(await this.getFileFromUrl(`assets/lib/Legato/Legato Up 01/Legato Up 01 Sprite ${i}.wav`));
+      audioBuffer_LegatoPairs_Up_01_midiNum_List[i] = this.getLegatoPairSamplesFromSprite(audioBufferTemp.getChannelData(0));
     }
 
     let audioBuffer_Note_A = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Tenor Sax Eb.wav'));
@@ -580,6 +607,23 @@ export class AppComponent implements OnInit {
           result[getFormattedName({
             midiNum: index,
             art: articulations.vib,
+            rr: localRR
+          })] =
+            item;
+          localRR++;
+        })
+      }
+    })
+
+    audioBuffer_LegatoPairs_Up_01_midiNum_List.forEach((audioBuffer, index) => {
+      if (audioBuffer) {
+        const interval = 1;
+        let localRR = 0;
+        audioBuffer.forEach(item => {
+          result[getFormattedName({
+            midiNum: index,
+            midiNumSecond: index + interval,
+            art: articulations.leg,
             rr: localRR
           })] =
             item;
@@ -716,5 +760,18 @@ export class AppComponent implements OnInit {
     }
 
     return new Float32Array(result);
+  }
+
+  getLegatoPairSamplesFromSprite(dataList: Float32Array, freq_01?: number, freq_02?: number): Float32Array[] {
+    let result: Float32Array[] = [];
+
+    let resultTemp = [];
+    for (let i = 0; i < 10000; i++) {
+      resultTemp[i] = dataList[i];
+    }
+
+    result.push(new Float32Array(resultTemp));
+
+    return result;
   }
 }
