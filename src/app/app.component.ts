@@ -8,6 +8,7 @@ import {midiNoteNumbers} from "./midiNoteNumbers";
 import {articulations} from "./articulations";
 import {getFormattedName} from "./getFormattedName";
 import {getFileFromUrl} from "./getFileFromUrl";
+import {PitchDetector} from "./pitchDetector";
 
 @Component({
   selector: 'app-root',
@@ -30,6 +31,9 @@ export class AppComponent implements OnInit {
   }
 
   async ngOnInit() {
+    let pi = new PitchDetector();
+    pi.periodsDetector();
+    return;
     await this.loadData();
     this.initMidi();
     this.onInitDateString = this.getDateString(new Date());
