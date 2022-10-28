@@ -112,6 +112,24 @@ export class PitchDetector {
     return new Float32Array(result);
   }
 
+  normalize(data: number[]): number[] {
+    let result: number[] = [];
+
+    const min = Math.min(...data); // 9 // 1
+    const max = Math.max(...data); // 3 // -1
+
+    // 9 1
+    // i x
+
+    // x = i * 1 / 9
+
+    data.forEach(item => {
+      result.push(item * 1 / max);
+    })
+
+    return result;
+  }
+
   getPeriodsFromX(dto: DTO_01): number[] {
     const sampleRate = dto.sampleRate;
     const chData = this.getConvertedChData(dto.chData, 32768, 32767);
@@ -119,7 +137,6 @@ export class PitchDetector {
     let maxBound = 2000;
     const bounds = [20, maxBound];
     let result: number[] = [];
-    let lastI = 0;
 
     let iTemp = 0;
 
@@ -137,6 +154,10 @@ export class PitchDetector {
       numberOfChannels: 2,
       sampleRate: sampleRate,
     });
+
+    const normalizedDFVals = this.normalize(DF_vals);
+
+    outPutAB.copyToChannel(new Float32Array(normalizedDFVals), 0);
 
     const uiParms = getUiParams();
 
@@ -158,6 +179,8 @@ export class PitchDetector {
 
     const maxIToFind = chData.length / (windowSize + 3);
 
+    let lastI = 0;
+    
     for (let i = 0; i < maxIToFind; i++) {
       if (i - lastI > 2) {
         this.drawProgress(maxIToFind, i);
@@ -280,8 +303,8 @@ export class PitchDetector {
    * Returns index of maximal value
    */
   private numpyArgmax(data: number[]): number {
-    const min = Math.max(...data);
-    let result = data.indexOf(min);
+    const max = Math.max(...data);
+    let result = data.indexOf(max);
     return result;
   }
 

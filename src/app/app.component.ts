@@ -1,6 +1,5 @@
 import {Component, HostListener, OnInit} from '@angular/core';
 import * as WavFileEncoder from "wav-file-encoder";
-import {UiParms} from "./uiParms";
 import {Period} from "./period";
 import {Note} from "./note";
 import {getTransitionSampleName} from "./getTransitionSampleName";
@@ -34,11 +33,6 @@ export class AppComponent implements OnInit {
   }
 
   async ngOnInit() {
-debugger;
-    this.generateWavFile();
-
-    return;
-
     let pi = new PitchDetector();
     pi.periodsDetector();
     return;
