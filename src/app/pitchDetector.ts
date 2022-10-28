@@ -28,6 +28,11 @@ export class PitchDetector {
 
   getDFVals(f: number[], W: number, t: number, sample_rate: number, bounds: number[]): number[] {
     let DF_vals: number[] = [];
+
+    for (let i = 0; i < bounds[0]; i++) {
+      DF_vals.push(-0.5);
+    }
+
     for (let i = bounds[0]; i < bounds[1]; i++) {
       let lag = i;
       const x1 = f.slice(t, t + W).length;
@@ -151,7 +156,7 @@ export class PitchDetector {
 
     const outPutAB: AudioBuffer = new AudioBuffer({
       length: DF_vals.length,
-      numberOfChannels: 2,
+      numberOfChannels: 1,
       sampleRate: sampleRate,
     });
 
@@ -180,7 +185,7 @@ export class PitchDetector {
     const maxIToFind = chData.length / (windowSize + 3);
 
     let lastI = 0;
-    
+
     for (let i = 0; i < maxIToFind; i++) {
       if (i - lastI > 2) {
         this.drawProgress(maxIToFind, i);
