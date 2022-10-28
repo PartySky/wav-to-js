@@ -139,7 +139,7 @@ export class PitchDetector {
     const sampleRate = dto.sampleRate;
     const chData = this.getConvertedChData(dto.chData, 32768, 32767);
     const windowSize = 5 / 2000 * 44100;
-    let maxBound = 2000;
+    let maxBound = 6000; // 2000
     const bounds = [20, maxBound];
     let result: number[] = [];
 
@@ -149,7 +149,7 @@ export class PitchDetector {
       // @ts-ignore
       chData,
       windowSize,
-      iTemp, // 1, // iTemp, // ?
+      1, // 1, // iTemp, // ?
       sampleRate,
       bounds,
     );
@@ -316,7 +316,7 @@ export class PitchDetector {
   async periodsDetector() {
     const pitchDetector = new PitchDetector();
 
-    const AB_Transition_F_G = await getFileFromUrl('assets/F2 ACF Test 09.wav');
+    const AB_Transition_F_G = await getFileFromUrl('assets/F2 Up2.wav');
     const audioCtx = new AudioContext();
     let audioBuffer_Transition_F_G = await audioCtx.decodeAudioData(AB_Transition_F_G);
     let chData = audioBuffer_Transition_F_G.getChannelData(0);
