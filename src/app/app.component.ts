@@ -9,6 +9,9 @@ import {articulations} from "./articulations";
 import {getFormattedName} from "./getFormattedName";
 import {getFileFromUrl} from "./getFileFromUrl";
 import {PitchDetector} from "./pitchDetector";
+import {openSaveAsDialog} from "./openSaveAsDialog";
+import {getDateString} from "./getDateString";
+import {getUiParams} from "./getUiParams";
 
 @Component({
   selector: 'app-root',
@@ -31,12 +34,17 @@ export class AppComponent implements OnInit {
   }
 
   async ngOnInit() {
+debugger;
+    this.generateWavFile();
+
+    return;
+
     let pi = new PitchDetector();
     pi.periodsDetector();
     return;
     await this.loadData();
     this.initMidi();
-    this.onInitDateString = this.getDateString(new Date());
+    this.onInitDateString = getDateString(new Date());
   }
 
   async loadData() {
@@ -117,60 +125,14 @@ export class AppComponent implements OnInit {
     return getFileFromUrl(url);
   }
 
-  getRadioButtonGroupValue(name: string): string | undefined {
-    const a = document.getElementsByName(name);
-    for (let i = 0; i < a.length; i++) {
-      const e = <HTMLInputElement>a[i];
-      if (e.checked) {
-        return e.value;
-      }
-    }
-    return undefined;
-  }
-
-  // When a parameter is invalid, an error message is displayed, the cursor is placed within
-  // the affected field and the return value is undefined.
-  getUiParms(): UiParms | undefined {
-    const frequencyElement = <HTMLInputElement>document.getElementById("frequency")!;
-    const amplitudeElement = <HTMLInputElement>document.getElementById("amplitude")!;
-    const durationElement = <HTMLInputElement>document.getElementById("duration")!;
-    const channelsElement = <HTMLInputElement>document.getElementById("channels")!;
-    const sampleRateElement = <HTMLInputElement>document.getElementById("sampleRate")!;
-    if (!frequencyElement.reportValidity() ||
-      !amplitudeElement.reportValidity() ||
-      !durationElement.reportValidity() ||
-      !channelsElement.reportValidity() ||
-      !sampleRateElement.reportValidity()) {
-      return;
-    }
-    const uiParms = <UiParms>{};
-    uiParms.frequency = frequencyElement.valueAsNumber;
-    uiParms.amplitude = amplitudeElement.valueAsNumber;
-    uiParms.duration = durationElement.valueAsNumber;
-    uiParms.channels = channelsElement.valueAsNumber;
-    uiParms.sampleRate = sampleRateElement.valueAsNumber;
-    uiParms.wavFileType = Number(this.getRadioButtonGroupValue("wavFileType"));
-    return uiParms;
-  }
-
   openSaveAsDialog(blob: Blob, fileName: string): void {
-    const url = URL.createObjectURL(blob);
-    const element = document.createElement("a");
-    element.href = url;
-    element.download = fileName;
-    const clickEvent = new MouseEvent("click");
-    element.dispatchEvent(clickEvent);
-    setTimeout(() => URL.revokeObjectURL(url), 60000);
-    (<any>document).dummySaveAsElementHolder = element;
+    openSaveAsDialog(blob, fileName);
   }
 
   async generateWavFile() {
     console.log('start generateWavFile')
 
-    const uiParms = this.getUiParms();
-    if (!uiParms) {
-      return;
-    }
+    const uiParms = getUiParams();
 
     let chDataListForMixDown: { periodList: Period[], offset: number }[] = [];
 
@@ -297,7 +259,7 @@ export class AppComponent implements OnInit {
 
     const wavFileData = WavFileEncoder.encodeWavFile(outPutAB, uiParms.wavFileType);
     const blob = new Blob([wavFileData], {type: "audio/wav"});
-    this.openSaveAsDialog(blob, `test ${this.getDateString(new Date())}.wav`);
+    this.openSaveAsDialog(blob, `test ${getDateString(new Date())}.wav`);
   }
 
   mixDownChDatas(chDataList: { periodList: Period[], offset: number }[]): Float32Array {
@@ -555,22 +517,6 @@ export class AppComponent implements OnInit {
       }
       head = head + item.chData.length;
     })
-
-    return result;
-  }
-
-  getDateString(date: Date): string {
-    let result = '';
-    const dt = new Date();
-    const padL = (nr, len = 2, chr = `0`) => `${nr}`.padStart(2, chr);
-
-    result =
-      // `${padL(dt.getDate())}.${
-      // padL(dt.getMonth()+1)}.${
-      // dt.getFullYear()}` +
-      `${padL(dt.getHours())}:${
-        padL(dt.getMinutes())}:${
-        padL(dt.getSeconds())}`;
 
     return result;
   }

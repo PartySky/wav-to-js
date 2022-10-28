@@ -4,3 +4,6 @@ export async function getFileFromUrl(url: string): Promise<ArrayBuffer> {
   let ab = await response.arrayBuffer();
   return ab;
 }
+
+
+

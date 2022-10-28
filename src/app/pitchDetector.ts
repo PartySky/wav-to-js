@@ -1,5 +1,9 @@
 import {DTO_01} from "./DTO_01";
 import {getFileFromUrl} from "./getFileFromUrl";
+import * as WavFileEncoder from "wav-file-encoder";
+import {openSaveAsDialog} from "./openSaveAsDialog";
+import {getDateString} from "./getDateString";
+import {getUiParams} from "./getUiParams";
 
 export class PitchDetector {
   constructor() {
@@ -16,6 +20,50 @@ export class PitchDetector {
     let multipliedArray = this.numpyMultiplyArrays(f.slice(t, t + W), f.slice(lag + t, lag + t + W));
 
     return this.numpySum(multipliedArray);
+  }
+
+  getClosestPeriodIndexDF1(f: number[], W: number, t: number, sample_rate: number, bounds: number[]): number {
+    return 0;
+  }
+
+  getDFVals(f: number[], W: number, t: number, sample_rate: number, bounds: number[]): number[] {
+    let DF_vals: number[] = [];
+    for (let i = bounds[0]; i < bounds[1]; i++) {
+      let lag = i;
+      const x1 = f.slice(t, t + W).length;
+      const x2 = f.slice(lag + t, lag + t + W).length;
+      if (x1 && x2 && x1 === x2) {
+        DF_vals.push(this.DF(f, W, t, i));
+      }
+    }
+
+    let localMins: number[] = [];
+
+    // abc
+    // (b-a)(c-b) < 0
+    DF_vals.forEach((item, i) => {
+      if (DF_vals[i - 1] > DF_vals[i] && DF_vals[i] < DF_vals[i + 1]) {
+        localMins.push(i);
+      }
+    })
+
+    debugger;
+
+    return DF_vals;
+  }
+
+  detect_pitch_ACF(f: number[], W: number, t: number, sample_rate: number, bounds: number[]): number {
+    let ACF_vals: number[] = [];
+    for (let i = bounds[0]; i < bounds[1]; i++) {
+      let lag = i;
+      const x1 = f.slice(t, t + W).length;
+      const x2 = f.slice(lag + t, lag + t + W).length;
+      if (x1 && x2 && x1 === x2) {
+        ACF_vals.push(this.ACF(f, W, t, i));
+      }
+    }
+    let sample = this.numpyArgmax(ACF_vals) + bounds[0];
+    return sample_rate / sample;
   }
 
   /**
@@ -62,6 +110,69 @@ export class PitchDetector {
     })
 
     return new Float32Array(result);
+  }
+
+  getPeriodsFromX(dto: DTO_01): number[] {
+    const sampleRate = dto.sampleRate;
+    const chData = this.getConvertedChData(dto.chData, 32768, 32767);
+    const windowSize = 5 / 2000 * 44100;
+    let maxBound = 2000;
+    const bounds = [20, maxBound];
+    let result: number[] = [];
+    let lastI = 0;
+
+    let iTemp = 0;
+
+    let DF_vals = this.getDFVals(
+      // @ts-ignore
+      chData,
+      windowSize,
+      iTemp, // 1, // iTemp, // ?
+      sampleRate,
+      bounds,
+    );
+
+    const outPutAB: AudioBuffer = new AudioBuffer({
+      length: DF_vals.length,
+      numberOfChannels: 2,
+      sampleRate: sampleRate,
+    });
+
+    const uiParms = getUiParams();
+
+    const wavFileData = WavFileEncoder.encodeWavFile(outPutAB, uiParms.wavFileType);
+    const blob = new Blob([wavFileData], {type: "audio/wav"});
+    openSaveAsDialog(blob, `test ${getDateString(new Date())}.wav`);
+
+    // let firstPeriod = this.DF(
+    //   // @ts-ignore
+    //   chData,
+    //   windowSize,
+    //   iTemp,
+    //   bounds[1],
+    // );
+
+    debugger;
+
+    return result;
+
+    const maxIToFind = chData.length / (windowSize + 3);
+
+    for (let i = 0; i < maxIToFind; i++) {
+      if (i - lastI > 2) {
+        this.drawProgress(maxIToFind, i);
+        lastI = i;
+      }
+      result.push(this.augmented_detect_pitch_CMNDF(
+        chData,
+        windowSize,
+        i * windowSize,
+        sampleRate,
+        bounds
+      ))
+    }
+
+    return result;
   }
 
   getPitchesFromX(dto: DTO_01): number[] {
@@ -165,6 +276,14 @@ export class PitchDetector {
     return result;
   }
 
+  /**
+   * Returns index of maximal value
+   */
+  private numpyArgmax(data: number[]): number {
+    const min = Math.max(...data);
+    let result = data.indexOf(min);
+    return result;
+  }
 
   async periodsDetector() {
     const pitchDetector = new PitchDetector();
@@ -174,7 +293,8 @@ export class PitchDetector {
     let audioBuffer_Transition_F_G = await audioCtx.decodeAudioData(AB_Transition_F_G);
     let chData = audioBuffer_Transition_F_G.getChannelData(0);
 
-    let testPitches = pitchDetector.getPitchesFromX(
+
+    let testPitches = pitchDetector.getPeriodsFromX(
       {
         sampleRate: 44100,
         chData,
