@@ -84,6 +84,9 @@ export class PitchDetector {
     return result;
   }
 
+  /**
+   * Cumulative mean normalized difference function
+   */
   memo_CMNDF(f: number[], W: number, t: number, lag_max: number): number[] {
     let running_sum = 0;
     let vals: number[] = [];
@@ -98,7 +101,8 @@ export class PitchDetector {
         if (x1 && x2 && x1 === x2) {
           const DFResult = this.DF(f, W, t, lag);
           running_sum += DFResult;
-          vals.push(DFResult / running_sum * lag);
+          const DFResultToPush = DFResult / running_sum * lag;
+          vals.push(DFResultToPush);
         }
       }
     }
@@ -135,11 +139,32 @@ export class PitchDetector {
     return result;
   }
 
+  saveFile(data: number[], sampleRate: number, name = ''): void {
+    const outPutAB: AudioBuffer = new AudioBuffer({
+      length: data.length,
+      numberOfChannels: 1,
+      sampleRate: sampleRate,
+    });
+
+    const normalizedDFVals = this.normalize(data);
+
+    outPutAB.copyToChannel(new Float32Array(normalizedDFVals), 0);
+
+    const uiParms = getUiParams();
+
+    const nameTemp = name ? name : 'Test';
+
+    const wavFileData = WavFileEncoder.encodeWavFile(outPutAB, uiParms.wavFileType);
+    const blob = new Blob([wavFileData], {type: "audio/wav"});
+    openSaveAsDialog(blob, `${nameTemp} ${getDateString(new Date())}.wav`);
+  }
+
   getPeriodsFromX(dto: DTO_01): number[] {
     const sampleRate = dto.sampleRate;
-    const chData = this.getConvertedChData(dto.chData, 32768, 32767);
+    // const chData = this.getConvertedChData(dto.chData, 32768, 32767);
+    const chData = this.getConvertedChData(dto.chData.slice(1000), 32768, 32767);
     const windowSize = 5 / 2000 * 44100;
-    let maxBound = 6000; // 2000
+    let maxBound = 12000; // 2000
     const bounds = [20, maxBound];
     let result: number[] = [];
 
@@ -154,21 +179,11 @@ export class PitchDetector {
       bounds,
     );
 
-    const outPutAB: AudioBuffer = new AudioBuffer({
-      length: DF_vals.length,
-      numberOfChannels: 1,
-      sampleRate: sampleRate,
-    });
+    // @ts-ignore
+    const CMNDF_vals = this.memo_CMNDF(chData, windowSize, 1, bounds.slice(-1)[0]).slice(bounds[0]);
 
-    const normalizedDFVals = this.normalize(DF_vals);
-
-    outPutAB.copyToChannel(new Float32Array(normalizedDFVals), 0);
-
-    const uiParms = getUiParams();
-
-    const wavFileData = WavFileEncoder.encodeWavFile(outPutAB, uiParms.wavFileType);
-    const blob = new Blob([wavFileData], {type: "audio/wav"});
-    openSaveAsDialog(blob, `test ${getDateString(new Date())}.wav`);
+    this.saveFile(DF_vals, sampleRate, "DF_vals");
+    this.saveFile(CMNDF_vals, sampleRate, 'CMNDF_vals');
 
     // let firstPeriod = this.DF(
     //   // @ts-ignore
@@ -316,7 +331,9 @@ export class PitchDetector {
   async periodsDetector() {
     const pitchDetector = new PitchDetector();
 
-    const AB_Transition_F_G = await getFileFromUrl('assets/F2 Up2.wav');
+    // const AB_Transition_F_G = await getFileFromUrl('assets/F2 DF Test 06.wav');
+    const AB_Transition_F_G = await getFileFromUrl('assets/lib/Legato/Legato Up 04/Legato Up 04 Sprite 52.wav');
+
     const audioCtx = new AudioContext();
     let audioBuffer_Transition_F_G = await audioCtx.decodeAudioData(AB_Transition_F_G);
     let chData = audioBuffer_Transition_F_G.getChannelData(0);
