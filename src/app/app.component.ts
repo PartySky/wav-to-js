@@ -6,11 +6,11 @@ import {getTransitionSampleName} from "./getTransitionSampleName";
 import {midiNoteNumbers} from "./midiNoteNumbers";
 import {articulations} from "./articulations";
 import {getFormattedName} from "./getFormattedName";
-import {getFileFromUrl} from "./getFileFromUrl";
-import {PitchDetector} from "./pitchDetector";
+import {getArrayBufferFromUrl} from "./getArrayBufferFromUrl";
 import {openSaveAsDialog} from "./openSaveAsDialog";
 import {getDateString} from "./getDateString";
 import {getUiParams} from "./getUiParams";
+import {getJsonFromUrl} from "./getJsonFromUrl";
 
 @Component({
   selector: 'app-root',
@@ -24,25 +24,21 @@ export class AppComponent implements OnInit {
   notesToRender: Note[] = [];
   notesReadMode = true;
   drawMarkers = false;
-  channelData_Transition_Dictionary: { [key: string]: Float32Array };
+  periods_Transition_Dictionary: { [key: string]: Period[] };
   onInitDateString: string;
   isDataReady = false;
-  testPitches = [31.772334293948127, 34.53406421299922, 22.295247724974722, 42.0, 46.91489361702128, 89.45233265720081, 115.44502617801047, 163.33333333333334, 33.13298271975958, 36.1771944216571, 39.83739837398374, 44.232698094282846, 49.71815107102593, 165.1685393258427, 1520.6896551724137, 139.55696202531647, 1520.6896551724137, 112.21374045801527, 252.0, 40.87117701575533, 286.3636363636364, 1470.0, 71.01449275362319, 344.53125, 146.02649006622516, 118.54838709677419, 551.25, 525.0, 400.90909090909093, 416.0377358490566, 512.7906976744187, 420.0, 432.3529411764706, 450.0, 445.45454545454544, 454.63917525773195, 464.2105263157895, 459.375, 469.1489361702128, 479.3478260869565, 474.19354838709677, 479.3478260869565, 474.19354838709677, 474.19354838709677, 469.1489361702128, 469.1489361702128, 469.1489361702128, 474.19354838709677, 469.1489361702128, 474.19354838709677, 474.19354838709677, 474.19354838709677, 469.1489361702128, 474.19354838709677, 469.1489361702128, 469.1489361702128, 469.1489361702128, 469.1489361702128, 469.1489361702128, 469.1489361702128, 469.1489361702128, 464.2105263157895, 469.1489361702128, 469.1489361702128, 469.1489361702128, 469.1489361702128, 469.1489361702128, 464.2105263157895, 464.2105263157895, 469.1489361702128, 464.2105263157895, 464.2105263157895, 464.2105263157895, 464.2105263157895, 464.2105263157895, 464.2105263157895, 464.2105263157895, 464.2105263157895, 900.0, 918.75, 918.75, 918.75, 918.75, 918.75, 918.75, 918.75, 918.75, 454.63917525773195, 454.63917525773195, 450.0, 450.0, 450.0, 450.0, 450.0, 445.45454545454544, 445.45454545454544, 441.0, 432.3529411764706, 420.0, 82.12290502793296, 81.97026022304833, 101.84757505773672, 101.37931034482759, 101.61290322580645, 135.69230769230768, 412.14953271028037, 404.58715596330273, 404.58715596330273, 416.0377358490566, 408.3333333333333, 393.75, 404.58715596330273, 408.3333333333333, 404.58715596330273, 408.3333333333333, 412.14953271028037, 404.58715596330273, 404.58715596330273, 408.3333333333333, 404.58715596330273, 404.58715596330273, 404.58715596330273, 404.58715596330273, 404.58715596330273, 404.58715596330273, 404.58715596330273, 404.58715596330273, 404.58715596330273, 404.58715596330273, 404.58715596330273, 400.90909090909093, 404.58715596330273, 400.90909090909093, 404.58715596330273, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 404.58715596330273, 400.90909090909093, 404.58715596330273, 404.58715596330273, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 404.58715596330273, 400.90909090909093, 400.90909090909093, 400.90909090909093, 397.2972972972973, 393.75, 88.37675350701403, 23.58288770053476, 404.58715596330273, 397.2972972972973, 390.2654867256637, 393.75, 397.2972972972973, 397.2972972972973, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 397.2972972972973, 400.90909090909093, 400.90909090909093, 404.58715596330273, 400.90909090909093, 400.90909090909093, 404.58715596330273, 404.58715596330273, 416.0377358490566, 400.90909090909093, 412.14953271028037, 408.3333333333333, 420.0, 424.03846153846155, 432.3529411764706, 441.0, 441.0, 469.1489361702128, 122.1606648199446, 454.63917525773195, 454.63917525773195, 454.63917525773195, 459.375, 459.375, 459.375, 459.375, 459.375, 459.375, 464.2105263157895, 464.2105263157895, 464.2105263157895, 464.2105263157895, 464.2105263157895, 464.2105263157895, 464.2105263157895, 464.2105263157895, 469.1489361702128, 464.2105263157895, 469.1489361702128, 469.1489361702128, 469.1489361702128, 469.1489361702128, 464.2105263157895, 469.1489361702128, 464.2105263157895, 464.2105263157895, 464.2105263157895, 464.2105263157895, 464.2105263157895, 464.2105263157895, 464.2105263157895, 464.2105263157895, 464.2105263157895, 464.2105263157895, 464.2105263157895, 464.2105263157895, 469.1489361702128, 464.2105263157895, 464.2105263157895, 464.2105263157895, 464.2105263157895, 469.1489361702128, 469.1489361702128, 464.2105263157895, 469.1489361702128, 469.1489361702128, 469.1489361702128, 469.1489361702128, 469.1489361702128, 469.1489361702128, 469.1489361702128, 469.1489361702128, 469.1489361702128, 464.2105263157895, 464.2105263157895, 454.63917525773195, 464.2105263157895, 464.2105263157895, 469.1489361702128, 464.2105263157895, 464.2105263157895, 464.2105263157895, 469.1489361702128, 469.1489361702128, 464.2105263157895, 469.1489361702128, 469.1489361702128, 484.61538461538464, 484.61538461538464, 484.61538461538464, 490.0, 490.0, 484.61538461538464, 495.5056179775281, 490.0, 495.5056179775281, 512.7906976744187, 518.8235294117648, 518.8235294117648, 525.0, 525.0, 525.0, 525.0, 525.0, 525.0, 531.3253012048193, 525.0, 531.3253012048193, 531.3253012048193, 531.3253012048193, 531.3253012048193, 531.3253012048193, 531.3253012048193, 531.3253012048193, 537.8048780487804, 531.3253012048193, 531.3253012048193, 531.3253012048193, 531.3253012048193, 531.3253012048193, 531.3253012048193, 531.3253012048193, 531.3253012048193, 531.3253012048193, 531.3253012048193, 531.3253012048193, 531.3253012048193, 531.3253012048193, 531.3253012048193, 531.3253012048193, 531.3253012048193, 537.8048780487804, 537.8048780487804, 531.3253012048193, 531.3253012048193, 531.3253012048193, 531.3253012048193, 531.3253012048193, 525.0, 525.0, 525.0, 518.8235294117648, 525.0, 512.7906976744187, 506.8965517241379, 512.7906976744187, 501.1363636363636, 484.61538461538464, 26.18764845605701, 44.680851063829785, 495.5056179775281, 518.8235294117648, 525.0, 518.8235294117648, 518.8235294117648, 512.7906976744187, 1025.5813953488373, 506.8965517241379, 106.77966101694915, 106.00961538461539, 104.75059382422803, 105.50239234449761, 104.00943396226415, 135.27607361963192, 370.5882352941176, 400.90909090909093, 209.0047393364929, 390.2654867256637, 386.8421052631579, 420.0, 432.3529411764706, 428.15533980582524, 432.3529411764706, 432.3529411764706, 424.03846153846155, 432.3529411764706, 450.0, 454.63917525773195, 214.07766990291262, 436.63366336633663, 432.3529411764706, 432.3529411764706, 436.63366336633663, 436.63366336633663, 428.15533980582524, 428.15533980582524, 428.15533980582524, 428.15533980582524, 424.03846153846155, 420.0, 416.0377358490566, 416.0377358490566, 416.0377358490566, 412.14953271028037, 412.14953271028037, 412.14953271028037, 412.14953271028037, 408.3333333333333, 408.3333333333333, 408.3333333333333, 408.3333333333333, 408.3333333333333, 412.14953271028037, 412.14953271028037, 412.14953271028037, 412.14953271028037, 416.0377358490566, 416.0377358490566, 416.0377358490566, 416.0377358490566, 416.0377358490566, 420.0, 424.03846153846155, 424.03846153846155, 428.15533980582524, 428.15533980582524, 428.15533980582524, 432.3529411764706, 432.3529411764706, 432.3529411764706, 436.63366336633663, 436.63366336633663, 436.63366336633663, 441.0, 441.0, 445.45454545454544, 445.45454545454544, 445.45454545454544, 445.45454545454544, 445.45454545454544, 445.45454545454544, 450.0, 450.0, 450.0, 450.0, 450.0, 450.0, 450.0, 454.63917525773195, 454.63917525773195, 450.0, 450.0, 450.0, 450.0, 450.0, 450.0, 450.0, 450.0, 454.63917525773195, 450.0, 454.63917525773195, 450.0, 450.0, 450.0, 450.0, 450.0, 450.0, 450.0, 450.0, 450.0, 450.0, 450.0, 450.0, 450.0, 445.45454545454544, 450.0, 450.0, 450.0, 445.45454545454544, 450.0, 450.0, 450.0, 450.0, 450.0, 445.45454545454544, 445.45454545454544, 445.45454545454544, 445.45454545454544, 441.0, 441.0, 441.0, 441.0, 436.63366336633663, 432.3529411764706, 432.3529411764706, 428.15533980582524, 428.15533980582524, 424.03846153846155, 428.15533980582524, 424.03846153846155, 420.0, 424.03846153846155, 420.0, 416.0377358490566, 416.0377358490566, 416.0377358490566, 424.03846153846155, 416.0377358490566, 424.03846153846155, 416.0377358490566, 420.0, 420.0, 424.03846153846155, 424.03846153846155, 432.3529411764706, 428.15533980582524, 428.15533980582524, 428.15533980582524, 432.3529411764706, 432.3529411764706, 432.3529411764706, 436.63366336633663, 436.63366336633663, 441.0, 441.0, 441.0, 441.0, 441.0, 441.0, 445.45454545454544, 445.45454545454544, 441.0, 445.45454545454544, 441.0, 445.45454545454544, 441.0, 441.0, 441.0, 441.0, 441.0, 441.0, 441.0, 441.0, 436.63366336633663, 436.63366336633663, 436.63366336633663, 436.63366336633663, 432.3529411764706, 432.3529411764706, 428.15533980582524, 428.15533980582524, 428.15533980582524, 424.03846153846155, 424.03846153846155, 420.0, 416.0377358490566, 416.0377358490566, 412.14953271028037, 412.14953271028037, 412.14953271028037, 412.14953271028037, 412.14953271028037, 408.3333333333333, 404.58715596330273, 404.58715596330273, 404.58715596330273, 408.3333333333333, 408.3333333333333, 404.58715596330273, 404.58715596330273, 404.58715596330273, 404.58715596330273, 404.58715596330273, 404.58715596330273, 400.90909090909093, 404.58715596330273, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 397.2972972972973, 400.90909090909093, 400.90909090909093, 400.90909090909093, 397.2972972972973, 397.2972972972973, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 400.90909090909093, 397.2972972972973, 400.90909090909093, 400.90909090909093, 400.90909090909093, 397.2972972972973, 397.2972972972973, 393.75, 393.75, 393.75, 393.75, 390.2654867256637, 386.8421052631579, 386.8421052631579, 386.8421052631579, 383.4782608695652, 380.17241379310343, 376.9230769230769, 373.728813559322, 367.5, 364.46280991735534, 364.46280991735534, 367.5, 364.46280991735534, 361.4754098360656, 364.46280991735534, 358.5365853658537, 358.5365853658537, 350.0, 352.8, 355.64516129032256, 350.0, 350.0, 347.244094488189, 347.244094488189, 347.244094488189, 347.244094488189, 347.244094488189, 350.0, 347.244094488189, 347.244094488189, 350.0, 352.8, 355.64516129032256, 352.8, 358.5365853658537, 355.64516129032256, 355.64516129032256, 355.64516129032256, 355.64516129032256, 352.8, 352.8, 350.0, 352.8, 350.0, 350.0, 350.0, 350.0, 350.0, 347.244094488189, 350.0, 347.244094488189, 347.244094488189, 344.53125, 347.244094488189, 344.53125, 344.53125, 347.244094488189, 341.86046511627904, 344.53125, 341.86046511627904, 341.86046511627904, 341.86046511627904, 344.53125, 341.86046511627904, 341.86046511627904, 341.86046511627904, 341.86046511627904, 341.86046511627904, 344.53125, 341.86046511627904, 341.86046511627904, 341.86046511627904, 341.86046511627904, 341.86046511627904, 341.86046511627904, 344.53125, 344.53125, 344.53125, 347.244094488189, 350.0, 350.0, 352.8, 347.244094488189, 350.0, 350.0, 350.0, 352.8, 352.8, 355.64516129032256, 355.64516129032256, 355.64516129032256, 358.5365853658537, 358.5365853658537, 358.5365853658537, 361.4754098360656, 361.4754098360656, 361.4754098360656, 367.5, 364.46280991735534, 367.5, 367.5, 367.5, 367.5, 367.5, 367.5, 367.5, 367.5, 370.5882352941176, 367.5, 367.5, 367.5, 364.46280991735534, 364.46280991735534, 361.4754098360656, 364.46280991735534, 361.4754098360656, 361.4754098360656, 358.5365853658537, 355.64516129032256, 355.64516129032256, 355.64516129032256, 352.8, 352.8, 350.0, 352.8, 347.244094488189, 347.244094488189, 344.53125, 344.53125, 341.86046511627904, 339.2307692307692, 341.86046511627904, 341.86046511627904, 341.86046511627904, 341.86046511627904, 339.2307692307692, 339.2307692307692, 341.86046511627904, 336.6412213740458, 339.2307692307692, 339.2307692307692, 339.2307692307692, 339.2307692307692, 344.53125, 339.2307692307692, 339.2307692307692, 341.86046511627904, 341.86046511627904, 341.86046511627904, 347.244094488189, 344.53125, 344.53125, 347.244094488189, 347.244094488189, 347.244094488189, 350.0, 350.0, 350.0, 350.0, 352.8, 352.8, 355.64516129032256, 355.64516129032256, 358.5365853658537, 361.4754098360656, 361.4754098360656, 361.4754098360656, 361.4754098360656, 364.46280991735534, 364.46280991735534, 364.46280991735534, 367.5, 367.5, 367.5, 370.5882352941176, 370.5882352941176, 370.5882352941176, 373.728813559322, 373.728813559322, 373.728813559322, 373.728813559322, 373.728813559322, 376.9230769230769, 373.728813559322, 373.728813559322, 373.728813559322, 373.728813559322, 370.5882352941176, 373.728813559322, 370.5882352941176, 370.5882352941176, 367.5, 367.5, 367.5, 364.46280991735534, 364.46280991735534, 361.4754098360656, 358.5365853658537, 358.5365853658537, 358.5365853658537, 352.8, 355.64516129032256, 350.0, 350.0, 347.244094488189, 347.244094488189, 344.53125, 344.53125, 344.53125, 341.86046511627904, 339.2307692307692, 339.2307692307692, 341.86046511627904, 339.2307692307692, 341.86046511627904, 336.6412213740458, 339.2307692307692, 336.6412213740458, 336.6412213740458, 339.2307692307692, 341.86046511627904, 341.86046511627904, 339.2307692307692, 339.2307692307692, 339.2307692307692, 341.86046511627904, 339.2307692307692, 339.2307692307692, 341.86046511627904, 341.86046511627904, 341.86046511627904, 341.86046511627904, 339.2307692307692, 344.53125, 344.53125, 344.53125, 344.53125, 344.53125, 347.244094488189, 344.53125, 347.244094488189, 347.244094488189, 350.0, 352.8, 355.64516129032256, 355.64516129032256, 352.8, 361.4754098360656, 361.4754098360656, 361.4754098360656, 361.4754098360656, 361.4754098360656, 364.46280991735534, 367.5, 364.46280991735534, 367.5, 367.5, 370.5882352941176, 370.5882352941176, 373.728813559322, 373.728813559322, 370.5882352941176, 370.5882352941176, 376.9230769230769, 373.728813559322, 373.728813559322, 376.9230769230769, 376.9230769230769, 373.728813559322, 373.728813559322, 373.728813559322, 370.5882352941176, 373.728813559322, 376.9230769230769, 376.9230769230769, 367.5, 370.5882352941176, 367.5, 367.5, 364.46280991735534, 361.4754098360656, 361.4754098360656, 364.46280991735534, 361.4754098360656, 355.64516129032256, 358.5365853658537, 358.5365853658537, 352.8, 352.8, 352.8, 352.8, 347.244094488189, 350.0, 347.244094488189, 344.53125, 344.53125, 352.8, 341.86046511627904, 341.86046511627904, 339.2307692307692, 339.2307692307692, 350.0, 336.6412213740458, 341.86046511627904, 341.86046511627904, 341.86046511627904, 347.244094488189, 350.0, 344.53125, 350.0, 347.244094488189, 344.53125, 352.8, 350.0, 347.244094488189, 355.64516129032256, 350.0, 339.2307692307692, 350.0, 347.244094488189, 355.64516129032256, 361.4754098360656, 367.5, 364.46280991735534, 361.4754098360656, 367.5, 373.728813559322, 370.5882352941176, 364.46280991735534, 364.46280991735534, 364.46280991735534, 367.5, 361.4754098360656, 364.46280991735534, 367.5, 364.46280991735534, 364.46280991735534, 367.5, 370.5882352941176, 376.9230769230769, 373.728813559322, 380.17241379310343, 376.9230769230769, 373.728813559322, 376.9230769230769, 373.728813559322, 373.728813559322, 373.728813559322, 373.728813559322, 376.9230769230769, 370.5882352941176, 370.5882352941176, 367.5, 364.46280991735534, 364.46280991735534, 364.46280991735534, 358.5365853658537, 358.5365853658537, 364.46280991735534, 355.64516129032256, 358.5365853658537, 358.5365853658537];
 
   constructor() {
   }
 
   async ngOnInit() {
-    let pi = new PitchDetector();
-    pi.periodsDetector();
-    return;
     await this.loadData();
     this.initMidi();
     this.onInitDateString = getDateString(new Date());
   }
 
   async loadData() {
-    this.channelData_Transition_Dictionary = await this.loadAudioBufferForSamples();
+    this.periods_Transition_Dictionary = await this.loadAudioBufferForSamples();
     this.isDataReady = true;
   }
 
@@ -115,8 +111,12 @@ export class AppComponent implements OnInit {
     }
   }
 
-  async getFileFromUrl(url: string): Promise<ArrayBuffer> {
-    return getFileFromUrl(url);
+  async getArrayBufferFromUrl(url: string): Promise<ArrayBuffer> {
+    return getArrayBufferFromUrl(url);
+  }
+
+  async getJsonFromUrl(url: string): Promise<number[]> {
+    return getJsonFromUrl(url);
   }
 
   openSaveAsDialog(blob: Blob, fileName: string): void {
@@ -143,7 +143,7 @@ export class AppComponent implements OnInit {
       let i = 0;
       this.notesToRender.forEach(item => {
         item.offset = item.offset - zeroOffset;
-        let noteABTemp: Float32Array;
+        let periodList: Period[];
         let nextItem = this.notesToRender[i + 1];
         let nextNoteId = nextItem ? nextItem.noteId : null;
         let previousItem = this.notesToRender[i - 1];
@@ -155,12 +155,10 @@ export class AppComponent implements OnInit {
         ]);
 
         if (sampleName) {
-          noteABTemp = this.channelData_Transition_Dictionary[sampleName];
+          periodList = this.periods_Transition_Dictionary[sampleName];
           if (nextNoteId === midiNoteNumbers.N_C1_24_VibratoTrigger) {
-            noteABTemp = this.trimNFromEnd(noteABTemp, 1500)
+            periodList = this.trimPeriodNFromEnd(periodList, 5); // last value 1500 samples
           }
-
-          const periodList = this.getChanelDataList(noteABTemp);
 
           chDataListForMixDown.push({
             periodList: periodList,
@@ -198,32 +196,20 @@ export class AppComponent implements OnInit {
           counter++;
         }
 
-        // let noteABTemp = this.channelData_Transition_Dictionary[`35 ArtFastDown RR${i}`];
-        //
-        // noteABTemp.forEach(item => {
-        //   outPutChDataTemp[counter] = item;
-        //   counter++;
-        // })
-        //
-        // let noteABTemp1 = this.channelData_Transition_Dictionary[`35 vib RR${i}`];
-        //
-        // noteABTemp1.forEach(item => {
-        //   outPutChDataTemp[counter] = item;
-        //   counter++;
-        // })
-
         const indexTemp = 52;
         const interval = 1;
-        let noteABTemp = this.channelData_Transition_Dictionary[getFormattedName({
+        let periods = this.periods_Transition_Dictionary[getFormattedName({
           midiNum: indexTemp,
           midiNumSecond: indexTemp + interval,
           art: articulations.leg,
           rr: i
         })];
 
-        noteABTemp.forEach(item => {
-          outPutChDataTemp[counter] = item;
-          counter++;
+        periods.forEach(period => {
+          period.chData.forEach(item => {
+            outPutChDataTemp[counter] = item;
+            counter++;
+          })
         })
 
         if (drawMarker) {
@@ -429,7 +415,21 @@ export class AppComponent implements OnInit {
     return result;
   }
 
-  getChanelDataList(chData: Float32Array): Period[] {
+  periodsFromChData(chData: Float32Array, periods: number[]): Period[] {
+    let result: Period[] = [];
+
+    let previousIndex = 0;
+    periods.forEach(periodIndex => {
+      let chDateTemp = new Float32Array(chData.slice(previousIndex, periodIndex));
+      result.push({chData: chDateTemp});
+      previousIndex = periodIndex;
+    })
+
+    return result;
+  }
+
+  // Deprecated
+  getChanelDataList_Old(chData: Float32Array): Period[] {
     let result: Period[] = [];
 
     if (!chData) {
@@ -534,17 +534,13 @@ export class AppComponent implements OnInit {
     return result;
   }
 
-  async loadAudioBufferForSamples(): Promise<{ [key: string]: Float32Array }> {
+  async loadAudioBufferForSamples(): Promise<{ [key: string]: Period[] }> {
     console.log('start loadAudioBufferForSamples')
-    const AB_Transition_Eb_F = await this.getFileFromUrl('assets/Eb2 Up2.wav');
-    const AB_Transition_F_G = await this.getFileFromUrl('assets/F2 Up2.wav');
 
-    let audioBuffer_FastSprite_Down_midiNum_List: Float32Array[][] = [];
-    let audioBuffer_FastSprite_Up_midiNum_List: Float32Array[][] = [];
-
-    let audioBuffer_VibratoSprite_midiNum_List: Float32Array[][] = [];
-
-    let audioBuffer_LegatoPairs_Up_01_midiNum_List: Float32Array[][] = [];
+    let audioBuffer_FastSprite_Down_midiNum_List: Period[][][] = [];
+    let audioBuffer_FastSprite_Up_midiNum_List: Period[][][] = [];
+    let audioBuffer_VibratoSprite_midiNum_List: Period[][][] = [];
+    let audioBuffer_LegatoPairs_Up_01_midiNum_List: Period[][][] = [];
 
     const audioCtx = new AudioContext();
 
@@ -552,127 +548,118 @@ export class AppComponent implements OnInit {
 
     if (!skipped) {
       for (let i = 35; i < 71; i++) {
-        const audioBufferTemp = await audioCtx.decodeAudioData(await this.getFileFromUrl(`assets/lib/Fast/Fast Sprite ${i}.wav`));
-        const audioBuffer_FastSprite_Down_Up_midiNum_List = this.gerChannelDataListFromSprites(audioBufferTemp.getChannelData(0));
-        audioBuffer_FastSprite_Down_midiNum_List[i] = this.getStrokesList(audioBuffer_FastSprite_Down_Up_midiNum_List, 'Down');
-        audioBuffer_FastSprite_Up_midiNum_List[i] = this.getStrokesList(audioBuffer_FastSprite_Down_Up_midiNum_List, 'Up');
+        const fileName = `assets/lib/Fast/Fast Sprite ${i}`;
+
+        const audioBufferTemp = await audioCtx.decodeAudioData(await this.getArrayBufferFromUrl(`${fileName}.wav`));
+        const periodsTemp = await this.getJsonFromUrl(`${fileName}.json`);
+
+        const periodsFromChData = this.periodsFromChData(audioBufferTemp.getChannelData(0), periodsTemp);
+        const period_FastSprite_Down_Up_midiNum_List: Period[][] = this.getNoteListFromSprites(periodsFromChData);
+        audioBuffer_FastSprite_Down_midiNum_List[i] = this.getStrokesList(period_FastSprite_Down_Up_midiNum_List, 'Down');
+        audioBuffer_FastSprite_Up_midiNum_List[i] = this.getStrokesList(period_FastSprite_Down_Up_midiNum_List, 'Up');
       }
 
       const trimVibFromStart = 2500;
       for (let i = 42; i < 72; i++) {
-        const audioBufferTemp = await audioCtx.decodeAudioData(await this.getFileFromUrl(`assets/lib/Vibrato/Vibrato Sprite ${i}.wav`));
-        audioBuffer_VibratoSprite_midiNum_List[i] = this.trimNFromStartForArray(
-          this.gerChannelDataListFromSprites(audioBufferTemp.getChannelData(0)), trimVibFromStart
-        );
+        const audioBufferTemp = await audioCtx.decodeAudioData(await this.getArrayBufferFromUrl(`assets/lib/Vibrato/Vibrato Sprite ${i}.wav`));
+        // todo: uncomment it
+        // audioBuffer_VibratoSprite_midiNum_List[i] = this.trimNFromStartForArray(
+        //   this.getPeriodListForNoteListFromSprites(audioBufferTemp.getChannelData(0)), trimVibFromStart
+        // );
       }
     }
 
     for (let i = 52; i < 71; i++) {
-      const audioBufferTemp = await audioCtx.decodeAudioData(await this.getFileFromUrl(`assets/lib/Legato/Legato Up 01/Legato Up 01 Sprite ${i}.wav`));
-      audioBuffer_LegatoPairs_Up_01_midiNum_List[i] = this.getLegatoPairSamplesFromSprite(audioBufferTemp.getChannelData(0));
+      const fileName = `assets/lib/Legato/Legato Up 01/Legato Up 01 Sprite ${i}`;
+      const audioBufferTemp = await audioCtx.decodeAudioData(await this.getArrayBufferFromUrl(`${fileName}.wav`));
+      const periodsTemp = await this.getJsonFromUrl(`${fileName}.json`);
+      const periodsFromChData = this.periodsFromChData(audioBufferTemp.getChannelData(0), periodsTemp);
+      audioBuffer_LegatoPairs_Up_01_midiNum_List[i] = this.getLegatoNotePairListFromSprite(periodsFromChData);
     }
 
-    let audioBuffer_Note_A = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Tenor Sax Eb.wav'));
-    let audioBuffer_Note_B = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Tenor Sax F.wav'));
-    let audioBuffer_Note_C = await audioCtx.decodeAudioData(await this.getFileFromUrl('assets/Tenor Sax G.wav'));
-    let audioBuffer_Transition_Eb_F = await audioCtx.decodeAudioData(AB_Transition_Eb_F);
-    let audioBuffer_Transition_F_G = await audioCtx.decodeAudioData(AB_Transition_F_G);
+    let result: { [key: string]: Period[] } = {};
 
-    let result: { [key: string]: Float32Array } = {};
-
-    audioBuffer_FastSprite_Down_midiNum_List.forEach((audioBuffer, index) => {
-      if (audioBuffer) {
+    audioBuffer_FastSprite_Down_midiNum_List.forEach((periodListList, index) => {
+      if (periodListList) {
         let localRR = 0;
-        audioBuffer.forEach(item => {
+        periodListList.forEach(periodList => {
           result[getFormattedName({
             midiNum: index,
             art: articulations.fastDown,
             rr: localRR
           })] =
-            item;
+            periodList;
           localRR++;
         })
       }
     })
 
-    audioBuffer_FastSprite_Up_midiNum_List.forEach((audioBuffer, index) => {
-      if (audioBuffer) {
+    audioBuffer_FastSprite_Up_midiNum_List.forEach((periodListList, index) => {
+      if (periodListList) {
         let localRR = 0;
-        audioBuffer.forEach(item => {
+        periodListList.forEach(periodList => {
           result[getFormattedName({
             midiNum: index,
             art: articulations.fastUp,
             rr: localRR
           })] =
-            item;
+            periodList;
           localRR++;
         })
       }
     })
 
-    audioBuffer_VibratoSprite_midiNum_List.forEach((audioBuffer, index) => {
-      if (audioBuffer) {
+    audioBuffer_VibratoSprite_midiNum_List.forEach((periodListList, index) => {
+      if (periodListList) {
         let localRR = 0;
-        audioBuffer.forEach(item => {
+        periodListList.forEach(periodList => {
           result[getFormattedName({
             midiNum: index,
             art: articulations.vib,
             rr: localRR
           })] =
-            item;
+            periodList;
           localRR++;
         })
       }
     })
 
-    audioBuffer_LegatoPairs_Up_01_midiNum_List.forEach((audioBuffer, index) => {
-      if (audioBuffer) {
+    audioBuffer_LegatoPairs_Up_01_midiNum_List.forEach((periodList, index) => {
+      if (periodList) {
         const interval = 1;
         let localRR = 0;
-        audioBuffer.forEach(item => {
+        periodList.forEach(periodList => {
           result[getFormattedName({
             midiNum: index,
             midiNumSecond: index + interval,
             art: articulations.leg,
             rr: localRR
           })] =
-            item;
+            periodList;
           localRR++;
         })
       }
     })
-
-    result[`${midiNoteNumbers.N_Eb2_39} ${midiNoteNumbers.N_F2_41}`] =
-      audioBuffer_Transition_Eb_F.getChannelData(0);
-    result[`${midiNoteNumbers.N_F2_41} ${midiNoteNumbers.N_G2_43}`] =
-      audioBuffer_Transition_F_G.getChannelData(0);
-    result[`${midiNoteNumbers.N_Eb2_39}`] =
-      audioBuffer_Note_A.getChannelData(0);
-    result[`${midiNoteNumbers.N_F2_41}`] =
-      audioBuffer_Note_B.getChannelData(0);
-    result[`${midiNoteNumbers.N_G2_43}`] =
-      audioBuffer_Note_C.getChannelData(0);
-
 
     console.log('end loadAudioBufferForSamples')
 
     return result;
   }
 
-  gerChannelDataListFromSprites(chData: Float32Array): Float32Array[] {
-    let periodsFromChData = this.getChanelDataList(chData);
+  getNoteListFromSprites(periodsFromChData: Period[]): Period[][] {
     let lastPeriodMax = 0;
     const minPeriodsInNote = 4;
-    let chDateForCurrentNote: number[] = [];
-    let result: Float32Array[] = [];
+    let periodsForCurrentNote: Period[] = [];
     let periodCounter = 0;
     const delta = 0.05;
     const drawMarker = false;
 
-    periodsFromChData.forEach(item => {
+    let result: Period[][] = [];
+
+    periodsFromChData.forEach(period => {
       let currentMax = 0;
 
-      item.chData.forEach(chDataItem => {
+      period.chData.forEach(chDataItem => {
         if (chDataItem > currentMax) {
           currentMax = chDataItem;
         }
@@ -680,50 +667,43 @@ export class AppComponent implements OnInit {
 
       if (periodCounter <= 1) {
         if (drawMarker) {
-          chDateForCurrentNote.push(-0.25);
+          period.chData[0] = -0.25;
         }
-        item.chData.forEach(chDataItem => {
-          chDateForCurrentNote.push(chDataItem);
-        })
+        periodsForCurrentNote.push(period);
       } else if (currentMax - delta <= lastPeriodMax || periodCounter < minPeriodsInNote) {
         /**
          * Нужно писать chData ноты в текущую ноту в result
          */
         if (drawMarker) {
-          chDateForCurrentNote.push(-0.5);
+          period.chData[0] = 0.5;
         }
-        item.chData.forEach(chDataItem => {
-          chDateForCurrentNote.push(chDataItem);
-        })
+        periodsForCurrentNote.push(period);
       } else {
         /**
          * Началась новая нота
          */
-        result.push(new Float32Array(chDateForCurrentNote));
-        chDateForCurrentNote = [];
+        result.push(periodsForCurrentNote);
+        periodsForCurrentNote = [];
 
         if (drawMarker) {
-          chDateForCurrentNote.push(-0.75);
+          period.chData[0] = -0.75;
         }
 
-        item.chData.forEach(chDataItem => {
-          chDateForCurrentNote.push(chDataItem);
-        })
+        periodsForCurrentNote.push(period);
+
         lastPeriodMax = 0;
         periodCounter = 0;
       }
 
       lastPeriodMax = currentMax;
       periodCounter++;
-
-
     })
 
     return result;
   }
 
-  private getStrokesList(dataList: Float32Array[], stroke: string): Float32Array[] {
-    let result: Float32Array[] = []
+  private getStrokesList(dataList: Period[][], stroke: string): Period[][] {
+    let result: Period[][] = [];
 
     let i = 0;
     dataList.forEach(item => {
@@ -772,14 +752,33 @@ export class AppComponent implements OnInit {
     return new Float32Array(result);
   }
 
-  getLegatoPairSamplesFromSprite(dataList: Float32Array, freq_01?: number, freq_02?: number): Float32Array[] {
-    let dataListTrimmed: number[] = [];
+
+  trimPeriodNFromEnd(periods: Period[], length: number): Period[] {
+    let result: Period[] = [];
+
+    for (let i = 0; i < periods.length - length; i++) {
+      result.push(periods[i]);
+    }
+
+    return result;
+  }
+
+  getLegatoNotePairListFromSprite(periodsFromChData: Period[]): Period[][] {
     let endOfTrimming = false;
     const trimTrashold = 0.1;
 
-    for (let i = 0; i < dataList.length; i++) {
+    let periodListTrimmed: Period[] = [];
+
+    periodsFromChData.forEach(period => {
+      let currentMax = 0;
+      period.chData.forEach(item => {
+        if (item > currentMax) {
+          currentMax = item;
+        }
+      })
+
       if (!endOfTrimming) {
-        if (dataList[i] < trimTrashold) {
+        if (currentMax < trimTrashold) {
           /**
            * Do nothing
            */
@@ -787,61 +786,34 @@ export class AppComponent implements OnInit {
           endOfTrimming = true;
         }
       } else {
-        dataListTrimmed.push(dataList[i]);
+        periodListTrimmed.push(period);
       }
-    }
-
-    let periodList = this.getChanelDataList(new Float32Array(dataListTrimmed));
-
-    for (let x = 0; x < periodList.length; x++) {
-      for (let i = 0; i < 4; i++) {
-        periodList[x].chData[i] = -0.75;
-      }
-    }
+    })
 
     const noteChangeLenghtTrashold = 10;
     let previousPeriodLength = 0;
 
-    let i = 0;
+    let periodsForCurrentNotePair: Period[] = [];
+    let notesPairSet: Period[][] = [];
 
-    let notesPairChData: number[] = [];
-    let notesPairChDataSet: number[][] = [];
-
-    periodList.forEach(item => {
-      if (Math.abs(item.chData.length - previousPeriodLength) > noteChangeLenghtTrashold) {
-        notesPairChDataSet.push(notesPairChData);
-        notesPairChData = [];
+    periodListTrimmed.forEach(period => {
+      if (Math.abs(period.chData.length - previousPeriodLength) > noteChangeLenghtTrashold) {
+        notesPairSet.push(periodsForCurrentNotePair);
+        periodsForCurrentNotePair = [];
       } else {
         /**
          * Do nothing
          */
       }
 
-      item.chData.forEach(chData => {
-        notesPairChData.push(chData);
-        i++;
-      })
-
-      previousPeriodLength = item.chData.length;
+      periodsForCurrentNotePair.push(period);
+      previousPeriodLength = period.chData.length;
     })
 
-    let result: Float32Array[] = [];
+    let result: Period[][] = [];
 
-    notesPairChDataSet.forEach(notesPairChData => {
-      let notesPair = [];
-      // for (let i = 0; i < 10; i++) {
-      //   notesPair.push(-0.75);
-      // }
-
-      notesPairChData.forEach(item => {
-        notesPair.push(item);
-      })
-
-      // for (let i = 0; i < 10; i++) {
-      //   notesPair.push(0.75);
-      // }
-
-      result.push(new Float32Array(notesPair));
+    notesPairSet.forEach(notePair => {
+      result.push(notePair);
     })
 
     return result;

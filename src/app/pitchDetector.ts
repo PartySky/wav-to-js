@@ -1,5 +1,5 @@
 import {DTO_01} from "./DTO_01";
-import {getFileFromUrl} from "./getFileFromUrl";
+import {getArrayBufferFromUrl} from "./getArrayBufferFromUrl";
 import * as WavFileEncoder from "wav-file-encoder";
 import {openSaveAsDialog} from "./openSaveAsDialog";
 import {getDateString} from "./getDateString";
@@ -332,7 +332,7 @@ export class PitchDetector {
     const pitchDetector = new PitchDetector();
 
     // const AB_Transition_F_G = await getFileFromUrl('assets/F2 DF Test 06.wav');
-    const AB_Transition_F_G = await getFileFromUrl('assets/lib/Legato/Legato Up 04/Legato Up 04 Sprite 52.wav');
+    const AB_Transition_F_G = await getArrayBufferFromUrl('assets/lib/Legato/Legato Up 04/Legato Up 04 Sprite 52.wav');
 
     const audioCtx = new AudioContext();
     let audioBuffer_Transition_F_G = await audioCtx.decodeAudioData(AB_Transition_F_G);
@@ -353,7 +353,7 @@ export class PitchDetector {
     const pitchDetector = new PitchDetector();
 
     // const AB_Transition_F_G = await getFileFromUrl('assets/F2 ACF Test 09.wav');
-    const AB_Transition_F_G = await getFileFromUrl('assets/lib/Legato/Legato Up 04/Legato Up 04 Sprite 52.wav');
+    const AB_Transition_F_G = await getArrayBufferFromUrl('assets/lib/Legato/Legato Up 04/Legato Up 04 Sprite 52.wav');
     const audioCtx = new AudioContext();
     let audioBuffer_Transition_F_G = await audioCtx.decodeAudioData(AB_Transition_F_G);
     let chData = audioBuffer_Transition_F_G.getChannelData(0);
