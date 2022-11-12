@@ -170,9 +170,13 @@ export class AppComponent implements OnInit {
       this.notesToRender = [];
     }
 
-    let outPutChDataTemp = this.mixDownChDatas(chDataListForMixDown);
-
+    let outPutChDataTemp: Float32Array;
     let test = true;
+    // hotfix
+    if (!test) {
+      outPutChDataTemp = this.mixDownChDatas(chDataListForMixDown);
+    }
+
     if (test) {
       debugger;
       // @ts-ignore
@@ -180,9 +184,10 @@ export class AppComponent implements OnInit {
       let counter = 0;
       // 35 ArtFastDown RR1
 
-      const drawMarker = false;
+      const drawMarker = true;
 
-      for (let i = 0; i < 20; i++) {
+      const lengthTemp = 5;
+      for (let i = 0; i < lengthTemp; i++) {
         if (drawMarker) {
           outPutChDataTemp[counter] = 1;
           counter++;
