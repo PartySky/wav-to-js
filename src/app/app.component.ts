@@ -193,7 +193,6 @@ export class AppComponent implements OnInit {
     }
 
     if (test) {
-      debugger;
       // @ts-ignore
       outPutChDataTemp = [];
       let counter = 0;
@@ -232,8 +231,8 @@ export class AppComponent implements OnInit {
           })
         })
 
-        debugger;
         this.plt.plot(outPutChDataTemp);
+        this.plt.plotVerticalLine(outPutChDataTemp.length, 'red');
 
         if (drawMarker) {
           outPutChDataTemp[counter] = -1;

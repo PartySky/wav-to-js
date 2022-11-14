@@ -75,6 +75,7 @@ export class Plotter {
    */
   plot(outPutChDataTemp: Float32Array): void {
     const context = this.context;
+    context.beginPath();
     //let dataArr = [0, 12, 10, 12, 11, 7, 5, 20];
     let dataArr = outPutChDataTemp;
 
@@ -84,6 +85,19 @@ export class Plotter {
       context.lineTo(i * this.xCoeff, (this.maxYValue * this.yCoeff) - (item * this.yCoeff));
     })
     context.strokeStyle = 'blue';
+    context.stroke();
+  }
+
+  /**
+   * Plot vertical line.
+   */
+  plotVerticalLine(x: number, color = 'green'): void {
+    const context = this.context;
+    context.beginPath();
+    context.moveTo(x * this.xCoeff, 0);
+
+    context.lineTo(x * this.xCoeff, (this.maxYValue * this.yCoeff));
+    context.strokeStyle = color;
     context.stroke();
   }
 
