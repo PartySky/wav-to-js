@@ -11,6 +11,7 @@ import {openSaveAsDialog} from "./openSaveAsDialog";
 import {getDateString} from "./getDateString";
 import {getUiParams} from "./getUiParams";
 import {getJsonFromUrl} from "./getJsonFromUrl";
+import {Plotter} from "./plotter";
 
 @Component({
   selector: 'app-root',
@@ -27,14 +28,22 @@ export class AppComponent implements OnInit {
   periods_Transition_Dictionary: { [key: string]: Period[] };
   onInitDateString: string;
   isDataReady = false;
+  plt: Plotter;
 
   constructor() {
   }
 
   async ngOnInit() {
+    this.initPlt();
     await this.loadData();
     this.initMidi();
     this.onInitDateString = getDateString(new Date());
+  }
+
+  initPlt(): void {
+    this.plt = new Plotter();
+    // @ts-ignore
+    this.plt.plot([]);
   }
 
   async loadData() {
@@ -60,6 +69,19 @@ export class AppComponent implements OnInit {
 
   getMIDIMessage(midiMessage) {
     console.log(midiMessage);
+  }
+
+
+  @HostListener('mousemove', ['$event'])
+  onMousemove(event: MouseEvent) {
+    this.plt.handleMouseMove(event);
+    // if(this.mouseDown) {
+    //   this.scene.rotate(
+    //     event.clientX - this.last.clientX,
+    //     event.clientY - this.last.clientY
+    //   );
+    //   this.last = event;
+    // }
   }
 
   @HostListener('document:keypress', ['$event'])
@@ -186,7 +208,7 @@ export class AppComponent implements OnInit {
 
       const drawMarker = true;
 
-      const lengthTemp = 5;
+      const lengthTemp = 1;
       for (let i = 0; i < lengthTemp; i++) {
         if (drawMarker) {
           outPutChDataTemp[counter] = 1;
@@ -216,6 +238,9 @@ export class AppComponent implements OnInit {
             counter++;
           })
         })
+
+        debugger;
+        this.plt.plot(outPutChDataTemp);
 
         if (drawMarker) {
           outPutChDataTemp[counter] = -1;
