@@ -17,14 +17,23 @@ export class Plotter {
   private iniCanvast(): void {
     this.canvas = document.getElementById('myCanvas') as HTMLCanvasElement;
     this.context = this.canvas.getContext("2d");
-    this.setMaxAxisValues(20, 20)
+    this.x();
+  }
+
+  x(): void {
     this.setCoeff();
     this.drawAxis(this.context);
   }
 
+  reset(): void {
+    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  }
+
   setMaxAxisValues(maxXValue: number = 20, maxYValue: number = 20): void {
+    this.reset();
     this.maxXValue = maxXValue;
     this.maxYValue = maxYValue;
+    this.x();
   }
 
   setCoeff(): void {
@@ -38,26 +47,20 @@ export class Plotter {
     const maxXValue = this.maxXValue;
     const maxYValue = this.maxYValue
 
-    for (let i = 0; i < maxXValue; i++) {
-      context.fillText(`${i}`, i * this.xCoeff, (this.maxYValue * this.yCoeff));
+
+    const xStep = Math.round(maxXValue / 5 * 100) / 100;
+    const yStep = Math.round(maxYValue / 6 * 100) / 100;
+
+    for (let i = 0; i < maxXValue; i = i + xStep) {
+      context.fillText(`${Math.round(i * 100) / 100}`, i * this.xCoeff, (this.maxYValue * this.yCoeff));
     }
 
-    for (let i = 0; i < maxYValue; i++) {
-      context.fillText(`${i}`, 0, (this.maxYValue * this.yCoeff) - (i * this.yCoeff));
+    for (let i = 0; i < maxYValue; i = i + yStep) {
+      context.fillText(`${Math.round(i * 100) / 100}`, 0, (this.maxYValue * this.yCoeff) - (i * this.yCoeff));
     }
   }
 
   private canvasDrow(context: CanvasRenderingContext2D): void {
-    context.moveTo(0, 20);
-    context.lineTo(20, 80);
-    context.lineTo(70, 100);
-
-    context.font = '12px';
-
-    context.fillText('Hello World!', 20 * this.xCoeff, 50 * this.yCoeff);
-
-    context.strokeStyle = 'blue';
-    context.stroke();
   }
 
   /**
@@ -72,7 +75,10 @@ export class Plotter {
    */
   plot(outPutChDataTemp: Float32Array): void {
     const context = this.context;
-    let dataArr = [0, 12, 10, 12, 11, 7, 5, 20];
+    //let dataArr = [0, 12, 10, 12, 11, 7, 5, 20];
+    let dataArr = outPutChDataTemp;
+
+    context.moveTo(0,(this.maxYValue * this.yCoeff) - (dataArr[0] * this.yCoeff));
 
     dataArr.forEach((item, i) => {
       context.lineTo(i * this.xCoeff, (this.maxYValue * this.yCoeff) - (item * this.yCoeff));
@@ -106,8 +112,8 @@ export class Plotter {
         (doc && doc.scrollLeft || body && body.scrollLeft || 0) -
         (doc && doc.clientLeft || body && body.clientLeft || 0);
       event.pageY = event.clientY +
-        (doc && doc.scrollTop  || body && body.scrollTop  || 0) -
-        (doc && doc.clientTop  || body && body.clientTop  || 0 );
+        (doc && doc.scrollTop || body && body.scrollTop || 0) -
+        (doc && doc.clientTop || body && body.clientTop || 0);
     }
 
     let rect = this.canvas.getBoundingClientRect();
@@ -118,25 +124,19 @@ export class Plotter {
     let yRelatedToCanvas = (event.pageY - rect.top) * scaleY;
 
     this.mouseTrackX = Math.round(xRelatedToCanvas / this.xCoeff * 100) / 100;
-    this.mouseTrackY = Math.round(yRelatedToCanvas / this.yCoeff * 100) / 100;
-
-    this.context.moveTo(0, 20);
-    this.context.lineTo(20, 80);
-    this.context.lineTo(70, 100);
+    this.mouseTrackY = Math.round((this.maxYValue - (yRelatedToCanvas / this.yCoeff)) * 100) / 100;
 
     this.context.font = '12px';
 
-    const xTemp = 10 * this.xCoeff;
-    const yTemp = 10 * this.yCoeff;
+    const xTemp = (this.maxXValue * this.xCoeff);
+    const yTemp = (this.maxYValue * this.yCoeff + 50);
 
     this.context.fillStyle = '#fff';
     this.context.fillRect(xTemp - 10, yTemp - 10, 100, 20);
     this.context.stroke();
     this.context.fillStyle = '#000';
-    this.context.fillText(`${this.mouseTrackX} ${this.mouseTrackY}`, xTemp, yTemp);
+    this.context.fillText(`${this.mouseTrackX}`, xTemp, yTemp);
+    this.context.fillText(`${this.mouseTrackY}`, xTemp + 50, yTemp);
     this.context.stroke();
-
-    console.log((event.pageX - rect.left) * scaleX + ' ' + (event.pageY - rect.top) * scaleY);
-    console.log(this.mouseTrackX + ' ' + this.mouseTrackY);
   }
 }

@@ -42,8 +42,8 @@ export class AppComponent implements OnInit {
 
   initPlt(): void {
     this.plt = new Plotter();
-    // @ts-ignore
-    this.plt.plot([]);
+    this.plt.setMaxAxisValues(500,1.2);
+    // this.plt.setMaxAxisValues(30,30);
   }
 
   async loadData() {
@@ -75,13 +75,6 @@ export class AppComponent implements OnInit {
   @HostListener('mousemove', ['$event'])
   onMousemove(event: MouseEvent) {
     this.plt.handleMouseMove(event);
-    // if(this.mouseDown) {
-    //   this.scene.rotate(
-    //     event.clientX - this.last.clientX,
-    //     event.clientY - this.last.clientY
-    //   );
-    //   this.last = event;
-    // }
   }
 
   @HostListener('document:keypress', ['$event'])
@@ -208,7 +201,7 @@ export class AppComponent implements OnInit {
 
       const drawMarker = true;
 
-      const lengthTemp = 1;
+      const lengthTemp = 4;
       for (let i = 0; i < lengthTemp; i++) {
         if (drawMarker) {
           outPutChDataTemp[counter] = 1;

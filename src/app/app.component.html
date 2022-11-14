@@ -3,33 +3,6 @@
 
 <div (click)="generateWavFileButton_click()">Generate WAV file</div>
 
-<div *ngIf="false" class="waveFormWrapper">
-  <div *ngFor="let item of testPitches; let i = index"
-       class="waveFormSample"
-       [style.transform]="'scaleY(' + item * 0.001 + ')'"
-       [style.left]="i + 'px'">
-  </div>
-</div>
-
-<div *ngIf="dataToRender"
-     class="waveFormWrapper"
-     style="transform: scaleX(0.250);">
-  <div *ngFor="let item of dataToRender; let i = index;"
-       class="waveFormSample"
-       [style.transform]="'scaleY(' + item * 10 + ')'"
-       [style.left]="i + 'px'">
-  </div>
-</div>
-
-<div *ngIf="patternChannelData"
-     class="waveFormWrapper waveFormWrapperSecond">
-  <div *ngFor="let item of patternChannelData; let i = index;"
-       class="waveFormSample"
-       [style.transform]="'scaleY(' + item * 10 + ')'"
-       [style.left]="i + 'px'">
-  </div>
-</div>
-
 <canvas id="myCanvas"
         width="1400"
         height="700"
