@@ -5,10 +5,18 @@ export class Plotter {
   private maxY = 600;
   private maxXValue = 10;
   private maxYValue = 10;
+  private maxXYHistory: number[][] = [];
   private xCoeff = 1;
   private yCoeff = 1;
   private mouseTrackX = 0;
   private mouseTrackY = 0;
+
+  private paint: boolean;
+
+  private clickX: number = null;
+  private clickY: number = null;
+  private clickDrag: boolean[] = [];
+  private settingZoom = false;
 
   constructor() {
     this.iniCanvast();
@@ -18,9 +26,92 @@ export class Plotter {
     this.canvas = document.getElementById('myCanvas') as HTMLCanvasElement;
     this.context = this.canvas.getContext("2d");
     this.x();
+
+    //this.redraw();
+    this.createUserEvents();
   }
 
-  x(): void {
+  private createUserEvents() {
+    let canvas = this.canvas;
+
+    canvas.addEventListener("mousemove", this.handleMouseMove);
+    canvas.addEventListener("mousedown", this.pressEventHandler);
+    canvas.addEventListener("mouseup", this.releaseEventHandler);
+    canvas.addEventListener("mouseout", this.cancelEventHandler);
+
+    canvas.addEventListener("touchstart", this.pressEventHandler);
+    canvas.addEventListener("touchmove", this.dragEventHandler);
+    canvas.addEventListener("touchend", this.releaseEventHandler);
+    canvas.addEventListener("touchcancel", this.cancelEventHandler);
+  }
+
+  setZoom(x1, y1, x2, y2): void {
+    this.setMaxAxisValues(x2, y2);
+    this.x();
+  }
+
+  private releaseEventHandler = (e: MouseEvent | TouchEvent) => {
+    if (this.settingZoom) {
+      this.settingZoom = false;
+      this.setZoom(this.clickX, this.clickY, this.mouseTrackX, this.mouseTrackY);
+    }
+  }
+
+  private cancelEventHandler = (e: MouseEvent | TouchEvent) => {
+    console.log('cancelEventHandler');
+  }
+
+  private dragEventHandler = (e: MouseEvent | TouchEvent) => {
+    console.log('dragEventHandler');
+  }
+
+  undoMaxXYChange(): void {
+    this.reset();
+    if (this.maxXYHistory.length > 1) {
+      this.maxXYHistory.splice(-1);
+    }
+    this.maxXValue = this.maxXYHistory[this.maxXYHistory.length - 1][0];
+    this.maxYValue = this.maxXYHistory[this.maxXYHistory.length - 1][1];
+    this.x();
+  }
+
+  private pressEventHandler = (e: MouseEvent | TouchEvent) => {
+    let mouseX = (e as TouchEvent).changedTouches ?
+      (e as TouchEvent).changedTouches[0].pageX :
+      (e as MouseEvent).pageX;
+    let mouseY = (e as TouchEvent).changedTouches ?
+      (e as TouchEvent).changedTouches[0].pageY :
+      (e as MouseEvent).pageY;
+    mouseX -= this.canvas.offsetLeft;
+    mouseY -= this.canvas.offsetTop;
+
+    this.clickX = this.mouseTrackX;
+    this.clickY = this.mouseTrackY;
+    this.settingZoom = true;
+
+    console.log('Click at ' + this.mouseTrackX + ' ' + this.mouseTrackY);
+  }
+
+  private redraw() {
+    // let clickX = this.clickX;
+    // let context = this.context;
+    // let clickDrag = this.clickDrag;
+    // let clickY = this.clickY;
+    // for (let i = 0; i < clickX.length; ++i) {
+    //   context.beginPath();
+    //   if (clickDrag[i] && i) {
+    //     context.moveTo(clickX[i - 1], clickY[i - 1]);
+    //   } else {
+    //     context.moveTo(clickX[i] - 1, clickY[i]);
+    //   }
+    //
+    //   context.lineTo(clickX[i], clickY[i]);
+    //   context.stroke();
+    // }
+    // context.closePath();
+  }
+
+  private x(): void {
     this.setCoeff();
     this.drawAxis(this.context);
   }
@@ -33,10 +124,11 @@ export class Plotter {
     this.reset();
     this.maxXValue = maxXValue;
     this.maxYValue = maxYValue;
+    this.maxXYHistory.push([this.maxXValue, this.maxYValue]);
     this.x();
   }
 
-  setCoeff(): void {
+  private setCoeff(): void {
     this.xCoeff = this.maxX / this.maxXValue;
     this.yCoeff = this.maxY / this.maxYValue;
   }
@@ -48,8 +140,11 @@ export class Plotter {
     const maxYValue = this.maxYValue
 
 
-    const xStep = Math.round(maxXValue / 5 * 100) / 100;
-    const yStep = Math.round(maxYValue / 6 * 100) / 100;
+    let xStep = Math.round(maxXValue / 5 * 100) / 100;
+    let yStep = Math.round(maxYValue / 6 * 100) / 100;
+
+    xStep = xStep > 0 ? xStep : 1;
+    yStep = yStep > 0 ? yStep : 1;
 
     for (let i = 0; i < maxXValue; i = i + xStep) {
       context.fillText(`${Math.round(i * 100) / 100}`, i * this.xCoeff, (this.maxYValue * this.yCoeff));
@@ -79,7 +174,7 @@ export class Plotter {
     //let dataArr = [0, 12, 10, 12, 11, 7, 5, 20];
     let dataArr = outPutChDataTemp;
 
-    context.moveTo(0,(this.maxYValue * this.yCoeff) - (dataArr[0] * this.yCoeff));
+    context.moveTo(0, (this.maxYValue * this.yCoeff) - (dataArr[0] * this.yCoeff));
 
     dataArr.forEach((item, i) => {
       context.lineTo(i * this.xCoeff, (this.maxYValue * this.yCoeff) - (item * this.yCoeff));
@@ -128,7 +223,7 @@ export class Plotter {
     };
   }
 
-  handleMouseMove(event): void {
+  handleMouseMove = (event) => {
     let eventDoc, doc, body;
 
     event = event || window.event; // IE-ism

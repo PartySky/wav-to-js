@@ -71,12 +71,6 @@ export class AppComponent implements OnInit {
     console.log(midiMessage);
   }
 
-
-  @HostListener('mousemove', ['$event'])
-  onMousemove(event: MouseEvent) {
-    this.plt.handleMouseMove(event);
-  }
-
   @HostListener('document:keypress', ['$event'])
   handleKeyboardEvent(event: KeyboardEvent) {
     if (!this.isDataReady) {
@@ -873,5 +867,9 @@ export class AppComponent implements OnInit {
     })
 
     return result;
+  }
+
+  undoMaxXYChange() {
+    this.plt.undoMaxXYChange();
   }
 }
