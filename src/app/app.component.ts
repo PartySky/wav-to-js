@@ -21,7 +21,6 @@ import {Plotter} from "./plotter";
 export class AppComponent implements OnInit {
   channelData: Float32Array;
   patternChannelData: Float32Array;
-  dataToRender: Float32Array;
   notesToRender: Note[] = [];
   notesReadMode = true;
   drawMarkers = false;
@@ -42,7 +41,8 @@ export class AppComponent implements OnInit {
 
   initPlt(): void {
     this.plt = new Plotter();
-    this.plt.setMaxAxisValues(500,1.2);
+//    this.plt.setMaxAxisValues(500,1.2);
+    this.plt.setMaxAxisValues(20000, 1.2);
     // this.plt.setMaxAxisValues(30,30);
   }
 
@@ -200,8 +200,27 @@ export class AppComponent implements OnInit {
 
       const drawMarker = true;
 
-      const lengthTemp = 4;
-      for (let i = 0; i < lengthTemp; i++) {
+      // const indexTemp = 52;
+      // const interval = 1;
+      // let periodsTest = this.periods_Transition_Dictionary[getFormattedName({
+      //   midiNum: indexTemp,
+      //   midiNumSecond: indexTemp + interval,
+      //   art: articulations.leg,
+      //   rr: 1
+      // })];
+      //
+      // let xTemp = [];
+      //
+      // periodsTest.forEach(item => {
+      //   item.chData.forEach(ch => {
+      //     xTemp.push(ch);
+      //   })
+      // })
+      //
+      // this.plt.plot(xTemp);
+
+      const lengthTemp = 10;
+      for (let i = 1; i < lengthTemp; i++) {
         if (drawMarker) {
           outPutChDataTemp[counter] = 1;
           counter++;
@@ -224,15 +243,21 @@ export class AppComponent implements OnInit {
           rr: i
         })];
 
+        let notePairLengthTemp = 0;
         periods.forEach(period => {
           period.chData.forEach(item => {
             outPutChDataTemp[counter] = item;
             counter++;
           })
+
+          // notePairLengthTemp = notePairLengthTemp + period.chData.length;
         })
+
+        notePairLengthTemp = periods[0].chData.length;
 
         this.plt.plot(outPutChDataTemp);
         this.plt.plotVerticalLine(outPutChDataTemp.length, 'red');
+        this.plt.plotText(notePairLengthTemp.toString(), outPutChDataTemp.length, 0.2 + i * 0.1 , 'red');
 
         if (drawMarker) {
           outPutChDataTemp[counter] = -1;
@@ -596,6 +621,9 @@ export class AppComponent implements OnInit {
       const audioBufferTemp = await audioCtx.decodeAudioData(await this.getArrayBufferFromUrl(`${fileName}.wav`));
       const periodsTemp = await this.getJsonFromUrl(`${fileName}.json`);
       const periodsFromChData = this.periodsFromChData(audioBufferTemp.getChannelData(0), periodsTemp);
+      if (i === 52) {
+        debugger;
+      }
       audioBuffer_LegatoPairs_Up_01_midiNum_List[i] = this.getLegatoNotePairListFromSprite(periodsFromChData);
     }
 
@@ -787,7 +815,7 @@ export class AppComponent implements OnInit {
 
   getLegatoNotePairListFromSprite(periodsFromChData: Period[]): Period[][] {
     let endOfTrimming = false;
-    const trimTrashold = 0.1;
+    const trimTrashold = 0.2;
 
     let periodListTrimmed: Period[] = [];
 
@@ -812,16 +840,22 @@ export class AppComponent implements OnInit {
       }
     })
 
-    const noteChangeLenghtTrashold = 10;
+    const noteChangeLenghtTrashold = 2; // 10
     let previousPeriodLength = 0;
 
     let periodsForCurrentNotePair: Period[] = [];
     let notesPairSet: Period[][] = [];
+    let firstNoteOfPairFound = false;
 
     periodListTrimmed.forEach(period => {
       if (Math.abs(period.chData.length - previousPeriodLength) > noteChangeLenghtTrashold) {
-        notesPairSet.push(periodsForCurrentNotePair);
-        periodsForCurrentNotePair = [];
+        if (false && !firstNoteOfPairFound) {
+          firstNoteOfPairFound = true;
+        } else {
+          notesPairSet.push(periodsForCurrentNotePair);
+          periodsForCurrentNotePair = [];
+          firstNoteOfPairFound = false;
+        }
       } else {
         /**
          * Do nothing

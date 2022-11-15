@@ -73,7 +73,7 @@ export class Plotter {
   /**
    * Plot 2D or 3D data.
    */
-  plot(outPutChDataTemp: Float32Array): void {
+  plot(outPutChDataTemp: number[] | Float32Array): void {
     const context = this.context;
     context.beginPath();
     //let dataArr = [0, 12, 10, 12, 11, 7, 5, 20];
@@ -98,6 +98,25 @@ export class Plotter {
 
     context.lineTo(x * this.xCoeff, (this.maxYValue * this.yCoeff));
     context.strokeStyle = color;
+    context.stroke();
+  }
+
+  /**
+   * Plot text.
+   */
+  plotText(text: string, x: number, y: number, color = 'green'): void {
+    const context = this.context;
+    context.beginPath();
+    context.moveTo(x * this.xCoeff, 0);
+
+
+    const xTemp = (x - 250) * this.xCoeff;
+    const yTemp = (this.maxYValue - y) * this.yCoeff;
+
+    context.fillStyle = 'green';
+    context.fillRect(xTemp - 10, yTemp - 10, 100, 20);
+    context.fillStyle = color;
+    context.fillText(text, xTemp, yTemp);
     context.stroke();
   }
 
