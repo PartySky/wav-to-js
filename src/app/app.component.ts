@@ -41,9 +41,10 @@ export class AppComponent implements OnInit {
 
   initPlt(): void {
     this.plt = new Plotter();
-//    this.plt.setMaxAxisValues(500,1.2);
+    // this.plt.setMinAxisValues(25,50);
+    // this.plt.setMaxAxisValues(100,100);
+    this.plt.setMinAxisValues(0,0);
     this.plt.setMaxAxisValues(20000, 1.2);
-    // this.plt.setMaxAxisValues(30,30);
   }
 
   async loadData() {
