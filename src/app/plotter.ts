@@ -299,10 +299,12 @@ export class Plotter {
    * Plot vertical line.
    */
   plotVerticalLine(x: number, color = 'green'): void {
-    this.figureVerticalLineList.push({
+    const fig = {
       x: x,
-      color: 'blue',
-    });
+      color: color,
+    };
+    this.figureVerticalLineList.push(fig);
+    this.plotVerticalLineLocal(fig);
   }
 
   /**
@@ -404,8 +406,8 @@ export class Plotter {
     this.context.fillRect(xTemp - 10, yTemp - 10, 100, 20);
     this.context.stroke();
     this.context.fillStyle = '#000';
-    this.context.fillText(`${this.mouseTrackX}`, xTemp, yTemp);
-    this.context.fillText(`${this.mouseTrackY}`, xTemp + 50, yTemp);
+    this.context.fillText(`${this.mouseTrackX}`, xTemp - 150, yTemp);
+    this.context.fillText(`${this.mouseTrackY}`, xTemp, yTemp);
     this.context.stroke();
   }
 
