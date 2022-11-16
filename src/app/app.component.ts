@@ -41,8 +41,6 @@ export class AppComponent implements OnInit {
 
   initPlt(): void {
     this.plt = new Plotter();
-    // this.plt.setMinAxisValues(25,50);
-    // this.plt.setMaxAxisValues(100,100);
     this.plt.setMinAxisValues(0,0);
     this.plt.setMaxAxisValues(20000, 1.2);
   }
@@ -252,7 +250,8 @@ export class AppComponent implements OnInit {
 
         this.plt.plot(outPutChDataTemp);
         this.plt.plotVerticalLine(outPutChDataTemp.length, 'red');
-        this.plt.plotText(notePairLengthTemp.toString(), outPutChDataTemp.length, 0.2 + i * 0.1 , 'red');
+        this.plt.plotText(notePairLengthTemp.toString(), outPutChDataTemp.length, 0.2 + i * 0.1 , 'red', '#8ec5ba');
+        this.plt.show();
 
         if (drawMarker) {
           outPutChDataTemp[counter] = -1;
@@ -870,7 +869,15 @@ export class AppComponent implements OnInit {
     return result;
   }
 
-  undoMaxXYChange() {
+  undoMaxXYChange(): void {
     this.plt.undoMaxXYChange();
+  }
+
+  setDragMode(): void {
+    this.plt.setDragMode();
+  }
+
+  setZoomMode(): void {
+    this.plt.setZoomMode();
   }
 }

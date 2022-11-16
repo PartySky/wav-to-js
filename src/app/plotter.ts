@@ -1,3 +1,7 @@
+import {FigureText} from "./figureText";
+import {FigureVerticalLine} from "./figureVerticalLine";
+import {FigureArrayLine} from "./figureArrayLine";
+
 export class Plotter {
   private canvas: HTMLCanvasElement;
   private context: CanvasRenderingContext2D;
@@ -21,6 +25,11 @@ export class Plotter {
   private figureLineList: FigureArrayLine[] = [];
   private figureVerticalLineList: FigureVerticalLine[] = [];
   private figureTextList: FigureText[] = [];
+  private modes = {
+    zoom: 0,
+    drag: 1,
+  }
+  private mode = this.modes.zoom;
 
   constructor() {
     this.iniCanvast();
@@ -72,8 +81,20 @@ export class Plotter {
       maxY = y1;
     }
 
+    console.log(`minX ${minX} minY ${minY} maxX ${maxX} maxY ${maxY}`);
+
     this.setMinAxisValues(minX, minY);
     this.setMaxAxisValues(maxX, maxY);
+    this.x();
+    this.drawFigures();
+  }
+
+  setNewCoordsAfterDragging(x1, y1, x2, y2): void {
+    let deltaX = x1 - x2;
+    let deltaY = y1 - y2;
+
+    this.setMinAxisValues(this.minXValue + deltaX, this.minYValue + deltaY);
+    this.setMaxAxisValues(this.maxXValue + deltaX, this.maxYValue + deltaY);
     this.x();
     this.drawFigures();
   }
@@ -86,9 +107,10 @@ export class Plotter {
     const clickY = this.getYValueFromScreenPixels(mouseY);
     console.log('Release at ' + clickX + ' ' + clickY);
 
-    if (this.settingZoom) {
-      this.settingZoom = false;
+    if (this.mode === this.modes.zoom) {
       this.setZoom(this.clickX, this.clickY, clickX, clickY);
+    } else if (this.mode === this.modes.drag) {
+      this.setNewCoordsAfterDragging(this.clickX, this.clickY, clickX, clickY);
     }
   }
 
@@ -132,30 +154,9 @@ export class Plotter {
 
     this.clickX = this.getXValueFromScreenPixels(mouseX);
     this.clickY = this.getYValueFromScreenPixels(mouseY);
-    this.settingZoom = true;
 
     console.log('Click at ' + this.clickX + ' ' + this.clickY);
   }
-
-  private redraw() {
-    // let clickX = this.clickX;
-    // let context = this.context;
-    // let clickDrag = this.clickDrag;
-    // let clickY = this.clickY;
-    // for (let i = 0; i < clickX.length; ++i) {
-    //   context.beginPath();
-    //   if (clickDrag[i] && i) {
-    //     context.moveTo(clickX[i - 1], clickY[i - 1]);
-    //   } else {
-    //     context.moveTo(clickX[i] - 1, clickY[i]);
-    //   }
-    //
-    //   context.lineTo(clickX[i], clickY[i]);
-    //   context.stroke();
-    // }
-    // context.closePath();
-  }
-
 
   getXTest(x) {
     const maxPix = this.maxXPixels;
@@ -175,22 +176,25 @@ export class Plotter {
     return result;
   }
 
-  getXValueFromScreenPixels(val) {
+  getXValueFromScreenPixels(valPix) {
     const maxPix = this.maxXPixels;
     const minPix = this.minXPixels;
     const max = this.maxXValue;
     const min = this.minXValue;
-    let result = ((val - min) * (max - min) / (maxPix - minPix)) + min;
+    // let result = ((val - min) * (max - min) / (maxPix - minPix)) + min;
+    // let result = ((valPix - min) * (max - min) / (maxPix - minPix)) - min;
+    let result = (max - min) * (valPix - minPix) / (maxPix - minPix) + min;
     return result;
   }
 
-  getYValueFromScreenPixels(val) {
+  getYValueFromScreenPixels(valPix) {
     const maxPix = this.maxYPixels;
     const minPix = this.minYPixels;
     const max = this.maxYValue;
     const min = this.minYValue;
     // let result = max + min - (((val - min) * (max - min) / (maxPix - minPix)) + min);
-    let result = max - (((val - min) * (max - min) / (maxPix - minPix)));
+    // let result = max - (((valPix - min) * (max - min) / (maxPix - minPix)));
+    let result = max - (((valPix - minPix) * (max - min) / (maxPix - minPix)));
     return result;
   }
 
@@ -213,7 +217,7 @@ export class Plotter {
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
   }
 
-  setMinAxisValues(minXValue: number = 20, minYValue: number = 20): void {
+  setMinAxisValues(minXValue: number = 0, minYValue: number = 0): void {
     this.reset();
     this.minXValue = minXValue;
     this.minYValue = minYValue;
@@ -249,6 +253,8 @@ export class Plotter {
     xStep = xStep > 0 ? xStep : 1;
     yStep = yStep > 0 ? yStep : 1;
 
+    this.context.fillStyle = '#000';
+
     for (let i = minXValue; i < maxXValue; i = i + xStep) {
       context.fillText(`${Math.round(i * 100) / 100}`, this.getXTest(i), this.maxYPixels);
     }
@@ -258,14 +264,11 @@ export class Plotter {
     }
   }
 
-  private canvasDraw(context: CanvasRenderingContext2D): void {
-  }
-
   /**
    * Display all open figures.
    */
   show(): void {
-    this.canvasDraw(this.context);
+    this.drawFigures();
   }
 
   /**
@@ -323,12 +326,13 @@ export class Plotter {
   /**
    * Plot text.
    */
-  plotText(text: string, x: number, y: number, color = 'green'): void {
+  plotText(text: string, x: number, y: number, color = 'green', background = 'green'): void {
     const fig: FigureText = {
       text: text,
       x: x,
       y: y,
-      color: 'blue',
+      color: color,
+      backgroundColor: background,
     };
     this.figureTextList.push(fig);
 
@@ -343,10 +347,9 @@ export class Plotter {
     context.beginPath();
     context.moveTo(this.getXTest(figure.x), 0);
 
-
     const xTemp = this.getXTest(figure.x);
-    const yTemp = this.getYTest(figure.y);
-    context.fillStyle = 'green';
+    const yTemp = this.maxYPixels - this.getYTest(figure.y);
+    context.fillStyle = figure.backgroundColor;
     context.fillRect(xTemp - 10, yTemp - 10, 100, 20);
     context.fillStyle = figure.color;
     context.fillText(figure.text, xTemp, yTemp);
@@ -386,10 +389,6 @@ export class Plotter {
     let scaleX = this.canvas.width / rect.width;    // relationship bitmap vs. element for x
     let scaleY = this.canvas.height / rect.height;  // relationship bitmap vs. element for y
 
-    let xRelatedToCanvas = (event.pageX - rect.left) * scaleX;
-    let yRelatedToCanvas = (event.pageY - rect.top) * scaleY;
-
-
     const mouseX = this.getMouseCoords(event)[0];
     const mouseY = this.getMouseCoords(event)[1];
 
@@ -402,16 +401,18 @@ export class Plotter {
     const xTemp = (this.maxXValue * this.xCoeff);
     const yTemp = (this.maxYPixels + 50);
 
+    const delta = 100;
+
     this.context.fillStyle = '#fff';
-    this.context.fillRect(xTemp - 10, yTemp - 10, 100, 20);
+    this.context.fillRect(xTemp - delta - 10, yTemp - 10, 100 + delta, 20);
     this.context.stroke();
     this.context.fillStyle = '#000';
-    this.context.fillText(`${this.mouseTrackX}`, xTemp - 150, yTemp);
+    this.context.fillText(`${this.mouseTrackX}`, xTemp - delta, yTemp);
     this.context.fillText(`${this.mouseTrackY}`, xTemp, yTemp);
     this.context.stroke();
   }
 
-  drawFigures(): void {
+  private drawFigures(): void {
     this.figureLineList.forEach(item => {
       this.plotFigureArrayLine(item);
     })
@@ -422,21 +423,12 @@ export class Plotter {
       this.plotTextLocal(item);
     })
   }
-}
 
-export class FigureArrayLine {
-  dataArr: number[] | Float32Array;
-  color: string;
-}
+  setZoomMode(): void {
+    this.mode = this.modes.zoom;
+  }
 
-export class FigureVerticalLine {
-  x: number;
-  color: string;
-}
-
-export class FigureText {
-  text: string;
-  x: number;
-  y: number;
-  color: string;
+  setDragMode(): void {
+    this.mode = this.modes.drag;
+  }
 }
