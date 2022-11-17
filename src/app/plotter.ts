@@ -18,7 +18,6 @@ export class Plotter {
   private yCoeff = 1;
   private mouseTrackX = 0;
   private mouseTrackY = 0;
-
   private clickX: number = null;
   private clickY: number = null;
   private settingZoom = false;
@@ -28,8 +27,10 @@ export class Plotter {
   private modes = {
     zoom: 0,
     drag: 1,
+    drawMarkers: 2,
   }
   private mode = this.modes.zoom;
+  private markers: number[] = [];
 
   constructor() {
     this.iniCanvast();
@@ -111,6 +112,9 @@ export class Plotter {
       this.setZoom(this.clickX, this.clickY, clickX, clickY);
     } else if (this.mode === this.modes.drag) {
       this.setNewCoordsAfterDragging(this.clickX, this.clickY, clickX, clickY);
+    } else if (this.mode === this.modes.drawMarkers) {
+      this.markers.push(clickX);
+      this.plotVerticalLine(clickX, '#ffa400');
     }
   }
 
@@ -207,7 +211,7 @@ export class Plotter {
     let realx = 25;
     let realy = 75;
 
-    this.context.arc(this.getXTest(realx),this.getYTest(realy), 10, 0, 2 * Math.PI, false);
+    this.context.arc(this.getXTest(realx), this.getYTest(realy), 10, 0, 2 * Math.PI, false);
 
     this.context.fillStyle = 'green';
     this.context.fill();
@@ -274,10 +278,11 @@ export class Plotter {
   /**
    * Plot 2D or 3D data.
    */
-  plot(outPutChDataTemp: number[] | Float32Array): void {
+  plot(outPutChDataTemp: number[] | Float32Array, offsetX = 0): void {
     const fig: FigureArrayLine = {
       dataArr: outPutChDataTemp,
       color: 'blue',
+      offsetX: offsetX,
     };
 
     this.figureLineList.push(fig);
@@ -289,10 +294,12 @@ export class Plotter {
     context.beginPath();
     let dataArr = figure.dataArr;
 
-    context.moveTo(0, this.maxYPixels - this.getYTest(dataArr[0]));
+    const offsetX = figure.offsetX ? figure.offsetX : 0;
+
+    context.moveTo(this.getXTest(0 + offsetX), this.maxYPixels - this.getYTest(dataArr[0]));
 
     dataArr.forEach((item, i) => {
-      context.lineTo(this.getXTest(i), this.maxYPixels - this.getYTest(item));
+      context.lineTo(this.getXTest(i + offsetX), this.maxYPixels - this.getYTest(item));
     })
     context.strokeStyle = figure.color;
     context.stroke();
@@ -430,5 +437,9 @@ export class Plotter {
 
   setDragMode(): void {
     this.mode = this.modes.drag;
+  }
+
+  setDrawMarkersMode(): void {
+    this.mode = this.modes.drawMarkers;
   }
 }
