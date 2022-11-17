@@ -113,9 +113,24 @@ export class Plotter {
     } else if (this.mode === this.modes.drag) {
       this.setNewCoordsAfterDragging(this.clickX, this.clickY, clickX, clickY);
     } else if (this.mode === this.modes.drawMarkers) {
-      this.markers.push(clickX);
-      this.plotVerticalLine(clickX, '#ffa400');
+      let nearestLeftLineX = this.getNearestLeftLineX(clickX, this.figureVerticalLineList);
+      if (!this.markers.includes(nearestLeftLineX)) {
+        this.markers.push(nearestLeftLineX);
+        this.plotVerticalLine(nearestLeftLineX + 1, '#23af00', 3);
+      }
     }
+  }
+
+  getNearestLeftLineX(x: number, figureVerticalLineList: FigureVerticalLine[]): number {
+    let maxX = 0;
+
+    figureVerticalLineList.forEach(item => {
+      if (item.x > maxX && item.x <= x) {
+        maxX = item.x;
+      }
+    })
+
+    return maxX;
   }
 
   private cancelEventHandler = (e: MouseEvent | TouchEvent) => {
@@ -278,11 +293,12 @@ export class Plotter {
   /**
    * Plot 2D or 3D data.
    */
-  plot(outPutChDataTemp: number[] | Float32Array, offsetX = 0): void {
+  plot(outPutChDataTemp: number[] | Float32Array, offsetX = 0, lineWidth = 1): void {
     const fig: FigureArrayLine = {
       dataArr: outPutChDataTemp,
       color: 'blue',
       offsetX: offsetX,
+      lineWidth: lineWidth,
     };
 
     this.figureLineList.push(fig);
@@ -302,16 +318,18 @@ export class Plotter {
       context.lineTo(this.getXTest(i + offsetX), this.maxYPixels - this.getYTest(item));
     })
     context.strokeStyle = figure.color;
+    context.lineWidth = figure.lineWidth ? figure.lineWidth : 1;
     context.stroke();
   }
 
   /**
    * Plot vertical line.
    */
-  plotVerticalLine(x: number, color = 'green'): void {
+  plotVerticalLine(x: number, color = 'green', lineWidth = 1): void {
     const fig = {
       x: x,
       color: color,
+      lineWidth: lineWidth,
     };
     this.figureVerticalLineList.push(fig);
     this.plotVerticalLineLocal(fig);
@@ -327,6 +345,7 @@ export class Plotter {
 
     context.lineTo(this.getXTest(figure.x), this.maxYPixels);
     context.strokeStyle = figure.color;
+    context.lineWidth = figure.lineWidth ? figure.lineWidth : 1;
     context.stroke();
   }
 
