@@ -9,7 +9,15 @@
         style="border: 1px solid #000">
 </canvas>
 
-<div (click)="undoMaxXYChange()">Undo</div>
-<div (click)="setDragMode()">Drag</div>
-<div (click)="setZoomMode()">Zoom</div>
-<div (click)="setDrawMarkersMode()">Draw markers</div>
+<div class="buttons-wrapper">
+  <div class="btn"
+       (click)="undoMaxXYChange()">Undo</div>
+  <div class="btn"
+       (click)="setDragMode()">Drag</div>
+  <div class="btn"
+       (click)="setZoomMode()">Zoom</div>
+  <div class="btn"
+       (click)="setDrawMarkersMode()">Draw markers</div>
+  <div class="btn"
+       (click)="saveMarkers()">Save markers</div>
+</div>

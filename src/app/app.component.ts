@@ -34,7 +34,6 @@ export class AppComponent implements OnInit {
   }
 
   async ngOnInit() {
-    this.testSave();
     this.initPlt();
     await this.loadData();
     this.initMidi();
@@ -961,11 +960,7 @@ export class AppComponent implements OnInit {
     this.plt.setDrawMarkersMode();
   }
 
-  testSave(): void {
-    const jsonData = JSON.stringify([
-      1, 2 ,
-      3]);
-    const blob = new Blob([jsonData], {type: 'text/plain'});
-    this.openSaveAsDialog(blob, `test ${getDateString(new Date())}.json`);
+  saveMarkers(): void {
+    this.plt.saveMarkers('markers');
   }
 }

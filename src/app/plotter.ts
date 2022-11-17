@@ -1,6 +1,8 @@
 import {FigureText} from "./figureText";
 import {FigureVerticalLine} from "./figureVerticalLine";
 import {FigureArrayLine} from "./figureArrayLine";
+import {openSaveAsDialog} from "./openSaveAsDialog";
+import {getDateString} from "./getDateString";
 
 export class Plotter {
   private canvas: HTMLCanvasElement;
@@ -460,5 +462,15 @@ export class Plotter {
 
   setDrawMarkersMode(): void {
     this.mode = this.modes.drawMarkers;
+  }
+
+  saveMarkers(fileName: string): void {
+    const jsonData = JSON.stringify(this.markers.sort((a,b) => {return a - b}));
+    const blob = new Blob([jsonData], {type: 'text/plain'});
+    this.openSaveAsDialog(blob, `${fileName} ${getDateString(new Date())}.json`);
+  }
+
+  openSaveAsDialog(blob: Blob, fileName: string): void {
+    openSaveAsDialog(blob, fileName);
   }
 }
