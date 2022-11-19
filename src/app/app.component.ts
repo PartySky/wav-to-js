@@ -192,7 +192,7 @@ export class AppComponent implements OnInit {
       let counter = 0;
       // 35 ArtFastDown RR1
 
-      const drawMarker = true;
+      const drawMarker = false;
 
       // const indexTemp = 52;
       // const interval = 1;
@@ -617,7 +617,36 @@ export class AppComponent implements OnInit {
       const fileName = `assets/lib/Legato/Legato Up 01/Legato Up 01 Sprite ${i}`;
       const audioBufferTemp = await audioCtx.decodeAudioData(await this.getArrayBufferFromUrl(`${fileName}.wav`));
       const periodsTemp = await this.getJsonFromUrl(`${fileName}.json`);
+
+      if (true && i === 52) {
+      }
+
       const periodsFromChData = this.periodsFromChData(audioBufferTemp.getChannelData(0), periodsTemp);
+
+      if (false && i === 52) {
+        debugger;
+        this.drawRawLineForMakingMarkers(periodsFromChData);
+        return;
+      }
+
+      if (true && i === 52) {
+        const markersTemp = await this.getJsonFromUrl(`${fileName} Marker.json`);
+        const noteListTemp = this.splitPeriodListByMarkers(periodsFromChData, markersTemp);
+
+        let iRunningSum = 0;
+
+        noteListTemp.forEach(item => {
+
+          item.forEach(period => {
+            this.plt.plot(period.chData, iRunningSum);
+            iRunningSum = iRunningSum + period.chData.length;
+          })
+
+          this.plt.plotVerticalLine(iRunningSum, 'red');
+        })
+
+        this.plt.show();
+      }
 
       this.globalTestSwitch = false;
       if (i === 52) {
@@ -813,6 +842,41 @@ export class AppComponent implements OnInit {
     return result;
   }
 
+
+  splitPeriodListByMarkers(periods: Period[], markersTemp: number[]): Period[][] {
+    let result: Period[][] = [];
+
+    let runningSum = 0;
+    let currentNote: Period[] = [];
+
+    periods.forEach(item => {
+      if (markersTemp.includes(runningSum)) {
+        result.push(currentNote);
+        currentNote = [];
+      }
+      currentNote.push(item);
+      runningSum = runningSum + item.chData.length;
+    })
+
+    return result;
+  }
+
+  drawRawLineForMakingMarkers(periodsFromChData: Period[]): void {
+    let iRunningSum = 0;
+    let iLocal = 1;
+    periodsFromChData.forEach((period, i) => {
+      let textOffsetY = iLocal * 0.05;
+      this.plt.plotVerticalLine(iRunningSum, 'red');
+      this.plt.plot(period.chData, iRunningSum);
+      this.plt.plotText(period.chData.length.toString(), iRunningSum, 0.5 - textOffsetY, 'red', '#8ec5ba');
+      iLocal++;
+      if (textOffsetY > 0.4) {
+        iLocal = 1;
+      }
+      iRunningSum = iRunningSum + period.chData.length;
+    })
+  }
+
   getLegatoNotePairListFromSprite(periodsFromChData: Period[]): Period[][] {
     let endOfTrimming = false;
     const trimTrashold = 0.2;
@@ -853,7 +917,7 @@ export class AppComponent implements OnInit {
     let iLocal = 1;
     periodListTrimmed.forEach((period, i) => {
       let textOffsetY = iLocal * 0.05;
-      if (true && this.globalTestSwitch) {
+      if (false && this.globalTestSwitch) {
         this.plt.plot(period.chData, iRunningSum);
         this.plt.plotText(period.chData.length.toString(), iRunningSum, 0.5 - textOffsetY, 'red', '#8ec5ba');
         iLocal++;
@@ -901,7 +965,7 @@ export class AppComponent implements OnInit {
 
       if (Math.abs(period.chData.length - previousPeriodLength) > noteChangeLenghtTrashold) {
 
-        if (this.globalTestSwitch) {
+        if (false && this.globalTestSwitch) {
           this.plt.plotVerticalLine(iRunningSum, 'red');
         }
         if (false && !firstNoteOfPairFound) {
