@@ -142,6 +142,16 @@ export class AppComponent implements OnInit {
     if (this.notesReadMode && this.notesToRender.length) {
       const zeroOffset = this.notesToRender[0].offset;
 
+      debugger
+      // set notes for test 52-53
+      const doForceNotesForTest = true;
+
+      if (doForceNotesForTest) {
+        this.notesToRender[0].noteId = 52;
+        this.notesToRender[1].noteId = 53;
+        this.notesToRender[2].noteId = 52;
+      }
+
       /**
        * Для соединения быстрых нот и вибрато
        */
@@ -585,6 +595,11 @@ export class AppComponent implements OnInit {
     let audioBuffer_FastSprite_Up_midiNum_List: Period[][][] = [];
     let audioBuffer_VibratoSprite_midiNum_List: Period[][][] = [];
     let audioBuffer_LegatoPairs_Up_01_midiNum_List: Period[][][] = [];
+    /**
+     * midi num [], rr [], note periods []
+     */
+    let audioBuffer_Legato_Up_01_midiNum_List,
+      audioBuffer_Legato_Down_01_midiNum_List: Period[][][] = [];
 
     const audioCtx = new AudioContext();
 
@@ -614,7 +629,9 @@ export class AppComponent implements OnInit {
     }
 
     for (let i = 52; i < 71; i++) {
-      const fileName = `assets/lib/Legato/Legato Up 01/Legato Up 01 Sprite ${i}`;
+      const interval = 1;
+      const intervalStr = interval.toString().padStart(2, '0')
+      const fileName = `assets/lib/Legato/Legato Up ${intervalStr}/Legato Up ${intervalStr} Sprite ${i}`;
       const audioBufferTemp = await audioCtx.decodeAudioData(await this.getArrayBufferFromUrl(`${fileName}.wav`));
       const periodsTemp = await this.getJsonFromUrl(`${fileName}.json`);
 
@@ -635,6 +652,10 @@ export class AppComponent implements OnInit {
 
         let iRunningSum = 0;
 
+        let directionUp = false;
+
+        let roundRoobinUp = 0;
+        let roundRoobinDown = 0;
         noteListTemp.forEach(item => {
 
           item.forEach(period => {
@@ -643,6 +664,16 @@ export class AppComponent implements OnInit {
           })
 
           this.plt.plotVerticalLine(iRunningSum, 'red');
+
+          if (directionUp) {
+            audioBuffer_Legato_Up_01_midiNum_List[i + interval][roundRoobinUp] = item;
+            roundRoobinUp++;
+          } else {
+            audioBuffer_Legato_Down_01_midiNum_List[i][roundRoobinDown] = item;
+            roundRoobinDown++;
+          }
+
+          directionUp = !directionUp;
         })
 
         this.plt.show();
@@ -653,7 +684,10 @@ export class AppComponent implements OnInit {
         debugger;
         this.globalTestSwitch = true;
       }
-      audioBuffer_LegatoPairs_Up_01_midiNum_List[i] = this.getLegatoNotePairListFromSprite(periodsFromChData);
+
+      // todo: из audioBuffer_Legato_Up_01_midiNum_List и audioBuffer_Legato_Down_01_midiNum_List сформировать пары,
+      // если будет нужно
+      // audioBuffer_LegatoPairs_Up_01_midiNum_List[i] = ...
     }
 
     let result: { [key: string]: Period[] } = {};
@@ -875,137 +909,6 @@ export class AppComponent implements OnInit {
       }
       iRunningSum = iRunningSum + period.chData.length;
     })
-  }
-
-  getLegatoNotePairListFromSprite(periodsFromChData: Period[]): Period[][] {
-    let endOfTrimming = false;
-    const trimTrashold = 0.2;
-
-    let periodListTrimmed: Period[] = [];
-
-    periodsFromChData.forEach(period => {
-      let currentMax = 0;
-      period.chData.forEach(item => {
-        if (item > currentMax) {
-          currentMax = item;
-        }
-      })
-
-      if (!endOfTrimming) {
-        if (currentMax < trimTrashold) {
-          /**
-           * Do nothing
-           */
-        } else {
-          endOfTrimming = true;
-        }
-      } else {
-        periodListTrimmed.push(period);
-      }
-    })
-
-    const noteChangeLenghtTrashold = 2; // 10
-    let previousPeriodLength = 0;
-    let previousNPeriodSum = 0;
-    let nForSum = 10;
-
-    let periodsForCurrentNotePair: Period[] = [];
-    let notesPairSet: Period[][] = [];
-    let firstNoteOfPairFound = false;
-
-    let iRunningSum = 0;
-    let iLocal = 1;
-    periodListTrimmed.forEach((period, i) => {
-      let textOffsetY = iLocal * 0.05;
-      if (false && this.globalTestSwitch) {
-        this.plt.plot(period.chData, iRunningSum);
-        this.plt.plotText(period.chData.length.toString(), iRunningSum, 0.5 - textOffsetY, 'red', '#8ec5ba');
-        iLocal++;
-        if (textOffsetY > 0.4) {
-          iLocal = 1;
-        }
-
-        // this.plt.plotVerticalLine(outPutChDataTemp.length, 'red');
-        // this.plt.plotText(notePairLengthTemp.toString(), outPutChDataTemp.length, 0.2 + i * 0.1, 'red', '#8ec5ba');
-      }
-
-      let currentNPeriodSum = 0;
-
-      for (let i2 = i; i2 < i + nForSum; i2++) {
-        if (periodListTrimmed[i2]) {
-          currentNPeriodSum = currentNPeriodSum + periodListTrimmed[i2].chData.length;
-        }
-      }
-
-
-      if (false && Math.abs(period.chData.length - previousPeriodLength) > noteChangeLenghtTrashold) {
-        if (this.globalTestSwitch) {
-          // this.plt.plotText(currentNPeriodSum.toString(), iRunningSum, -0.5 - textOffsetY, 'red', '#8ec5ba');
-          // this.plt.plotVerticalLine(iRunningSum, 'red');
-
-          let diff = 0;
-          // if (periodListTrimmed[i + 1]) {
-          if (periodListTrimmed[i - 1]) {
-            periodListTrimmed[i].chData.forEach((itemLocal, iLocal) => {
-              let diffTemp = (itemLocal - periodListTrimmed[i - 1].chData[iLocal]);
-              if (diffTemp) {
-                diff = diff + diffTemp * diffTemp;
-              }
-            })
-
-            if (diff >= 0.1) {
-              this.plt.plotVerticalLine(iRunningSum, 'red');
-              this.plt.plotText(diff.toString(), iRunningSum, -0.5 - textOffsetY, 'red', '#c5968e');
-            } else {
-              this.plt.plotText(diff.toString(), iRunningSum, -0.5 - textOffsetY, 'red', '#8ec5ba');
-            }
-          }
-        }
-      }
-
-      if (Math.abs(period.chData.length - previousPeriodLength) > noteChangeLenghtTrashold) {
-
-        if (false && this.globalTestSwitch) {
-          this.plt.plotVerticalLine(iRunningSum, 'red');
-        }
-        if (false && !firstNoteOfPairFound) {
-          firstNoteOfPairFound = true;
-        } else {
-          notesPairSet.push(periodsForCurrentNotePair);
-          periodsForCurrentNotePair = [];
-          firstNoteOfPairFound = false;
-        }
-      } else {
-        /**
-         * Do nothing
-         */
-      }
-
-      periodsForCurrentNotePair.push(period);
-      previousPeriodLength = period.chData.length;
-
-      iRunningSum = iRunningSum + period.chData.length;
-
-      previousNPeriodSum = 0;
-
-      for (let i2 = 0; i2 < nForSum; i2++) {
-        if (periodListTrimmed[i2]) {
-          previousNPeriodSum = previousNPeriodSum + periodListTrimmed[i2].chData.length;
-        }
-      }
-    })
-
-    if (true && this.globalTestSwitch) {
-      this.plt.show();
-    }
-
-    let result: Period[][] = [];
-
-    notesPairSet.forEach(notePair => {
-      result.push(notePair);
-    })
-
-    return result;
   }
 
   undoMaxXYChange(): void {
