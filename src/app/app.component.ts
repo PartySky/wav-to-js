@@ -556,36 +556,17 @@ export class AppComponent implements OnInit {
       const audioBufferTemp = await audioCtx.decodeAudioData(await this.getArrayBufferFromUrl(`${fileName}.wav`));
       const periodsTemp = await this.getJsonFromUrl(`${fileName}.json`);
 
-      if (true && i === 52) {
-      }
-
       const periodsFromChData = this.periodsFromChData(audioBufferTemp.getChannelData(0), periodsTemp);
 
-      if (false && i === 52) {
-        debugger;
-        this.drawRawLineForMakingMarkers(periodsFromChData);
-        return;
-      }
-
-      if (true && i === 52) {
+      if (i >= 52 && i <= 53) {
         const markersTemp = await this.getJsonFromUrl(`${fileName} Marker.json`);
         const noteListTemp = this.splitPeriodListByMarkers(periodsFromChData, markersTemp);
-
-        let iRunningSum = 0;
 
         let directionUp = false;
 
         let roundRoobinUp = 0;
         let roundRoobinDown = 0;
         noteListTemp.forEach(item => {
-
-          item.forEach(period => {
-            this.plt.plot(period.chData, iRunningSum);
-            iRunningSum = iRunningSum + period.chData.length;
-          })
-
-          this.plt.plotVerticalLine(iRunningSum, 'red');
-
           if (directionUp) {
             audioBuffer_Legato_Up_01_midiNum_List[i + interval] = [];
             audioBuffer_Legato_Up_01_midiNum_List[i + interval][roundRoobinUp] = item;
@@ -597,6 +578,23 @@ export class AppComponent implements OnInit {
           }
 
           directionUp = !directionUp;
+        })
+      }
+
+      // For plotting
+      if (true && i === 53) {
+        const markersTemp = await this.getJsonFromUrl(`${fileName} Marker.json`);
+        const noteListTemp = this.splitPeriodListByMarkers(periodsFromChData, markersTemp);
+
+        let iRunningSum = 0;
+
+        noteListTemp.forEach(item => {
+          item.forEach(period => {
+            this.plt.plot(period.chData, iRunningSum);
+            iRunningSum = iRunningSum + period.chData.length;
+          })
+
+          this.plt.plotVerticalLine(iRunningSum, 'red');
         })
 
         this.plt.show();
