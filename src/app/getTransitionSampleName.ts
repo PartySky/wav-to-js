@@ -12,13 +12,14 @@ export function getTransitionSampleName(dto: getTransitionSampleNameDto): string
 
   let result = '';
 
-  const higherNoteId = midiNoteNumbers.N_A2_45;
+  // const higherNoteId = midiNoteNumbers.N_A2_45;
+  const higherNoteId = midiNoteNumbers.some_55;
   const lowerNoteId = midiNoteNumbers.N_B1_35;
   const higherTriggerNoteId = midiNoteNumbers.N_D2b_25_SomeTrigger;
   const lowerTriggerNoteId = midiNoteNumbers.N_C1_24_VibratoTrigger;
   const previousItem = previousNoteId;
 
-  let roundRobin = 1; //3;
+  let roundRobin = 0; //3;
 
   if (nextNoteId) {
     if (legatoType === legatoTypes.noPairs) {
@@ -49,26 +50,32 @@ export function getTransitionSampleName(dto: getTransitionSampleNameDto): string
     }
   }
 
-  if (!result) {
-    if (noteId >= lowerNoteId && noteId <= higherNoteId) {
-      result = getFormattedName({
-        midiNum: noteId,
-        art: articulations.fastDown,
-        rr: roundRobin,
-      });
-    }
-  }
+  const temporaryTernedOff = true;
+
+  if (!temporaryTernedOff) {
 
 
-  if (!result) {
-    if (previousItem &&
-      (noteId >= lowerTriggerNoteId && noteId <= higherTriggerNoteId)) {
-      if (noteId === midiNoteNumbers.N_C1_24_VibratoTrigger) {
+    if (!result) {
+      if (noteId >= lowerNoteId && noteId <= higherNoteId) {
         result = getFormattedName({
-          midiNum: previousItem,
-          art: articulations.vib,
+          midiNum: noteId,
+          art: articulations.fastDown,
           rr: roundRobin,
         });
+      }
+    }
+
+
+    if (!result) {
+      if (previousItem &&
+        (noteId >= lowerTriggerNoteId && noteId <= higherTriggerNoteId)) {
+        if (noteId === midiNoteNumbers.N_C1_24_VibratoTrigger) {
+          result = getFormattedName({
+            midiNum: previousItem,
+            art: articulations.vib,
+            rr: roundRobin,
+          });
+        }
       }
     }
   }

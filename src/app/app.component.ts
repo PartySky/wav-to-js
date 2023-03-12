@@ -181,6 +181,9 @@ export class AppComponent implements OnInit {
 
         if (sampleName) {
           periodList = this.periods_Transition_Dictionary[sampleName];
+          if (!periodList?.length) {
+            throw new Error(`No periods for sampleName "${sampleName}"`)
+          }
           if (nextNoteId === midiNoteNumbers.N_C1_24_VibratoTrigger) {
             periodList = this.trimPeriodNFromEnd(periodList, 5); // last value 1500 samples
           }
@@ -195,98 +198,8 @@ export class AppComponent implements OnInit {
     }
 
     let outPutChDataTemp: Float32Array;
-    let test = true;
-    // hotfix
-    if (!test) {
-      outPutChDataTemp = this.mixDownChDatas(chDataListForMixDown);
-    }
 
-    if (test) {
-      // @ts-ignore
-      outPutChDataTemp = [];
-      let counter = 0;
-      // 35 ArtFastDown RR1
-
-      const drawMarker = false;
-
-      // const indexTemp = 52;
-      // const interval = 1;
-      // let periodsTest = this.periods_Transition_Dictionary[getFormattedName({
-      //   midiNum: indexTemp,
-      //   midiNumSecond: indexTemp + interval,
-      //   art: articulations.leg,
-      //   rr: 1
-      // })];
-      //
-      // let xTemp = [];
-      //
-      // periodsTest.forEach(item => {
-      //   item.chData.forEach(ch => {
-      //     xTemp.push(ch);
-      //   })
-      // })
-      //
-      // this.plt.plot(xTemp);
-
-      const lengthTemp = 10;
-      for (let i = 1; i < lengthTemp; i++) {
-        if (drawMarker) {
-          outPutChDataTemp[counter] = 1;
-          counter++;
-          outPutChDataTemp[counter] = 1;
-          counter++;
-          outPutChDataTemp[counter] = 1;
-          counter++;
-          outPutChDataTemp[counter] = 1;
-          counter++;
-          outPutChDataTemp[counter] = 1;
-          counter++;
-        }
-
-        const indexTemp = 52;
-        const interval = 1;
-        let periods = this.periods_Transition_Dictionary[getFormattedName({
-          midiNum: indexTemp,
-          midiNumSecond: indexTemp + interval,
-          art: articulations.leg,
-          rr: i
-        })];
-
-        let notePairLengthTemp = 0;
-        periods.forEach(period => {
-          period.chData.forEach(item => {
-            outPutChDataTemp[counter] = item;
-            counter++;
-          })
-
-          // notePairLengthTemp = notePairLengthTemp + period.chData.length;
-        })
-
-        notePairLengthTemp = periods[0].chData.length;
-
-        if (false) {
-          this.plt.plot(outPutChDataTemp);
-          this.plt.plotVerticalLine(outPutChDataTemp.length, 'red');
-          this.plt.plotText(notePairLengthTemp.toString(), outPutChDataTemp.length, 0.2 + i * 0.1, 'red', '#8ec5ba');
-          this.plt.show();
-        }
-
-        if (drawMarker) {
-          outPutChDataTemp[counter] = -1;
-          counter++;
-          outPutChDataTemp[counter] = -1;
-          counter++;
-          outPutChDataTemp[counter] = -1;
-          counter++;
-          outPutChDataTemp[counter] = -1;
-          counter++;
-          outPutChDataTemp[counter] = -1;
-          counter++;
-        }
-      }
-
-      outPutChDataTemp = new Float32Array(outPutChDataTemp);
-    }
+    outPutChDataTemp = this.mixDownChDatas(chDataListForMixDown);
 
     const outPutAB: AudioBuffer = new AudioBuffer({
       length: outPutChDataTemp.length,
