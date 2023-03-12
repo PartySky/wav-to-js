@@ -12,6 +12,7 @@ import {getDateString} from "./getDateString";
 import {getUiParams} from "./getUiParams";
 import {getJsonFromUrl} from "./getJsonFromUrl";
 import {Plotter} from "./plotter";
+import {legatoTypes} from "./legatoTypes";
 
 @Component({
   selector: 'app-root',
@@ -29,6 +30,8 @@ export class AppComponent implements OnInit {
   isDataReady = false;
   plt: Plotter;
   globalTestSwitch = false;
+
+  legatoType = legatoTypes.noPairs;
 
   constructor() {
   }
@@ -167,18 +170,20 @@ export class AppComponent implements OnInit {
         let nextNoteId = nextItem ? nextItem.noteId : null;
         let previousItem = this.notesToRender[i - 1];
         let previousNoteId = previousItem ? previousItem.noteId : null;
-        let sampleName = getTransitionSampleName([
-          item.noteId,
-          nextNoteId,
-          previousNoteId,
-        ]);
+        let sampleName = '';
+
+        sampleName = getTransitionSampleName({
+          noteId: item.noteId,
+          nextNoteId: nextNoteId,
+          previousNoteId: previousNoteId,
+          legatoType: this.legatoType,
+        });
 
         if (sampleName) {
           periodList = this.periods_Transition_Dictionary[sampleName];
           if (nextNoteId === midiNoteNumbers.N_C1_24_VibratoTrigger) {
             periodList = this.trimPeriodNFromEnd(periodList, 5); // last value 1500 samples
           }
-
           chDataListForMixDown.push({
             periodList: periodList,
             offset: item.offset,
@@ -598,8 +603,11 @@ export class AppComponent implements OnInit {
     /**
      * midi num [], rr [], note periods []
      */
-    let audioBuffer_Legato_Up_01_midiNum_List,
-      audioBuffer_Legato_Down_01_midiNum_List: Period[][][] = [];
+    let audioBuffer_Legato_Up_01_midiNum_List: Period[][][] = [];
+    /**
+     * midi num [], rr [], note periods []
+     */
+    let audioBuffer_Legato_Down_01_midiNum_List: Period[][][] = [];
 
     const audioCtx = new AudioContext();
 
@@ -666,9 +674,11 @@ export class AppComponent implements OnInit {
           this.plt.plotVerticalLine(iRunningSum, 'red');
 
           if (directionUp) {
+            audioBuffer_Legato_Up_01_midiNum_List[i + interval] = [];
             audioBuffer_Legato_Up_01_midiNum_List[i + interval][roundRoobinUp] = item;
             roundRoobinUp++;
           } else {
+            audioBuffer_Legato_Down_01_midiNum_List[i] = [];
             audioBuffer_Legato_Down_01_midiNum_List[i][roundRoobinDown] = item;
             roundRoobinDown++;
           }
@@ -691,6 +701,36 @@ export class AppComponent implements OnInit {
     }
 
     let result: { [key: string]: Period[] } = {};
+
+    audioBuffer_Legato_Down_01_midiNum_List.forEach((periodListList, index) => {
+      if (periodListList) {
+        let localRR = 0;
+        periodListList.forEach(periodList => {
+          result[getFormattedName({
+            midiNum: index,
+            art: articulations.legDown_01,
+            rr: localRR
+          })] =
+            periodList;
+          localRR++;
+        })
+      }
+    })
+
+    audioBuffer_Legato_Up_01_midiNum_List.forEach((periodListList, index) => {
+      if (periodListList) {
+        let localRR = 0;
+        periodListList.forEach(periodList => {
+          result[getFormattedName({
+            midiNum: index,
+            art: articulations.legUp_01,
+            rr: localRR
+          })] =
+            periodList;
+          localRR++;
+        })
+      }
+    })
 
     audioBuffer_FastSprite_Down_midiNum_List.forEach((periodListList, index) => {
       if (periodListList) {
