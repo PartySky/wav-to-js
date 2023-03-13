@@ -9,6 +9,7 @@ export function getTransitionSampleName(dto: getTransitionSampleNameDto): string
   const nextNoteId = dto.nextNoteId;
   const previousNoteId = dto.previousNoteId;
   const legatoType = dto.legatoType;
+  let roundRobin = dto.roundRobin ? dto.roundRobin : 1; //3;
 
   let result = '';
 
@@ -19,7 +20,6 @@ export function getTransitionSampleName(dto: getTransitionSampleNameDto): string
   const lowerTriggerNoteId = midiNoteNumbers.N_C1_24_VibratoTrigger;
   const previousItem = previousNoteId;
 
-  let roundRobin = 0; //3;
 
   if (nextNoteId) {
     if (legatoType === legatoTypes.noPairs) {

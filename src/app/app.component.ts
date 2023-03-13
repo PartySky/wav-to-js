@@ -153,6 +153,10 @@ export class AppComponent implements OnInit {
         this.notesToRender[0].noteId = 52;
         this.notesToRender[1].noteId = 53;
         this.notesToRender[2].noteId = 52;
+        this.notesToRender[3].noteId = 53;
+        this.notesToRender[4].noteId = 52;
+        // this.notesToRender[5].noteId = 53;
+        // this.notesToRender[6].noteId = 52;
       }
 
       /**
@@ -163,6 +167,7 @@ export class AppComponent implements OnInit {
       }
 
       let i = 0;
+      let roundRobinForTest = 3;
       this.notesToRender.forEach(item => {
         item.offset = item.offset - zeroOffset;
         let periodList: Period[];
@@ -177,7 +182,12 @@ export class AppComponent implements OnInit {
           nextNoteId: nextNoteId,
           previousNoteId: previousNoteId,
           legatoType: this.legatoType,
+          roundRobin: roundRobinForTest,
         });
+
+        roundRobinForTest++;
+        // roundRobinForTest++;
+        // roundRobinForTest++;
 
         if (sampleName) {
           periodList = this.periods_Transition_Dictionary[sampleName];
@@ -203,7 +213,7 @@ export class AppComponent implements OnInit {
 
     const outPutAB: AudioBuffer = new AudioBuffer({
       length: outPutChDataTemp.length,
-      numberOfChannels: 2,
+      numberOfChannels: 1, // 2
       sampleRate: uiParms.sampleRate,
     });
 
@@ -284,7 +294,7 @@ export class AppComponent implements OnInit {
         }
       }
 
-      const drawNextChDataStart = true && this.drawMarkers;
+      const drawNextChDataStart = false && this.drawMarkers;
       if (drawNextChDataStart && nextChDataStart) {
         const markerWidth = 30; // 8
         for (let i = 0; i < markerWidth; i++) {
@@ -320,73 +330,6 @@ export class AppComponent implements OnInit {
     return new Float32Array(result);
   }
 
-
-  getChanelDataList_02(chData: Float32Array): Period[] {
-    let result: Period[] = [];
-
-    if (!chData) {
-      return result;
-    }
-
-    const scanDataLength = 100;
-    const scanRoadLength = 200;
-    const diffTrashold = 10;
-
-    for (let i = 0; i < chData.length - scanRoadLength; i++) {
-      let scanData: number[] = [];
-      for (let x = i; x < scanDataLength; x++) {
-        scanData[x] = chData[x];
-      }
-      let diff = 0;
-      let scanDataIterator = 0;
-      for (let x = i; x < scanRoadLength; x++) {
-        diff = chData[x] - scanData[scanDataIterator]
-        scanDataIterator++;
-      }
-
-      // todo
-
-    }
-
-    let found = false;
-    const tracholdLength = 300; // 200
-
-    let lastValue = 0;
-
-    let chDataTemp: number[] = [];
-    let chDataTempCounter = 0;
-
-    for (let i = 0; i < chData.length; i++) {
-      chDataTemp[chDataTempCounter] = chData[i];
-      chDataTempCounter++;
-
-      const zeroCrossDetected = (chData[i] < 0) && (lastValue >= 0) ||
-        (chData[i] > 0) && (lastValue <= 0);
-
-      if (zeroCrossDetected && chDataTemp.length > tracholdLength) {
-        found = true;
-      }
-      if (found) {
-        result.push({chData: new Float32Array(chDataTemp)});
-        chDataTemp = [];
-        chDataTempCounter = 0;
-        found = false;
-      }
-      lastValue = chData[i];
-    }
-
-    const drawEdges = true && this.drawMarkers;
-
-    if (drawEdges) {
-      result.forEach(item => {
-        item.chData[0] = 1;
-        item.chData[1] = -1;
-      })
-    }
-
-    return result;
-  }
-
   periodsFromChData(chData: Float32Array, periods: number[]): Period[] {
     let result: Period[] = [];
 
@@ -396,53 +339,6 @@ export class AppComponent implements OnInit {
       result.push({chData: chDateTemp});
       previousIndex = periodIndex;
     })
-
-    return result;
-  }
-
-  // Deprecated
-  getChanelDataList_Old(chData: Float32Array): Period[] {
-    let result: Period[] = [];
-
-    if (!chData) {
-      return result;
-    }
-
-    let found = false;
-    const tracholdLength = 300; // 200
-
-    let lastValue = 0;
-
-    let chDataTemp: number[] = [];
-    let chDataTempCounter = 0;
-
-    for (let i = 0; i < chData.length; i++) {
-      chDataTemp[chDataTempCounter] = chData[i];
-      chDataTempCounter++;
-
-      const zeroCrossDetected = (chData[i] < 0) && (lastValue >= 0) ||
-        (chData[i] > 0) && (lastValue <= 0);
-
-      if (zeroCrossDetected && chDataTemp.length > tracholdLength) {
-        found = true;
-      }
-      if (found) {
-        result.push({chData: new Float32Array(chDataTemp)});
-        chDataTemp = [];
-        chDataTempCounter = 0;
-        found = false;
-      }
-      lastValue = chData[i];
-    }
-
-    const drawEdges = true && this.drawMarkers;
-
-    if (drawEdges) {
-      result.forEach(item => {
-        item.chData[0] = 1;
-        item.chData[1] = -1;
-      })
-    }
 
     return result;
   }
@@ -564,17 +460,20 @@ export class AppComponent implements OnInit {
 
         let directionUp = false;
 
-        let roundRoobinUp = 0;
-        let roundRoobinDown = 0;
+        let roundRobinUp = 0;
+        let roundRobinDown = 0;
+        debugger
+
+        audioBuffer_Legato_Up_01_midiNum_List[i + interval] = [];
+        audioBuffer_Legato_Down_01_midiNum_List[i] = [];
+
         noteListTemp.forEach(item => {
           if (directionUp) {
-            audioBuffer_Legato_Up_01_midiNum_List[i + interval] = [];
-            audioBuffer_Legato_Up_01_midiNum_List[i + interval][roundRoobinUp] = item;
-            roundRoobinUp++;
+            audioBuffer_Legato_Up_01_midiNum_List[i + interval][roundRobinUp] = item;
+            roundRobinUp++;
           } else {
-            audioBuffer_Legato_Down_01_midiNum_List[i] = [];
-            audioBuffer_Legato_Down_01_midiNum_List[i][roundRoobinDown] = item;
-            roundRoobinDown++;
+            audioBuffer_Legato_Down_01_midiNum_List[i][roundRobinDown] = item;
+            roundRobinDown++;
           }
 
           directionUp = !directionUp;
@@ -731,7 +630,7 @@ export class AppComponent implements OnInit {
 
       if (periodCounter <= 1) {
         if (drawMarker) {
-          period.chData[0] = -0.25;
+          // period.chData[0] = -0.25;
         }
         periodsForCurrentNote.push(period);
       } else if (currentMax - delta <= lastPeriodMax || periodCounter < minPeriodsInNote) {
@@ -739,7 +638,7 @@ export class AppComponent implements OnInit {
          * Нужно писать chData ноты в текущую ноту в result
          */
         if (drawMarker) {
-          period.chData[0] = 0.5;
+          // period.chData[0] = 0.5;
         }
         periodsForCurrentNote.push(period);
       } else {
@@ -750,7 +649,7 @@ export class AppComponent implements OnInit {
         periodsForCurrentNote = [];
 
         if (drawMarker) {
-          period.chData[0] = -0.75;
+          // period.chData[0] = -0.75;
         }
 
         periodsForCurrentNote.push(period);
