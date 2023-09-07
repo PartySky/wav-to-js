@@ -101,6 +101,7 @@ export class AppComponent implements OnInit {
       noteId = midiNoteNumbers.N_C1_24_VibratoTrigger;
     }
 
+    debugger;
     if (key === "KeyM") {
       this.generateWavFile();
     } else if (key === "KeyL") {
@@ -150,13 +151,34 @@ export class AppComponent implements OnInit {
       const doForceNotesForTest = true;
 
       if (doForceNotesForTest) {
+        // for (let i = 0; i < 10; i++) {
+        //   this.notesToRender[i] = {
+        //     offset: 0,
+        //     noteId: 0,
+        //   }
+        // }
+
         this.notesToRender[0].noteId = 52;
         this.notesToRender[1].noteId = 53;
         this.notesToRender[2].noteId = 52;
         this.notesToRender[3].noteId = 53;
         this.notesToRender[4].noteId = 52;
-        // this.notesToRender[5].noteId = 53;
-        // this.notesToRender[6].noteId = 52;
+        this.notesToRender[5].noteId = 53;
+        this.notesToRender[6].noteId = 54;
+        this.notesToRender[7].noteId = 53;
+        this.notesToRender[8].noteId = 54;
+        this.notesToRender[9].noteId = 53;
+        this.notesToRender[10].noteId = 54;
+        this.notesToRender[11].noteId = 53;
+        this.notesToRender[12].noteId = 52;
+        this.notesToRender[13].noteId = 53;
+        this.notesToRender[14].noteId = 54;
+        this.notesToRender[15].noteId = 53;
+        this.notesToRender[16].noteId = 52;
+        this.notesToRender[17].noteId = 53;
+        this.notesToRender[18].noteId = 52;
+        this.notesToRender[19].noteId = 53;
+        this.notesToRender[20].noteId = 52;
       }
 
       /**
@@ -454,15 +476,18 @@ export class AppComponent implements OnInit {
 
       const periodsFromChData = this.periodsFromChData(audioBufferTemp.getChannelData(0), periodsTemp);
 
-      if (i >= 52 && i <= 53) {
-        const markersTemp = await this.getJsonFromUrl(`${fileName} Marker.json`);
+      if (i >= 52 && i <= 55) {
+        const markersTemp1 = await this.getJsonFromUrl(`${fileName} Marker.json`).catch(error => {
+          debugger
+        });
+        const markersTemp: number[] = markersTemp1 ? markersTemp1 : periodsTemp;
+        debugger;
         const noteListTemp = this.splitPeriodListByMarkers(periodsFromChData, markersTemp);
 
         let directionUp = false;
 
         let roundRobinUp = 0;
         let roundRobinDown = 0;
-        debugger
 
         audioBuffer_Legato_Up_01_midiNum_List[i + interval] = [];
         audioBuffer_Legato_Down_01_midiNum_List[i] = [];
@@ -481,11 +506,17 @@ export class AppComponent implements OnInit {
       }
 
       // For plotting
-      if (true && i === 53) {
-        const markersTemp = await this.getJsonFromUrl(`${fileName} Marker.json`);
+      if (true && i === 55) {
+        debugger;
+        const markersTemp1 = await this.getJsonFromUrl(`${fileName} Marker.json`).catch(error => {
+          debugger
+        });
+        const markersTemp: number[] = markersTemp1 ? markersTemp1 : periodsTemp;
+        debugger;
         const noteListTemp = this.splitPeriodListByMarkers(periodsFromChData, markersTemp);
 
         let iRunningSum = 0;
+
 
         noteListTemp.forEach(item => {
           item.forEach(period => {
