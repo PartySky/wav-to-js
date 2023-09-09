@@ -32,6 +32,7 @@ export class AppComponent implements OnInit {
   globalTestSwitch = false;
 
   legatoType = legatoTypes.noPairs;
+  cursorType = 'crosshair';
 
   constructor() {
   }
@@ -827,10 +828,12 @@ export class AppComponent implements OnInit {
   }
 
   setDragMode(): void {
+    this.cursorType = 'grab';
     this.plt.setDragMode();
   }
 
   setZoomMode(): void {
+    this.cursorType = 'crosshair';
     this.plt.setZoomMode();
   }
 
@@ -839,6 +842,7 @@ export class AppComponent implements OnInit {
   }
 
   setDrawMarkersMode(): void {
+    this.cursorType = 'pointer';
     this.plt.setDrawMarkersMode();
   }
 

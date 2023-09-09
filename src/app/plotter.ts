@@ -460,7 +460,7 @@ export class Plotter {
   zoomOut(): void {
     const xDiff = (this.maxXValue - this.minXValue) / 4;
     const yDiff = (this.maxYValue - this.minYValue) / 4;
-    
+
     this.setZoom(
       this.minXValue - xDiff,
       this.minYValue - yDiff,

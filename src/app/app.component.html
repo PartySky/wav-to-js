@@ -3,7 +3,8 @@
 
 <div (click)="generateWavFileButton_click()">Generate WAV file</div>
 
-<canvas id="myCanvas"
+<canvas [class]="'cursor-' + cursorType"
+        id="myCanvas"
         width="1400"
         height="700"
         style="border: 1px solid #000">
