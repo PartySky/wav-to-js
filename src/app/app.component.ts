@@ -846,6 +846,11 @@ export class AppComponent implements OnInit {
     this.plt.setDrawMarkersMode();
   }
 
+  setRemoveMarkersMode(): void {
+    this.cursorType = 'pointer';
+    this.plt.setRemoveMarkersMode();
+  }
+
   saveMarkers(): void {
     this.plt.saveMarkers('markers');
   }

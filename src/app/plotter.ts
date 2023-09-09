@@ -3,6 +3,7 @@ import {FigureVerticalLine} from "./figureVerticalLine";
 import {FigureArrayLine} from "./figureArrayLine";
 import {openSaveAsDialog} from "./openSaveAsDialog";
 import {getDateString} from "./getDateString";
+import {Marker} from "./marker";
 
 export class Plotter {
   private canvas: HTMLCanvasElement;
@@ -31,9 +32,12 @@ export class Plotter {
     zoom: 0,
     drag: 1,
     drawMarkers: 2,
+    removeMarkers: 3,
   }
   private mode = this.modes.zoom;
-  private markers: number[] = [];
+  // private markers: number[] = [];
+  private markers: Marker[] = [];
+  private lastLineId = 0;
 
   constructor() {
     this.iniCanvast();
@@ -116,10 +120,34 @@ export class Plotter {
     } else if (this.mode === this.modes.drag) {
       this.setNewCoordsAfterDragging(this.clickX, this.clickY, clickX, clickY);
     } else if (this.mode === this.modes.drawMarkers) {
-      let nearestLeftLineX = this.getNearestLeftLineX(clickX, this.figureVerticalLineList);
-      if (!this.markers.includes(nearestLeftLineX)) {
-        this.markers.push(nearestLeftLineX);
-        this.plotVerticalLine(nearestLeftLineX + 1, '#23af00', 3);
+      const nearestLeftLineX = this.getNearestLeftLineX(clickX, this.figureVerticalLineList);
+      let includesNearestLeftLineX = false;
+      debugger
+      this.markers.forEach(item => {
+        if (item.x === nearestLeftLineX) {
+          includesNearestLeftLineX = true;
+        }
+      })
+      debugger
+      if (!includesNearestLeftLineX) {
+        const lineId =
+          this.plotVerticalLine(nearestLeftLineX + 1, '#23af00', 3);
+        this.markers.push({x: nearestLeftLineX, lineId: lineId});
+      }
+    } else if (this.mode === this.modes.removeMarkers) {
+      const nearestLeftMarker = this.getNearestLeftMarker(clickX, this.markers);
+      if (nearestLeftMarker) {
+        const markersTemp: Marker[] = [];
+        this.markers.forEach(item => {
+          if(item.lineId !== nearestLeftMarker.lineId) {
+            markersTemp.push(item);
+          }
+        })
+        this.markers = markersTemp;
+        this.removeVerticalLine(nearestLeftMarker.lineId);
+        this.reset();
+        this.x();
+        this.drawFigures();
       }
     }
   }
@@ -134,6 +162,35 @@ export class Plotter {
     })
 
     return maxX;
+  }
+
+
+  getNearestLeftLine(x: number, figureVerticalLineList: FigureVerticalLine[]): FigureVerticalLine {
+    let maxX = 0;
+    let result: FigureVerticalLine;
+
+    figureVerticalLineList.forEach(item => {
+      if (item.x > maxX && item.x <= x) {
+        maxX = item.x;
+        result = item;
+      }
+    })
+
+    return result;
+  }
+
+  getNearestLeftMarker(x: number, markerList: Marker[]): Marker {
+    let maxX = 0;
+    let result: Marker;
+
+    markerList.forEach(item => {
+      if (item.x > maxX && item.x <= x) {
+        maxX = item.x;
+        result = item;
+      }
+    })
+
+    return result;
   }
 
   private cancelEventHandler = (e: MouseEvent | TouchEvent) => {
@@ -328,14 +385,30 @@ export class Plotter {
   /**
    * Plot vertical line.
    */
-  plotVerticalLine(x: number, color = 'green', lineWidth = 1): void {
+  plotVerticalLine(x: number, color = 'green', lineWidth = 1): number {
     const fig = {
+      id: this.lastLineId,
       x: x,
       color: color,
       lineWidth: lineWidth,
     };
+    this.lastLineId++;
     this.figureVerticalLineList.push(fig);
     this.plotVerticalLineLocal(fig);
+    return fig.id;
+  }
+
+  /**
+   * Remove vertical line.
+   */
+  removeVerticalLine(id: number): void {
+    const figureVerticalLineListTemp: FigureVerticalLine[] = [];
+    this.figureVerticalLineList.forEach(item => {
+      if (item.id !== id) {
+        figureVerticalLineListTemp.push(item);
+      }
+    });
+    this.figureVerticalLineList = figureVerticalLineListTemp;
   }
 
   /**
@@ -477,8 +550,19 @@ export class Plotter {
     this.mode = this.modes.drawMarkers;
   }
 
+  setRemoveMarkersMode(): void {
+    this.mode = this.modes.removeMarkers;
+  }
+
   saveMarkers(fileName: string): void {
-    const jsonData = JSON.stringify(this.markers.sort((a,b) => {return a - b}));
+    const markersSortedTemp: { x: number; lineId: number; }[] = this.markers.sort((a, b) => {
+      return a.x - b.x
+    });
+    const markersSortedArray: number[] = [];
+    markersSortedTemp.forEach(item => {
+      markersSortedArray.push(item.x);
+    })
+    const jsonData = JSON.stringify(markersSortedArray);
     const blob = new Blob([jsonData], {type: 'text/plain'});
     this.openSaveAsDialog(blob, `${fileName} ${getDateString(new Date())}.json`);
   }
