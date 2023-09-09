@@ -15,6 +15,7 @@ export class Plotter {
   private minYPixels = 0;
   private minXValue = 50;
   private minYValue = 50;
+  private zoomDebug = [];
   private maxXYHistory: number[][] = [];
   private xCoeff = 1;
   private yCoeff = 1;
@@ -454,6 +455,18 @@ export class Plotter {
 
   setZoomMode(): void {
     this.mode = this.modes.zoom;
+  }
+
+  zoomOut(): void {
+    const xDiff = (this.maxXValue - this.minXValue) / 4;
+    const yDiff = (this.maxYValue - this.minYValue) / 4;
+    
+    this.setZoom(
+      this.minXValue - xDiff,
+      this.minYValue - yDiff,
+      this.maxXValue + xDiff,
+      this.maxYValue + yDiff
+    );
   }
 
   setDragMode(): void {

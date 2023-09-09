@@ -151,34 +151,64 @@ export class AppComponent implements OnInit {
       const doForceNotesForTest = true;
 
       if (doForceNotesForTest) {
-        // for (let i = 0; i < 10; i++) {
-        //   this.notesToRender[i] = {
-        //     offset: 0,
-        //     noteId: 0,
-        //   }
-        // }
+        const offsetConstTest = 29370;
+        let offsetRunningSum = zeroOffset;
+        for (let i = 0; i < 7; i++) {
+          this.notesToRender[i] = {
+            offset: offsetRunningSum,
+            noteId: 0,
+          }
 
-        this.notesToRender[0].noteId = 52;
+          offsetRunningSum = offsetRunningSum + offsetConstTest;
+        }
+
+
+        // todo: продебажить это
+        // this.notesToRender[0].noteId = 52;
+        // this.notesToRender[1].noteId = 53;
+        // this.notesToRender[2].noteId = 52;
+        // this.notesToRender[3].noteId = 53;
+        // this.notesToRender[4].noteId = 52;
+        // this.notesToRender[5].noteId = 53;
+        // this.notesToRender[6].noteId = 54;
+        // this.notesToRender[7].noteId = 53;
+        // this.notesToRender[8].noteId = 54;
+        // this.notesToRender[9].noteId = 53;
+        // this.notesToRender[10].noteId = 54;
+        // // this.notesToRender[11].noteId = 53;
+        // // this.notesToRender[12].noteId = 52;
+        // // this.notesToRender[13].noteId = 53;
+        // // this.notesToRender[14].noteId = 54;
+        // // this.notesToRender[15].noteId = 53;
+        // // this.notesToRender[16].noteId = 52;
+        // // this.notesToRender[17].noteId = 53;
+        // // this.notesToRender[18].noteId = 52;
+        // // this.notesToRender[19].noteId = 53;
+        // // this.notesToRender[20].noteId = 52;
+
+
+        debugger
+        this.notesToRender[0].noteId = 54;
         this.notesToRender[1].noteId = 53;
         this.notesToRender[2].noteId = 52;
         this.notesToRender[3].noteId = 53;
-        this.notesToRender[4].noteId = 52;
+        this.notesToRender[4].noteId = 54;
         this.notesToRender[5].noteId = 53;
-        this.notesToRender[6].noteId = 54;
-        this.notesToRender[7].noteId = 53;
-        this.notesToRender[8].noteId = 54;
-        this.notesToRender[9].noteId = 53;
-        this.notesToRender[10].noteId = 54;
-        this.notesToRender[11].noteId = 53;
-        this.notesToRender[12].noteId = 52;
-        this.notesToRender[13].noteId = 53;
-        this.notesToRender[14].noteId = 54;
-        this.notesToRender[15].noteId = 53;
-        this.notesToRender[16].noteId = 52;
-        this.notesToRender[17].noteId = 53;
-        this.notesToRender[18].noteId = 52;
-        this.notesToRender[19].noteId = 53;
-        this.notesToRender[20].noteId = 52;
+        this.notesToRender[6].noteId = 52;
+        // this.notesToRender[7].noteId = 53;
+        // this.notesToRender[8].noteId = 52;
+        // this.notesToRender[9].noteId = 53;
+        // this.notesToRender[10].noteId = 52;
+        // this.notesToRender[11].noteId = 53;
+        // this.notesToRender[12].noteId = 52;
+        // this.notesToRender[13].noteId = 53;
+        // this.notesToRender[14].noteId = 54;
+        // this.notesToRender[15].noteId = 53;
+        // this.notesToRender[16].noteId = 52;
+        // this.notesToRender[17].noteId = 53;
+        // this.notesToRender[18].noteId = 52;
+        // this.notesToRender[19].noteId = 53;
+        // this.notesToRender[20].noteId = 52;
       }
 
       /**
@@ -802,6 +832,10 @@ export class AppComponent implements OnInit {
 
   setZoomMode(): void {
     this.plt.setZoomMode();
+  }
+
+  zoomOut(): void {
+    this.plt.zoomOut();
   }
 
   setDrawMarkersMode(): void {
