@@ -46,3 +46,5 @@ testem.log
 Thumbs.db
 
 /src/assets/lib
+src/assets/F2 ACF Test*.wav
+src/assets/F2 DF Test*.wav
