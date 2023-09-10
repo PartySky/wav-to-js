@@ -154,7 +154,7 @@ export class AppComponent implements OnInit {
       if (doForceNotesForTest) {
         const offsetConstTest = 29370;
         let offsetRunningSum = zeroOffset;
-        for (let i = 0; i < 7; i++) {
+        for (let i = 0; i < 13; i++) {
           this.notesToRender[i] = {
             offset: offsetRunningSum,
             noteId: 0,
@@ -196,12 +196,12 @@ export class AppComponent implements OnInit {
         this.notesToRender[4].noteId = 54;
         this.notesToRender[5].noteId = 53;
         this.notesToRender[6].noteId = 52;
-        // this.notesToRender[7].noteId = 53;
-        // this.notesToRender[8].noteId = 52;
-        // this.notesToRender[9].noteId = 53;
-        // this.notesToRender[10].noteId = 52;
-        // this.notesToRender[11].noteId = 53;
-        // this.notesToRender[12].noteId = 52;
+        this.notesToRender[7].noteId = 53;
+        this.notesToRender[8].noteId = 54;
+        this.notesToRender[9].noteId = 55;
+        this.notesToRender[10].noteId = 56;
+        this.notesToRender[11].noteId = 55;
+        this.notesToRender[12].noteId = 54;
         // this.notesToRender[13].noteId = 53;
         // this.notesToRender[14].noteId = 54;
         // this.notesToRender[15].noteId = 53;
@@ -507,7 +507,7 @@ export class AppComponent implements OnInit {
 
       const periodsFromChData = this.periodsFromChData(audioBufferTemp.getChannelData(0), periodsTemp);
 
-      if (i >= 52 && i <= 55) {
+      if (i >= 52 && i <= 56) {
         const markersTemp1 = await this.getJsonFromUrl(`${fileName} Marker.json`).catch(error => {
           debugger
         });
@@ -537,7 +537,7 @@ export class AppComponent implements OnInit {
       }
 
       // For plotting
-      if (true && i === 55) {
+      if (true && i === 56) {
         debugger;
         const markersTemp1 = await this.getJsonFromUrl(`${fileName} Marker.json`).catch(error => {
           debugger
