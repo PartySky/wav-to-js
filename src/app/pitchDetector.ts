@@ -51,9 +51,6 @@ export class PitchDetector {
         localMins.push(i);
       }
     })
-
-    debugger;
-
     return DF_vals;
   }
 
@@ -192,8 +189,6 @@ export class PitchDetector {
     //   iTemp,
     //   bounds[1],
     // );
-
-    debugger;
 
     return result;
 
@@ -345,8 +340,6 @@ export class PitchDetector {
         chData,
       }
     );
-
-    debugger;
   }
 
   async testPitchDetector() {
@@ -364,8 +357,6 @@ export class PitchDetector {
         chData,
       }
     );
-
-    debugger;
   }
 }
 

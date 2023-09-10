@@ -9,7 +9,6 @@ export function getTransitionSampleName(dto: getTransitionSampleNameDto): string
   const nextNoteId = dto.nextNoteId;
   const previousNoteId = dto.previousNoteId;
   const legatoType = dto.legatoType;
-  let roundRobin = dto.roundRobin ? dto.roundRobin : 1; //3;
 
   let result = '';
 
@@ -39,7 +38,7 @@ export function getTransitionSampleName(dto: getTransitionSampleNameDto): string
         result = getFormattedName({
           midiNum: noteId,
           art: articulations[`${articulationTemp}_${intervalStr}`],
-          rr: roundRobin,
+          noRr: true,
         });
       }
     } else {
@@ -60,7 +59,7 @@ export function getTransitionSampleName(dto: getTransitionSampleNameDto): string
         result = getFormattedName({
           midiNum: noteId,
           art: articulations.fastDown,
-          rr: roundRobin,
+          noRr: true,
         });
       }
     }
@@ -73,7 +72,7 @@ export function getTransitionSampleName(dto: getTransitionSampleNameDto): string
           result = getFormattedName({
             midiNum: previousItem,
             art: articulations.vib,
-            rr: roundRobin,
+            noRr: true,
           });
         }
       }

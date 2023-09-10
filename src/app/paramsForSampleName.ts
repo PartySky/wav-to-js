@@ -3,4 +3,5 @@ export class ParamsForSampleName {
   midiNumSecond?: number;
   art: string;
   rr?: number;
+  noRr?: boolean;
 }

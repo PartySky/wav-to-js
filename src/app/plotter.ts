@@ -122,13 +122,11 @@ export class Plotter {
     } else if (this.mode === this.modes.drawMarkers) {
       const nearestLeftLineX = this.getNearestLeftLineX(clickX, this.figureVerticalLineList);
       let includesNearestLeftLineX = false;
-      debugger
       this.markers.forEach(item => {
         if (item.x === nearestLeftLineX) {
           includesNearestLeftLineX = true;
         }
       })
-      debugger
       if (!includesNearestLeftLineX) {
         const lineId =
           this.plotVerticalLine(nearestLeftLineX + 1, '#23af00', 3);

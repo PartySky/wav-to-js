@@ -13,6 +13,7 @@ import {getUiParams} from "./getUiParams";
 import {getJsonFromUrl} from "./getJsonFromUrl";
 import {Plotter} from "./plotter";
 import {legatoTypes} from "./legatoTypes";
+import {RoundRobin} from "./roundRobin";
 
 @Component({
   selector: 'app-root',
@@ -26,6 +27,7 @@ export class AppComponent implements OnInit {
   notesReadMode = true;
   drawMarkers = false;
   periods_Transition_Dictionary: { [key: string]: Period[] };
+  roundRobin_Dictionary: { [key: string]: RoundRobin };
   onInitDateString: string;
   isDataReady = false;
   plt: Plotter;
@@ -102,7 +104,6 @@ export class AppComponent implements OnInit {
       noteId = midiNoteNumbers.N_C1_24_VibratoTrigger;
     }
 
-    debugger;
     if (key === "KeyM") {
       this.generateWavFile();
     } else if (key === "KeyL") {
@@ -147,69 +148,36 @@ export class AppComponent implements OnInit {
     if (this.notesReadMode && this.notesToRender.length) {
       const zeroOffset = this.notesToRender[0].offset;
 
-      debugger
       // set notes for test 52-53
       const doForceNotesForTest = true;
 
       if (doForceNotesForTest) {
         const offsetConstTest = 29370;
         let offsetRunningSum = zeroOffset;
-        for (let i = 0; i < 13; i++) {
-          this.notesToRender[i] = {
+
+        const notesToRenderTemp: Note[] = [];
+        const testNoteSet = [
+          54,
+          55,
+          54,
+          55,
+          54,
+          55,
+          54,
+          55,
+          54,
+          55,
+          54,
+          55,
+        ]
+        testNoteSet.forEach(item => {
+          notesToRenderTemp.push({
             offset: offsetRunningSum,
-            noteId: 0,
-          }
-
+            noteId: item,
+          });
           offsetRunningSum = offsetRunningSum + offsetConstTest;
-        }
-
-
-        // todo: продебажить это
-        // this.notesToRender[0].noteId = 52;
-        // this.notesToRender[1].noteId = 53;
-        // this.notesToRender[2].noteId = 52;
-        // this.notesToRender[3].noteId = 53;
-        // this.notesToRender[4].noteId = 52;
-        // this.notesToRender[5].noteId = 53;
-        // this.notesToRender[6].noteId = 54;
-        // this.notesToRender[7].noteId = 53;
-        // this.notesToRender[8].noteId = 54;
-        // this.notesToRender[9].noteId = 53;
-        // this.notesToRender[10].noteId = 54;
-        // // this.notesToRender[11].noteId = 53;
-        // // this.notesToRender[12].noteId = 52;
-        // // this.notesToRender[13].noteId = 53;
-        // // this.notesToRender[14].noteId = 54;
-        // // this.notesToRender[15].noteId = 53;
-        // // this.notesToRender[16].noteId = 52;
-        // // this.notesToRender[17].noteId = 53;
-        // // this.notesToRender[18].noteId = 52;
-        // // this.notesToRender[19].noteId = 53;
-        // // this.notesToRender[20].noteId = 52;
-
-
-        debugger
-        this.notesToRender[0].noteId = 54;
-        this.notesToRender[1].noteId = 53;
-        this.notesToRender[2].noteId = 52;
-        this.notesToRender[3].noteId = 53;
-        this.notesToRender[4].noteId = 54;
-        this.notesToRender[5].noteId = 53;
-        this.notesToRender[6].noteId = 52;
-        this.notesToRender[7].noteId = 53;
-        this.notesToRender[8].noteId = 54;
-        this.notesToRender[9].noteId = 55;
-        this.notesToRender[10].noteId = 56;
-        this.notesToRender[11].noteId = 55;
-        this.notesToRender[12].noteId = 54;
-        // this.notesToRender[13].noteId = 53;
-        // this.notesToRender[14].noteId = 54;
-        // this.notesToRender[15].noteId = 53;
-        // this.notesToRender[16].noteId = 52;
-        // this.notesToRender[17].noteId = 53;
-        // this.notesToRender[18].noteId = 52;
-        // this.notesToRender[19].noteId = 53;
-        // this.notesToRender[20].noteId = 52;
+        })
+        this.notesToRender = notesToRenderTemp;
       }
 
       /**
@@ -220,7 +188,6 @@ export class AppComponent implements OnInit {
       }
 
       let i = 0;
-      let roundRobinForTest = 3;
       this.notesToRender.forEach(item => {
         item.offset = item.offset - zeroOffset;
         let periodList: Period[];
@@ -230,17 +197,17 @@ export class AppComponent implements OnInit {
         let previousNoteId = previousItem ? previousItem.noteId : null;
         let sampleName = '';
 
-        sampleName = getTransitionSampleName({
+        const rrKey = getTransitionSampleName({
           noteId: item.noteId,
           nextNoteId: nextNoteId,
           previousNoteId: previousNoteId,
           legatoType: this.legatoType,
-          roundRobin: roundRobinForTest,
         });
 
-        roundRobinForTest++;
-        // roundRobinForTest++;
-        // roundRobinForTest++;
+        if (rrKey) {
+          sampleName = `${rrKey} RR${this.roundRobin_Dictionary[rrKey].value}`;
+          this.roundRobin_Dictionary[rrKey].up();
+        }
 
         if (sampleName) {
           periodList = this.periods_Transition_Dictionary[sampleName];
@@ -509,10 +476,8 @@ export class AppComponent implements OnInit {
 
       if (i >= 52 && i <= 56) {
         const markersTemp1 = await this.getJsonFromUrl(`${fileName} Marker.json`).catch(error => {
-          debugger
         });
         const markersTemp: number[] = markersTemp1 ? markersTemp1 : periodsTemp;
-        debugger;
         const noteListTemp = this.splitPeriodListByMarkers(periodsFromChData, markersTemp);
 
         let directionUp = false;
@@ -538,12 +503,10 @@ export class AppComponent implements OnInit {
 
       // For plotting
       if (true && i === 56) {
-        debugger;
         const markersTemp1 = await this.getJsonFromUrl(`${fileName} Marker.json`).catch(error => {
           debugger
         });
         const markersTemp: number[] = markersTemp1 ? markersTemp1 : periodsTemp;
-        debugger;
         const noteListTemp = this.splitPeriodListByMarkers(periodsFromChData, markersTemp);
 
         let iRunningSum = 0;
@@ -563,7 +526,6 @@ export class AppComponent implements OnInit {
 
       this.globalTestSwitch = false;
       if (i === 52) {
-        debugger;
         this.globalTestSwitch = true;
       }
 
@@ -573,34 +535,47 @@ export class AppComponent implements OnInit {
     }
 
     let result: { [key: string]: Period[] } = {};
+    this.roundRobin_Dictionary = {};
 
     audioBuffer_Legato_Down_01_midiNum_List.forEach((periodListList, index) => {
       if (periodListList) {
-        let localRR = 0;
+        let localRR = -1;
         periodListList.forEach(periodList => {
+          localRR++;
           result[getFormattedName({
             midiNum: index,
             art: articulations.legDown_01,
             rr: localRR
           })] =
             periodList;
-          localRR++;
         })
+
+        this.roundRobin_Dictionary[getFormattedName({
+          midiNum: index,
+          art: articulations.legDown_01,
+          noRr: true,
+        })] = new RoundRobin(localRR);
       }
     })
 
     audioBuffer_Legato_Up_01_midiNum_List.forEach((periodListList, index) => {
       if (periodListList) {
-        let localRR = 0;
+        let localRR = -1;
         periodListList.forEach(periodList => {
+          localRR++;
           result[getFormattedName({
             midiNum: index,
             art: articulations.legUp_01,
             rr: localRR
           })] =
             periodList;
-          localRR++;
         })
+
+        this.roundRobin_Dictionary[getFormattedName({
+          midiNum: index,
+          art: articulations.legUp_01,
+          noRr: true,
+        })] = new RoundRobin(localRR);
       }
     })
 
