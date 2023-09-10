@@ -540,6 +540,41 @@ export class Plotter {
     );
   }
 
+  zoomIn(): void {
+    const xDiff = (this.maxXValue - this.minXValue) / 4;
+    const yDiff = (this.maxYValue - this.minYValue) / 4;
+
+    this.setZoom(
+      this.minXValue + xDiff,
+      this.minYValue + yDiff,
+      this.maxXValue - xDiff,
+      this.maxYValue - yDiff
+    );
+  }
+
+  moveLeft(): void {
+    const xDiff = - (this.maxXValue - this.minXValue) * 0.75;
+
+    this.setZoom(
+      this.minXValue + xDiff,
+      this.minYValue,
+      this.maxXValue + xDiff,
+      this.maxYValue
+    );
+  }
+
+
+  moveRight(): void {
+    const xDiff = (this.maxXValue - this.minXValue) * 0.75;
+
+    this.setZoom(
+      this.minXValue + xDiff,
+      this.minYValue,
+      this.maxXValue + xDiff,
+      this.maxYValue
+    );
+  }
+
   setDragMode(): void {
     this.mode = this.modes.drag;
   }

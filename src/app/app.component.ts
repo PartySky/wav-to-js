@@ -78,7 +78,8 @@ export class AppComponent implements OnInit {
     console.log(midiMessage);
   }
 
-  @HostListener('document:keypress', ['$event'])
+  // @HostListener('document:keypress', ['$event'])
+  @HostListener('document:keydown', ['$event'])
   handleKeyboardEvent(event: KeyboardEvent) {
     if (!this.isDataReady) {
       console.log(`Data hasn't been loaded`);
@@ -86,6 +87,20 @@ export class AppComponent implements OnInit {
     }
 
     let key = event.code;
+
+    if (key === "ArrowRight") {
+      this.moveRight();
+    } else if (key === 'ArrowLeft') {
+      this.moveLeft();
+    } else if (key === 'ArrowDown') {
+      this.zoomOut();
+    } else if (key === 'ArrowUp') {
+      this.zoomIn();
+    }
+
+    if (['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp'].includes(key)) {
+      return;
+    }
 
     const maxNoteAmount = 30;
     let noteId = 0;
@@ -462,7 +477,7 @@ export class AppComponent implements OnInit {
 
       const periodsFromChData = this.periodsFromChData(audioBufferTemp.getChannelData(0), periodsTemp);
 
-      if (i >= 52 && i <= 56) {
+      if (i >= 52 && i <= 57) {
         const markersTemp1 = await this.getJsonFromUrl(`${fileName} Marker.json`).catch(error => {
         });
         const markersTemp: number[] = markersTemp1 ? markersTemp1 : periodsTemp;
@@ -490,7 +505,7 @@ export class AppComponent implements OnInit {
       }
 
       // For plotting
-      if (true && i === 56) {
+      if (true && i === 57) {
         const markersTemp1 = await this.getJsonFromUrl(`${fileName} Marker.json`).catch(error => {
           debugger
         });
@@ -804,6 +819,10 @@ export class AppComponent implements OnInit {
     this.plt.zoomOut();
   }
 
+  zoomIn(): void {
+    this.plt.zoomIn();
+  }
+
   setDrawMarkersMode(): void {
     this.cursorType = 'pointer';
     this.plt.setDrawMarkersMode();
@@ -816,5 +835,13 @@ export class AppComponent implements OnInit {
 
   saveMarkers(): void {
     this.plt.saveMarkers('markers');
+  }
+
+  moveRight(): void {
+    this.plt.moveRight();
+  }
+
+  moveLeft(): void {
+    this.plt.moveLeft();
   }
 }
