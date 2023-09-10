@@ -183,6 +183,8 @@ export class AppComponent implements OnInit {
         this.notesToRender = notesToRenderTemp;
       }
 
+      debugger
+
       /**
        * Для соединения быстрых нот и вибрато
        */
