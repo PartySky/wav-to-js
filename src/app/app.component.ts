@@ -14,6 +14,7 @@ import {getJsonFromUrl} from "./getJsonFromUrl";
 import {Plotter} from "./plotter";
 import {legatoTypes} from "./legatoTypes";
 import {RoundRobin} from "./roundRobin";
+import {testNoteSet} from "./testNoteSet";
 
 @Component({
   selector: 'app-root',
@@ -156,21 +157,8 @@ export class AppComponent implements OnInit {
         let offsetRunningSum = zeroOffset;
 
         const notesToRenderTemp: Note[] = [];
-        const testNoteSet = [
-          54,
-          55,
-          54,
-          55,
-          54,
-          55,
-          54,
-          55,
-          54,
-          55,
-          54,
-          55,
-        ]
-        testNoteSet.forEach(item => {
+        const testNoteSetTemp = testNoteSet;
+        testNoteSetTemp.forEach(item => {
           notesToRenderTemp.push({
             offset: offsetRunningSum,
             noteId: item,
