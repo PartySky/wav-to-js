@@ -142,7 +142,7 @@ export class AppComponent implements OnInit {
     }
   }
 
-  async getArrayBufferFromUrl(url: string): Promise<ArrayBuffer> {
+  async getArrayBufferFromUrl(url: string): Promise<ArrayBuffer> | null {
     return getArrayBufferFromUrl(url);
   }
 
@@ -442,6 +442,7 @@ export class AppComponent implements OnInit {
      * midi num [], rr [], note periods []
      */
     let audioBuffer_Legato_Down_01_midiNum_List: Period[][][] = [];
+    let audioBuffer_Legato_Down_02_midiNum_List: Period[][][] = [];
 
     const audioCtx = new AudioContext();
 
@@ -470,73 +471,81 @@ export class AppComponent implements OnInit {
       }
     }
 
-    for (let i = 52; i < 71; i++) {
-      const interval = 1;
-      const intervalStr = interval.toString().padStart(2, '0')
-      const fileName = `assets/lib/Legato/Legato Up ${intervalStr}/Legato Up ${intervalStr} Sprite ${i}`;
-      const audioBufferTemp = await audioCtx.decodeAudioData(await this.getArrayBufferFromUrl(`${fileName}.wav`));
-      const periodsTemp = await this.getJsonFromUrl(`${fileName}.json`);
+    const intervalList = [1, 2]
 
-      const periodsFromChData = this.periodsFromChData(audioBufferTemp.getChannelData(0), periodsTemp);
+    for (let interval = intervalList[0]; interval < intervalList.length + 1; interval++) {
+      for (let i = 52; i < 72; i++) {
+        const intervalStr = interval.toString().padStart(2, '0')
+        const fileName = `assets/lib/Legato/Legato Up ${intervalStr}/Legato Up ${intervalStr} Sprite ${i}`;
+        
+        const wavTemp = await this.getArrayBufferFromUrl(`${fileName}.wav`);
 
-      if (i >= 52 && i <= 57) {
-        const markersTemp1 = await this.getJsonFromUrl(`${fileName} Marker.json`).catch(error => {
-        });
-        const markersTemp: number[] = markersTemp1 ? markersTemp1 : periodsTemp;
-        const noteListTemp = this.splitPeriodListByMarkers(periodsFromChData, markersTemp);
+        if (wavTemp) {
+          const audioBufferTemp = await audioCtx.decodeAudioData(wavTemp);
+          const periodsTemp = await this.getJsonFromUrl(`${fileName}.json`);
 
-        let directionUp = false;
+          const periodsFromChData = this.periodsFromChData(audioBufferTemp.getChannelData(0), periodsTemp);
 
-        let roundRobinUp = 0;
-        let roundRobinDown = 0;
+          if (i >= 52 && i <= midiNoteNumbers.someHighNoteId) {
+            const markersTemp1 = await this.getJsonFromUrl(`${fileName} Marker.json`).catch(error => {
+            });
+            const markersTemp: number[] = markersTemp1 ? markersTemp1 : periodsTemp;
+            const noteListTemp = this.splitPeriodListByMarkers(periodsFromChData, markersTemp);
 
-        audioBuffer_Legato_Up_01_midiNum_List[i + interval] = [];
-        audioBuffer_Legato_Down_01_midiNum_List[i] = [];
+            let directionUp = false;
 
-        noteListTemp.forEach(item => {
-          if (directionUp) {
-            audioBuffer_Legato_Up_01_midiNum_List[i + interval][roundRobinUp] = item;
-            roundRobinUp++;
-          } else {
-            audioBuffer_Legato_Down_01_midiNum_List[i][roundRobinDown] = item;
-            roundRobinDown++;
+            let roundRobinUp = 0;
+            let roundRobinDown = 0;
+
+            audioBuffer_Legato_Up_01_midiNum_List[i + interval] = [];
+            audioBuffer_Legato_Down_01_midiNum_List[i] = [];
+
+            noteListTemp.forEach(item => {
+              if (directionUp) {
+                audioBuffer_Legato_Up_01_midiNum_List[i + interval][roundRobinUp] = item;
+                roundRobinUp++;
+              } else {
+                audioBuffer_Legato_Down_01_midiNum_List[i][roundRobinDown] = item;
+                roundRobinDown++;
+              }
+
+              directionUp = !directionUp;
+            })
           }
 
-          directionUp = !directionUp;
-        })
+          // For plotting
+          if (true && i === midiNoteNumbers.someHighNoteId) {
+            const markersTemp1 = await this.getJsonFromUrl(`${fileName} Marker.json`).catch(error => {
+              debugger
+            });
+            const markersTemp: number[] = markersTemp1 ? markersTemp1 : periodsTemp;
+            const noteListTemp = this.splitPeriodListByMarkers(periodsFromChData, markersTemp);
+
+            let iRunningSum = 0;
+
+
+            noteListTemp.forEach(item => {
+              item.forEach(period => {
+                this.plt.plot(period.chData, iRunningSum);
+                iRunningSum = iRunningSum + period.chData.length;
+              })
+
+              this.plt.plotVerticalLine(iRunningSum, 'red');
+            })
+
+            this.plt.show();
+          }
+
+          this.globalTestSwitch = false;
+          if (i === 52) {
+            this.globalTestSwitch = true;
+          }
+
+          // todo: из audioBuffer_Legato_Up_01_midiNum_List и audioBuffer_Legato_Down_01_midiNum_List сформировать пары,
+          // если будет нужно
+          // audioBuffer_LegatoPairs_Up_01_midiNum_List[i] = ...
+        }
       }
-
-      // For plotting
-      if (true && i === 57) {
-        const markersTemp1 = await this.getJsonFromUrl(`${fileName} Marker.json`).catch(error => {
-          debugger
-        });
-        const markersTemp: number[] = markersTemp1 ? markersTemp1 : periodsTemp;
-        const noteListTemp = this.splitPeriodListByMarkers(periodsFromChData, markersTemp);
-
-        let iRunningSum = 0;
-
-
-        noteListTemp.forEach(item => {
-          item.forEach(period => {
-            this.plt.plot(period.chData, iRunningSum);
-            iRunningSum = iRunningSum + period.chData.length;
-          })
-
-          this.plt.plotVerticalLine(iRunningSum, 'red');
-        })
-
-        this.plt.show();
-      }
-
-      this.globalTestSwitch = false;
-      if (i === 52) {
-        this.globalTestSwitch = true;
-      }
-
-      // todo: из audioBuffer_Legato_Up_01_midiNum_List и audioBuffer_Legato_Down_01_midiNum_List сформировать пары,
-      // если будет нужно
-      // audioBuffer_LegatoPairs_Up_01_midiNum_List[i] = ...
     }
 
     let result: { [key: string]: Period[] } = {};
@@ -558,6 +567,27 @@ export class AppComponent implements OnInit {
         this.roundRobin_Dictionary[getFormattedName({
           midiNum: index,
           art: articulations.legDown_01,
+          noRr: true,
+        })] = new RoundRobin(localRR);
+      }
+    })
+
+    audioBuffer_Legato_Down_02_midiNum_List.forEach((periodListList, index) => {
+      if (periodListList) {
+        let localRR = -1;
+        periodListList.forEach(periodList => {
+          localRR++;
+          result[getFormattedName({
+            midiNum: index,
+            art: articulations.legDown_02,
+            rr: localRR
+          })] =
+            periodList;
+        })
+
+        this.roundRobin_Dictionary[getFormattedName({
+          midiNum: index,
+          art: articulations.legDown_02,
           noRr: true,
         })] = new RoundRobin(localRR);
       }

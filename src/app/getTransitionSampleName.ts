@@ -13,7 +13,7 @@ export function getTransitionSampleName(dto: getTransitionSampleNameDto): string
   let result = '';
 
   // const higherNoteId = midiNoteNumbers.N_A2_45;
-  const higherNoteId = midiNoteNumbers.some_NoteId;
+  const higherNoteId = midiNoteNumbers.someHighNoteId;
   const lowerNoteId = midiNoteNumbers.N_B1_35;
   const higherTriggerNoteId = midiNoteNumbers.N_D2b_25_SomeTrigger;
   const lowerTriggerNoteId = midiNoteNumbers.N_C1_24_VibratoTrigger;

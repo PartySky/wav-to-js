@@ -1,5 +1,5 @@
 export const midiNoteNumbers = {
-  some_NoteId: 57,
+  someHighNoteId: 64,
   N_A2_45: 45,
   N_Ab2_44: 44,
   N_G2_43: 43,
