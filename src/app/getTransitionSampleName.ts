@@ -79,7 +79,5 @@ export function getTransitionSampleName(dto: getTransitionSampleNameDto): string
     }
   }
 
-  console.log(result);
-
   return result;
 }

@@ -172,7 +172,7 @@ export class AppComponent implements OnInit {
         let offsetRunningSum = zeroOffset;
 
         const notesToRenderTemp: Note[] = [];
-        const testNoteSetTemp = testNoteSet;
+        const testNoteSetTemp = testNoteSet.concat(testNoteSet);
         testNoteSetTemp.forEach(item => {
           notesToRenderTemp.push({
             offset: offsetRunningSum,
@@ -206,6 +206,9 @@ export class AppComponent implements OnInit {
           previousNoteId: previousNoteId,
           legatoType: this.legatoType,
         });
+
+
+        console.log(rrKey + ' str.: ' + i);
 
         if (rrKey) {
           sampleName = `${rrKey} RR${this.roundRobin_Dictionary[rrKey].value}`;
@@ -518,7 +521,7 @@ export class AppComponent implements OnInit {
 
           // For plotting
           // if (true && i === midiNoteNumbers.someHighNoteId) {
-          if (true && interval === 4 && i === 52) {
+          if (true && interval === 4 && i === 57) {
             const markersTemp1 = await this.getJsonFromUrl(`${fileName} Marker.json`).catch(error => {
               debugger
             });
