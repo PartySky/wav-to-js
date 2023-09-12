@@ -469,7 +469,7 @@ export class AppComponent implements OnInit {
       }
     }
 
-    const intervalList = [1, 2]
+    const intervalList = [1, 2, 3, 4]
 
     let result: { [key: string]: Period[] } = {};
     this.roundRobin_Dictionary = {};
@@ -517,7 +517,8 @@ export class AppComponent implements OnInit {
           }
 
           // For plotting
-          if (true && i === midiNoteNumbers.someHighNoteId) {
+          // if (true && i === midiNoteNumbers.someHighNoteId) {
+          if (true && interval === 4 && i === 52) {
             const markersTemp1 = await this.getJsonFromUrl(`${fileName} Marker.json`).catch(error => {
               debugger
             });
