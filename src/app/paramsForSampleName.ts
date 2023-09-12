@@ -4,4 +4,5 @@ export class ParamsForSampleName {
   art: string;
   rr?: number;
   noRr?: boolean;
+  interval?: number;
 }

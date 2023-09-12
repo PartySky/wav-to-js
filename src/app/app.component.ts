@@ -183,8 +183,6 @@ export class AppComponent implements OnInit {
         this.notesToRender = notesToRenderTemp;
       }
 
-      debugger
-
       /**
        * Для соединения быстрых нот и вибрато
        */
@@ -434,15 +432,15 @@ export class AppComponent implements OnInit {
     let audioBuffer_FastSprite_Up_midiNum_List: Period[][][] = [];
     let audioBuffer_VibratoSprite_midiNum_List: Period[][][] = [];
     let audioBuffer_LegatoPairs_Up_01_midiNum_List: Period[][][] = [];
+
     /**
-     * midi num [], rr [], note periods []
+     * interval, midi num [], rr [], note periods []
      */
-    let audioBuffer_Legato_Up_01_midiNum_List: Period[][][] = [];
+    let audioBuffer_Legato_Up_By_Interval_MidiNum_List: Period[][][][] = [];
     /**
-     * midi num [], rr [], note periods []
+     * interval, midi num [], rr [], note periods []
      */
-    let audioBuffer_Legato_Down_01_midiNum_List: Period[][][] = [];
-    let audioBuffer_Legato_Down_02_midiNum_List: Period[][][] = [];
+    let audioBuffer_Legato_Down_By_Interval_MidiNum_List: Period[][][][] = [];
 
     const audioCtx = new AudioContext();
 
@@ -473,11 +471,16 @@ export class AppComponent implements OnInit {
 
     const intervalList = [1, 2]
 
+    let result: { [key: string]: Period[] } = {};
+    this.roundRobin_Dictionary = {};
+
     for (let interval = intervalList[0]; interval < intervalList.length + 1; interval++) {
+      audioBuffer_Legato_Up_By_Interval_MidiNum_List[interval] = [];
+      audioBuffer_Legato_Down_By_Interval_MidiNum_List[interval] = [];
       for (let i = 52; i < 72; i++) {
         const intervalStr = interval.toString().padStart(2, '0')
         const fileName = `assets/lib/Legato/Legato Up ${intervalStr}/Legato Up ${intervalStr} Sprite ${i}`;
-        
+
         const wavTemp = await this.getArrayBufferFromUrl(`${fileName}.wav`);
 
         if (wavTemp) {
@@ -497,15 +500,15 @@ export class AppComponent implements OnInit {
             let roundRobinUp = 0;
             let roundRobinDown = 0;
 
-            audioBuffer_Legato_Up_01_midiNum_List[i + interval] = [];
-            audioBuffer_Legato_Down_01_midiNum_List[i] = [];
+            audioBuffer_Legato_Up_By_Interval_MidiNum_List[interval][i + interval] = [];
+            audioBuffer_Legato_Down_By_Interval_MidiNum_List[interval][i] = [];
 
             noteListTemp.forEach(item => {
               if (directionUp) {
-                audioBuffer_Legato_Up_01_midiNum_List[i + interval][roundRobinUp] = item;
+                audioBuffer_Legato_Up_By_Interval_MidiNum_List[interval][i + interval][roundRobinUp] = item;
                 roundRobinUp++;
               } else {
-                audioBuffer_Legato_Down_01_midiNum_List[i][roundRobinDown] = item;
+                audioBuffer_Legato_Down_By_Interval_MidiNum_List[interval][i][roundRobinDown] = item;
                 roundRobinDown++;
               }
 
@@ -546,73 +549,54 @@ export class AppComponent implements OnInit {
           // audioBuffer_LegatoPairs_Up_01_midiNum_List[i] = ...
         }
       }
+
+      audioBuffer_Legato_Down_By_Interval_MidiNum_List[interval].forEach((periodListList, index) => {
+        if (periodListList) {
+          let localRR = -1;
+          periodListList.forEach(periodList => {
+            localRR++;
+            result[getFormattedName({
+              midiNum: index,
+              art: articulations.legDown,
+              rr: localRR,
+              interval: interval,
+            })] =
+              periodList;
+          })
+
+          this.roundRobin_Dictionary[getFormattedName({
+            midiNum: index,
+            art: articulations.legDown,
+            noRr: true,
+            interval: interval,
+          })] = new RoundRobin(localRR);
+        }
+      })
+
+
+      audioBuffer_Legato_Up_By_Interval_MidiNum_List[interval].forEach((periodListList, index) => {
+        if (periodListList) {
+          let localRR = -1;
+          periodListList.forEach(periodList => {
+            localRR++;
+            result[getFormattedName({
+              midiNum: index,
+              art: articulations.legUp,
+              rr: localRR,
+              interval: interval,
+            })] =
+              periodList;
+          })
+
+          this.roundRobin_Dictionary[getFormattedName({
+            midiNum: index,
+            art: articulations.legUp,
+            noRr: true,
+            interval: interval,
+          })] = new RoundRobin(localRR);
+        }
+      })
     }
-
-    let result: { [key: string]: Period[] } = {};
-    this.roundRobin_Dictionary = {};
-
-    audioBuffer_Legato_Down_01_midiNum_List.forEach((periodListList, index) => {
-      if (periodListList) {
-        let localRR = -1;
-        periodListList.forEach(periodList => {
-          localRR++;
-          result[getFormattedName({
-            midiNum: index,
-            art: articulations.legDown_01,
-            rr: localRR
-          })] =
-            periodList;
-        })
-
-        this.roundRobin_Dictionary[getFormattedName({
-          midiNum: index,
-          art: articulations.legDown_01,
-          noRr: true,
-        })] = new RoundRobin(localRR);
-      }
-    })
-
-    audioBuffer_Legato_Down_02_midiNum_List.forEach((periodListList, index) => {
-      if (periodListList) {
-        let localRR = -1;
-        periodListList.forEach(periodList => {
-          localRR++;
-          result[getFormattedName({
-            midiNum: index,
-            art: articulations.legDown_02,
-            rr: localRR
-          })] =
-            periodList;
-        })
-
-        this.roundRobin_Dictionary[getFormattedName({
-          midiNum: index,
-          art: articulations.legDown_02,
-          noRr: true,
-        })] = new RoundRobin(localRR);
-      }
-    })
-
-    audioBuffer_Legato_Up_01_midiNum_List.forEach((periodListList, index) => {
-      if (periodListList) {
-        let localRR = -1;
-        periodListList.forEach(periodList => {
-          localRR++;
-          result[getFormattedName({
-            midiNum: index,
-            art: articulations.legUp_01,
-            rr: localRR
-          })] =
-            periodList;
-        })
-
-        this.roundRobin_Dictionary[getFormattedName({
-          midiNum: index,
-          art: articulations.legUp_01,
-          noRr: true,
-        })] = new RoundRobin(localRR);
-      }
-    })
 
     audioBuffer_FastSprite_Down_midiNum_List.forEach((periodListList, index) => {
       if (periodListList) {

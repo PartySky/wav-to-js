@@ -16,7 +16,6 @@ export class Plotter {
   private minYPixels = 0;
   private minXValue = 50;
   private minYValue = 50;
-  private zoomDebug = [];
   private maxXYHistory: number[][] = [];
   private xCoeff = 1;
   private yCoeff = 1;

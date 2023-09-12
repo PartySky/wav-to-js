@@ -34,11 +34,11 @@ export function getTransitionSampleName(dto: getTransitionSampleNameDto): string
           interval = noteId - nextNoteId;
           articulationTemp = 'legUp';
         }
-        const intervalStr = interval.toString().padStart(2, '0')
         result = getFormattedName({
           midiNum: noteId,
-          art: articulations[`${articulationTemp}_${intervalStr}`],
+          art: articulations[`${articulationTemp}`],
           noRr: true,
+          interval: interval,
         });
       }
     } else {
