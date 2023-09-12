@@ -173,7 +173,15 @@ export class AppComponent implements OnInit {
 
         const notesToRenderTemp: Note[] = [];
         const testNoteSetTemp = testNoteSet.concat(testNoteSet);
+        const testNoteSetTransposedTemp: number[] = [];
+
         testNoteSetTemp.forEach(item => {
+          // testNoteSetTransposedTemp.push(item + 3)
+          testNoteSetTransposedTemp.push(item + 7)
+          // testNoteSetTransposedTemp.push(item + 0)
+        })
+
+        testNoteSetTransposedTemp.forEach(item => {
           notesToRenderTemp.push({
             offset: offsetRunningSum,
             noteId: item,
