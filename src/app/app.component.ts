@@ -168,17 +168,19 @@ export class AppComponent implements OnInit {
       const doForceNotesForTest = true;
 
       if (doForceNotesForTest) {
-        const offsetConstTest = 29370;
+        let offsetConstTest = 4000; // 29370;
+        debugger
         let offsetRunningSum = zeroOffset;
 
         const notesToRenderTemp: Note[] = [];
-        const testNoteSetTemp = testNoteSet.concat(testNoteSet);
+        // const testNoteSetTemp = testNoteSet.concat(testNoteSet);
+        const testNoteSetTemp = testNoteSet;
         const testNoteSetTransposedTemp: number[] = [];
 
         testNoteSetTemp.forEach(item => {
           // testNoteSetTransposedTemp.push(item + 3)
-          testNoteSetTransposedTemp.push(item + 7)
-          // testNoteSetTransposedTemp.push(item + 0)
+          // testNoteSetTransposedTemp.push(item + 7)
+          testNoteSetTransposedTemp.push(item + 0)
         })
 
         testNoteSetTransposedTemp.forEach(item => {
@@ -199,6 +201,7 @@ export class AppComponent implements OnInit {
       }
 
       let i = 0;
+      const minPeriodLength = 3;
       this.notesToRender.forEach(item => {
         item.offset = item.offset - zeroOffset;
         let periodList: Period[];
@@ -215,18 +218,27 @@ export class AppComponent implements OnInit {
           legatoType: this.legatoType,
         });
 
-
-        console.log(rrKey + ' str.: ' + i);
+        let safeRRstring = 'RR';
+        const rrKeyForConsoleLength = 20;
 
         if (rrKey) {
+          safeRRstring = safeRRstring +  `${this.roundRobin_Dictionary[rrKey].value}`;
           sampleName = `${rrKey} RR${this.roundRobin_Dictionary[rrKey].value}`;
           this.roundRobin_Dictionary[rrKey].up();
+        }
+
+        let constLengthRrKey = rrKey;
+        if (rrKeyForConsoleLength > rrKey.length) {
+          constLengthRrKey = constLengthRrKey +  ' '.repeat(rrKeyForConsoleLength - rrKey.length);
         }
 
         if (sampleName) {
           periodList = this.periods_Transition_Dictionary[sampleName];
           if (!periodList?.length) {
             throw new Error(`No periods for sampleName "${sampleName}"`)
+          } else if (periodList?.length < minPeriodLength) {
+            console.log(`Low period length for sampleName "${sampleName}" source ${periodList[0].sourceFileName}`)
+            debugger;
           }
           if (nextNoteId === midiNoteNumbers.N_C1_24_VibratoTrigger) {
             periodList = this.trimPeriodNFromEnd(periodList, 5); // last value 1500 samples
@@ -235,6 +247,10 @@ export class AppComponent implements OnInit {
             periodList: periodList,
             offset: item.offset,
           });
+
+          console.log(`${constLengthRrKey} nextNoteId: ${nextNoteId} ${safeRRstring} str.: ${i} source: ${periodList[0].sourceFileName}`)
+        } else {
+          console.log(`${constLengthRrKey} nextNoteId: ${nextNoteId} ${safeRRstring} str.: ${i}`);
         }
         i++;
       })
@@ -500,6 +516,14 @@ export class AppComponent implements OnInit {
 
           const periodsFromChData = this.periodsFromChData(audioBufferTemp.getChannelData(0), periodsTemp);
 
+          const setSourceFileName = true;
+
+          if (setSourceFileName) {
+            periodsFromChData.forEach(item => {
+              item.sourceFileName = fileName;
+            })
+          }
+
           if (i >= 52 && i <= midiNoteNumbers.someHighNoteId) {
             const markersTemp1 = await this.getJsonFromUrl(`${fileName} Marker.json`).catch(error => {
             });
@@ -529,7 +553,7 @@ export class AppComponent implements OnInit {
 
           // For plotting
           // if (true && i === midiNoteNumbers.someHighNoteId) {
-          if (true && interval === 4 && i === 57) {
+          if (true && interval === 4 && i === 52) {
             const markersTemp1 = await this.getJsonFromUrl(`${fileName} Marker.json`).catch(error => {
               debugger
             });

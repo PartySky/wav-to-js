@@ -29,10 +29,10 @@ export function getTransitionSampleName(dto: getTransitionSampleNameDto): string
 
         if (noteId < nextNoteId) {
           interval = nextNoteId - noteId;
-          articulationTemp = 'legDown';
+          articulationTemp = articulations.legDown;
         } else {
           interval = noteId - nextNoteId;
-          articulationTemp = 'legUp';
+          articulationTemp = articulations.legUp;
         }
         result = getFormattedName({
           midiNum: noteId,
