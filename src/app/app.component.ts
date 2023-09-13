@@ -168,7 +168,7 @@ export class AppComponent implements OnInit {
       const doForceNotesForTest = true;
 
       if (doForceNotesForTest) {
-        let offsetConstTest = 4000; // 29370;
+        let offsetConstTest = 3000; // 29370;
         debugger
         let offsetRunningSum = zeroOffset;
 
@@ -222,14 +222,14 @@ export class AppComponent implements OnInit {
         const rrKeyForConsoleLength = 20;
 
         if (rrKey) {
-          safeRRstring = safeRRstring +  `${this.roundRobin_Dictionary[rrKey].value}`;
+          safeRRstring = safeRRstring + `${this.roundRobin_Dictionary[rrKey].value}`;
           sampleName = `${rrKey} RR${this.roundRobin_Dictionary[rrKey].value}`;
           this.roundRobin_Dictionary[rrKey].up();
         }
 
         let constLengthRrKey = rrKey;
         if (rrKeyForConsoleLength > rrKey.length) {
-          constLengthRrKey = constLengthRrKey +  ' '.repeat(rrKeyForConsoleLength - rrKey.length);
+          constLengthRrKey = constLengthRrKey + ' '.repeat(rrKeyForConsoleLength - rrKey.length);
         }
 
         if (sampleName) {
@@ -530,7 +530,7 @@ export class AppComponent implements OnInit {
             const markersTemp: number[] = markersTemp1 ? markersTemp1 : periodsTemp;
             const noteListTemp = this.splitPeriodListByMarkers(periodsFromChData, markersTemp);
 
-            let directionUp = false;
+            let directionUp = false;//false;
 
             let roundRobinUp = 0;
             let roundRobinDown = 0;
@@ -538,22 +538,27 @@ export class AppComponent implements OnInit {
             audioBuffer_Legato_Up_By_Interval_MidiNum_List[interval][i + interval] = [];
             audioBuffer_Legato_Down_By_Interval_MidiNum_List[interval][i] = [];
 
-            noteListTemp.forEach(item => {
-              if (directionUp) {
-                audioBuffer_Legato_Up_By_Interval_MidiNum_List[interval][i + interval][roundRobinUp] = item;
-                roundRobinUp++;
-              } else {
-                audioBuffer_Legato_Down_By_Interval_MidiNum_List[interval][i][roundRobinDown] = item;
-                roundRobinDown++;
-              }
+            let arePeriodsBeforeFirstMarkersSkipped = false;
 
-              directionUp = !directionUp;
+            noteListTemp.forEach(item => {
+              if (arePeriodsBeforeFirstMarkersSkipped) {
+                if (directionUp) {
+                  audioBuffer_Legato_Up_By_Interval_MidiNum_List[interval][i + interval][roundRobinUp] = item;
+                  roundRobinUp++;
+                } else {
+                  audioBuffer_Legato_Down_By_Interval_MidiNum_List[interval][i][roundRobinDown] = item;
+                  roundRobinDown++;
+                }
+                directionUp = !directionUp;
+              } else {
+                arePeriodsBeforeFirstMarkersSkipped = true;
+              }
             })
           }
 
           // For plotting
           // if (true && i === midiNoteNumbers.someHighNoteId) {
-          if (true && interval === 4 && i === 52) {
+          if (true && interval === 4 && i === 53) {
             const markersTemp1 = await this.getJsonFromUrl(`${fileName} Marker.json`).catch(error => {
               debugger
             });
@@ -819,14 +824,15 @@ export class AppComponent implements OnInit {
   }
 
 
-  splitPeriodListByMarkers(periods: Period[], markersTemp: number[]): Period[][] {
+  splitPeriodListByMarkers(periods: Period[], markers: number[]): Period[][] {
     let result: Period[][] = [];
 
     let runningSum = 0;
     let currentNote: Period[] = [];
 
+
     periods.forEach(item => {
-      if (markersTemp.includes(runningSum)) {
+      if (markers.includes(runningSum)) {
         result.push(currentNote);
         currentNote = [];
       }
