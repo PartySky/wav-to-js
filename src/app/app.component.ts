@@ -168,8 +168,7 @@ export class AppComponent implements OnInit {
       const doForceNotesForTest = true;
 
       if (doForceNotesForTest) {
-        let offsetConstTest = 6000; // 29370;
-        debugger
+        let offsetConstTest = 8000;
         let offsetRunningSum = zeroOffset;
 
         const notesToRenderTemp: Note[] = [];
@@ -291,7 +290,7 @@ export class AppComponent implements OnInit {
     })
 
     for (let chDataNum = 0; chDataNum < chDataList.length; chDataNum++) {
-      const periodListTemp = chDataList[chDataNum].periodList;
+      let periodListTemp = chDataList[chDataNum].periodList;
 
       let nextChDataStart = chDataList[chDataNum + 1] ? chDataList[chDataNum + 1]?.offset : 0;
 
@@ -302,6 +301,64 @@ export class AppComponent implements OnInit {
        */
       const numPeriodsToCrossfade = 5; // 15;
       if (chDataList[chDataNum + 1]) {
+        // todo: continue from there
+        let totalItemLength = 0;
+        periodListTemp.forEach(item => {
+          totalItemLength = totalItemLength + item.chData.length;
+        })
+
+        let currentTotalItemLengthWithOffset = totalItemLength + chDataList[chDataNum].offset;
+        const hasNoEnoughPeriodsUntilNextNote = currentTotalItemLengthWithOffset < nextChDataStart;
+
+        const extendShortNotesIfTooShort = true;
+
+        if (extendShortNotesIfTooShort && hasNoEnoughPeriodsUntilNextNote) {
+          const extendedNote: Period[] = [];
+          const diffTemp = nextChDataStart - currentTotalItemLengthWithOffset;
+          let periodLength = 0;
+
+          const alhorhytme = 0;
+
+          if (alhorhytme == 0) {
+            let xsomething = diffTemp + totalItemLength / 2;
+            let multiplyer = Math.floor(xsomething / (totalItemLength / 2));
+
+            let periodCounter = 0;
+            periodListTemp.forEach(item => {
+              if (periodCounter < periodListTemp.length / 2) {
+                extendedNote.push(item);
+                periodLength = item.chData.length;
+              } else {
+                let i = multiplyer;
+                while (i--) {
+                  extendedNote.push(item);
+                }
+              }
+              periodCounter++;
+            })
+          } else {
+            const partWithoutExtendedCoeff = 2 / 3;
+            let xsomething = diffTemp + totalItemLength * (1 - partWithoutExtendedCoeff);
+            let multiplyer = Math.floor(xsomething / (totalItemLength * (1 + partWithoutExtendedCoeff)));
+
+            let periodCounter = 0;
+            periodListTemp.forEach(item => {
+              if (periodCounter < periodListTemp.length * partWithoutExtendedCoeff) {
+                extendedNote.push(item);
+                periodLength = item.chData.length;
+              } else {
+                let i = multiplyer;
+                while (i--) {
+                  extendedNote.push(item);
+                }
+              }
+              periodCounter++;
+            })
+          }
+
+          periodListTemp = extendedNote;
+        }
+
         nextChDataStart = this.getNearestNextChDataStart({
           periodList: periodListTemp,
           offset: chDataList[chDataNum].offset,
@@ -315,7 +372,7 @@ export class AppComponent implements OnInit {
         });
 
         if (nextChDataStart) {
-          let nextChDataTemp = chDataList[chDataNum + 1];
+          const nextChDataTemp = chDataList[chDataNum + 1];
           nextChDataTemp.offset = nextChDataStart;
 
           let periodCounter = 0;
@@ -551,8 +608,8 @@ export class AppComponent implements OnInit {
                 })
 
                 let minPeriodsLength = 100;
-
-                if (extendedNote.length < minPeriodsLength) {
+                const extendNote = false;
+                if (extendNote && extendedNote.length < minPeriodsLength) {
                   const currentLegth = item.length;
                   const extendByReverse = false;
                   if (extendByReverse) {
