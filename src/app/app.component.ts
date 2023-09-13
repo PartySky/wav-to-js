@@ -168,7 +168,7 @@ export class AppComponent implements OnInit {
       const doForceNotesForTest = true;
 
       if (doForceNotesForTest) {
-        let offsetConstTest = 3000; // 29370;
+        let offsetConstTest = 6000; // 29370;
         debugger
         let offsetRunningSum = zeroOffset;
 
@@ -542,11 +542,32 @@ export class AppComponent implements OnInit {
 
             noteListTemp.forEach(item => {
               if (arePeriodsBeforeFirstMarkersSkipped) {
+                const extendedNote: Period[] = [];
+                let lastPeriodForExtend: Period;
+
+                item.forEach(periodItem => {
+                  extendedNote.push(periodItem);
+                  lastPeriodForExtend = periodItem;
+                })
+
+                let minPeriodsLength = 100;
+
+                if (extendedNote.length < minPeriodsLength) {
+                  const currentLegth = item.length;
+                  let i2 = 0;
+                  for (let i = 0; i < minPeriodsLength - currentLegth; i++) {
+                    if (currentLegth > i2) {
+                      extendedNote.push(item[currentLegth - i2 - 1]);
+                    }
+                    i2++;
+                  }
+                }
+
                 if (directionUp) {
-                  audioBuffer_Legato_Up_By_Interval_MidiNum_List[interval][i + interval][roundRobinUp] = item;
+                  audioBuffer_Legato_Up_By_Interval_MidiNum_List[interval][i + interval][roundRobinUp] = extendedNote;
                   roundRobinUp++;
                 } else {
-                  audioBuffer_Legato_Down_By_Interval_MidiNum_List[interval][i][roundRobinDown] = item;
+                  audioBuffer_Legato_Down_By_Interval_MidiNum_List[interval][i][roundRobinDown] = extendedNote;
                   roundRobinDown++;
                 }
                 directionUp = !directionUp;
