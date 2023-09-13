@@ -542,7 +542,7 @@ export class AppComponent implements OnInit {
 
             noteListTemp.forEach(item => {
               if (arePeriodsBeforeFirstMarkersSkipped) {
-                const extendedNote: Period[] = [];
+                let extendedNote: Period[] = [];
                 let lastPeriodForExtend: Period;
 
                 item.forEach(periodItem => {
@@ -554,12 +554,26 @@ export class AppComponent implements OnInit {
 
                 if (extendedNote.length < minPeriodsLength) {
                   const currentLegth = item.length;
-                  let i2 = 0;
-                  for (let i = 0; i < minPeriodsLength - currentLegth; i++) {
-                    if (currentLegth > i2) {
-                      extendedNote.push(item[currentLegth - i2 - 1]);
+                  const extendByReverse = false;
+                  if (extendByReverse) {
+                    let i2 = 0;
+                    for (let i = 0; i < minPeriodsLength - currentLegth; i++) {
+                      if (currentLegth > i2) {
+                        extendedNote.push(item[currentLegth - i2 - 1]);
+                      }
+                      i2++;
                     }
-                    i2++;
+                  } else {
+                    extendedNote = [];
+                    let i3 = 0;
+                    item.forEach(periodItem => {
+                      if (i3 < (item.length / 2)) {
+                        extendedNote.push(periodItem);
+                      } else {
+                        extendedNote.push(periodItem);
+                        extendedNote.push(periodItem);
+                      }
+                    })
                   }
                 }
 
