@@ -1021,8 +1021,6 @@ export class AppComponent implements OnInit {
   }
 
   processStoredMid(): void {
-    this.storedMidi.header.setTempo(120);
-
     //get the tracks
     this.storedMidi.tracks.forEach((track: Track) => {
       //tracks have notes and controlChanges
