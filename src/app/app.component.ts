@@ -1,7 +1,7 @@
 import {Component, HostListener, OnInit} from '@angular/core';
 import * as WavFileEncoder from "wav-file-encoder";
 import {Period} from "./period";
-import {Note} from "./note";
+import {NoteLocal} from "./noteLocal";
 import {getTransitionSampleName} from "./getTransitionSampleName";
 import {midiNoteNumbers} from "./midiNoteNumbers";
 import {articulations} from "./articulations";
@@ -15,6 +15,8 @@ import {Plotter} from "./plotter";
 import {legatoTypes} from "./legatoTypes";
 import {RoundRobin} from "./roundRobin";
 import {testNoteSet} from "./testNoteSet";
+import {Header, Midi, Track} from "@tonejs/midi";
+import {Note, NoteOffEvent, NoteOnEvent} from "@tonejs/midi/dist/Note";
 
 @Component({
   selector: 'app-root',
@@ -24,7 +26,7 @@ import {testNoteSet} from "./testNoteSet";
 export class AppComponent implements OnInit {
   channelData: Float32Array;
   patternChannelData: Float32Array;
-  notesToRender: Note[] = [];
+  notesToRender: NoteLocal[] = [];
   notesReadMode = true;
   drawMarkers = false;
   periods_Transition_Dictionary: { [key: string]: Period[] };
@@ -36,12 +38,15 @@ export class AppComponent implements OnInit {
 
   legatoType = legatoTypes.noPairs;
   cursorType = 'crosshair';
+  private storedMidi: Midi;
+  private sampleRate = 44100;
 
   constructor() {
   }
 
   async ngOnInit() {
     this.initPlt();
+    this.getMidiFileFromUrl();
     await this.loadData();
     this.initMidi();
     this.onInitDateString = getDateString(new Date());
@@ -56,6 +61,7 @@ export class AppComponent implements OnInit {
   async loadData() {
     this.periods_Transition_Dictionary = await this.loadAudioBufferForSamples();
     this.isDataReady = true;
+    this.processStoredMid();
   }
 
   initMidi(): void {
@@ -132,11 +138,10 @@ export class AppComponent implements OnInit {
     if (!noteId) {
       return;
     }
-    const sampleRate = 44100;
 
     if (this.notesToRender.length < maxNoteAmount) {
       this.notesToRender.push({
-        offset: (new Date().getTime() * 0.001) * sampleRate,
+        offset: (new Date().getTime() * 0.001) * this.sampleRate,
         noteId: noteId,
       });
     }
@@ -164,22 +169,21 @@ export class AppComponent implements OnInit {
     if (this.notesReadMode && this.notesToRender.length) {
       const zeroOffset = this.notesToRender[0].offset;
 
-      // set notes for test 52-53
-      const doForceNotesForTest = true;
+      const doForceNotesForTest = false;
 
       if (doForceNotesForTest) {
-        let offsetConstTest = 8000;
+        let offsetConstTest = 4000;
         let offsetRunningSum = zeroOffset;
 
-        const notesToRenderTemp: Note[] = [];
+        const notesToRenderTemp: NoteLocal[] = [];
         // const testNoteSetTemp = testNoteSet.concat(testNoteSet);
         const testNoteSetTemp = testNoteSet;
         const testNoteSetTransposedTemp: number[] = [];
 
         testNoteSetTemp.forEach(item => {
           // testNoteSetTransposedTemp.push(item + 3)
-          // testNoteSetTransposedTemp.push(item + 7)
-          testNoteSetTransposedTemp.push(item + 0)
+          testNoteSetTransposedTemp.push(item + 5)
+          // testNoteSetTransposedTemp.push(item + 0)
         })
 
         testNoteSetTransposedTemp.forEach(item => {
@@ -993,5 +997,63 @@ export class AppComponent implements OnInit {
 
   moveLeft(): void {
     this.plt.moveLeft();
+  }
+
+
+  async getMidiFileFromUrl(): Promise<void> {
+    let url = 'assets/test.mid';
+    let response = await fetch(url);
+
+    let ab = await response.arrayBuffer();
+
+    this.storedMidi = this.prepareMidi(new Midi(ab));
+  }
+
+  private prepareMidi(midi: Midi) {
+    const result = midi;
+    if (midi.tracks.length > 1) {
+      if (midi.tracks[0].notes.length == 0 && midi.tracks[1].notes.length !== 0) {
+        midi.tracks[0].notes = midi.tracks[1].notes;
+      }
+      midi.tracks.splice(1);
+    }
+    return result;
+  }
+
+  processStoredMid(): void {
+    this.storedMidi.header.setTempo(120);
+
+    //get the tracks
+    this.storedMidi.tracks.forEach((track: Track) => {
+      //tracks have notes and controlChanges
+
+      //notes are an array
+      const notes = track.notes;
+      this.notesToRender = [];
+      notes.forEach((note: Note) => {
+        console.log(`midi ${this.adaptMidiForGuitar(note.midi)} note bar: ${note.bars} tick ${note.ticks} ` +
+          `seconds ${this.ticksToSeconds(note.ticks)} offset ${this.ticksToOffset(note.ticks)}`);
+        this.notesToRender.push({
+          noteId: this.adaptMidiForGuitar(note.midi),
+          offset: this.ticksToOffset(note.ticks),
+        });
+      });
+
+      console.log('track.instrument.name ' + track.instrument.name);
+    });
+  }
+
+  adaptMidiForGuitar(midi: number): number {
+    return midi - 12;
+  }
+
+  ticksToOffset(ticks: number): number {
+    return this.ticksToSeconds(ticks) * 100000 / 2;
+  }
+
+  ticksToSeconds(ticks: number): number {
+    const ppq = 480;
+    const beats = ticks / ppq;
+    return (60 / 120) * beats;
   }
 }

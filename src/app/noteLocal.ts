@@ -1,4 +1,4 @@
-export interface Note {
+export interface NoteLocal {
   offset: number;
   noteId: number;
 }
