@@ -214,12 +214,27 @@ export class AppComponent implements OnInit {
         let previousNoteId = previousItem ? previousItem.noteId : null;
         let sampleName = '';
 
-        const rrKey = getTransitionSampleName({
-          noteId: item.noteId,
-          nextNoteId: nextNoteId,
-          previousNoteId: previousNoteId,
-          legatoType: this.legatoType,
-        });
+        let rrKey = '';
+
+
+        if (nextNoteId && Math.abs(nextNoteId - item.noteId) > 4) {
+          debugger;
+          const nearestOddValue = item.noteId - nextNoteId < 0 ? 4 : -4;
+
+          rrKey = getTransitionSampleName({
+            noteId: item.noteId,
+            nextNoteId: item.noteId + nearestOddValue,
+            previousNoteId: previousNoteId,
+            legatoType: this.legatoType,
+          });
+        } else {
+          rrKey = getTransitionSampleName({
+            noteId: item.noteId,
+            nextNoteId: nextNoteId,
+            previousNoteId: previousNoteId,
+            legatoType: this.legatoType,
+          });
+        }
 
         let safeRRstring = 'RR';
         const rrKeyForConsoleLength = 20;
@@ -238,9 +253,9 @@ export class AppComponent implements OnInit {
         if (sampleName) {
           periodList = this.periods_Transition_Dictionary[sampleName];
           if (!periodList?.length) {
-            throw new Error(`No periods for sampleName "${sampleName}"`)
+            throw new Error(`No periods for sampleName "${sampleName}"`);
           } else if (periodList?.length < minPeriodLength) {
-            console.log(`Low period length for sampleName "${sampleName}" source ${periodList[0].sourceFileName}`)
+            console.log(`Low period length for sampleName "${sampleName}" source ${periodList[0].sourceFileName}`);
             debugger;
           }
           if (nextNoteId === midiNoteNumbers.N_C1_24_VibratoTrigger) {
@@ -261,6 +276,11 @@ export class AppComponent implements OnInit {
     }
 
     let outPutChDataTemp: Float32Array;
+
+    chDataListForMixDown.forEach(item => {
+      debugger;
+      console.log('item.offset ' + item.offset)
+    })
 
     outPutChDataTemp = this.mixDownChDatas(chDataListForMixDown);
 
@@ -293,6 +313,8 @@ export class AppComponent implements OnInit {
       }
     })
 
+    const debugStartValues = [];
+
     for (let chDataNum = 0; chDataNum < chDataList.length; chDataNum++) {
       let periodListTemp = chDataList[chDataNum].periodList;
 
@@ -307,8 +329,15 @@ export class AppComponent implements OnInit {
       if (chDataList[chDataNum + 1]) {
         // todo: continue from there
         let totalItemLength = 0;
+        let totalFirstNItemsLengthWithoutChanging = 0;
+        const firstHalfPeriodsWithoutExtending = Math.floor(periodListTemp.length / 2)
+        let periodCounter = 0;
         periodListTemp.forEach(item => {
           totalItemLength = totalItemLength + item.chData.length;
+          if (periodCounter <= firstHalfPeriodsWithoutExtending) {
+            totalFirstNItemsLengthWithoutChanging = totalFirstNItemsLengthWithoutChanging + item.chData.length;
+          }
+          periodCounter++;
         })
 
         let currentTotalItemLengthWithOffset = totalItemLength + chDataList[chDataNum].offset;
@@ -324,12 +353,13 @@ export class AppComponent implements OnInit {
           const alhorhytme = 0;
 
           if (alhorhytme == 0) {
-            let xsomething = diffTemp + totalItemLength / 2;
-            let multiplyer = Math.floor(xsomething / (totalItemLength / 2));
+
+            let xsomething = nextChDataStart - (firstHalfPeriodsWithoutExtending + chDataList[chDataNum].offset);
+            let multiplyer = Math.floor(xsomething / (totalItemLength - totalFirstNItemsLengthWithoutChanging));
 
             let periodCounter = 0;
             periodListTemp.forEach(item => {
-              if (periodCounter < periodListTemp.length / 2) {
+              if (periodCounter <= firstHalfPeriodsWithoutExtending) {
                 extendedNote.push(item);
                 periodLength = item.chData.length;
               } else {
@@ -340,6 +370,17 @@ export class AppComponent implements OnInit {
               }
               periodCounter++;
             })
+
+            let extendedNoteLength = 0
+            extendedNote.forEach(item => {
+              extendedNoteLength = extendedNoteLength + item.chData.length;
+            })
+
+            if(extendedNoteLength + chDataList[chDataNum].offset < nextChDataStart) {
+              debugger;
+            }
+
+
           } else {
             const partWithoutExtendedCoeff = 2 / 3;
             let xsomething = diffTemp + totalItemLength * (1 - partWithoutExtendedCoeff);
@@ -363,11 +404,19 @@ export class AppComponent implements OnInit {
           periodListTemp = extendedNote;
         }
 
+        let lengthTemp = 0;
+        periodListTemp.forEach(item => {
+          lengthTemp = lengthTemp + item.chData.length;
+        })
+
+        debugger;
         nextChDataStart = this.getNearestNextChDataStart({
           periodList: periodListTemp,
           offset: chDataList[chDataNum].offset,
           target: nextChDataStart
         });
+
+        debugStartValues.push(nextChDataStart);
 
         usedPeriodsNum = this.getUsedPeriodsForNearestNextChDataStart({
           periodList: periodListTemp,
@@ -601,6 +650,25 @@ export class AppComponent implements OnInit {
 
             let arePeriodsBeforeFirstMarkersSkipped = false;
 
+            // hotfix
+            // todo: solve it
+            // const noteListTempHotfixed: Period[][] = [];
+            // const minPeriodsInNoteLength = 3;
+            // let skipForPair = false;
+            // noteListTemp.forEach(item => {
+            //   if (skipForPair || item.length < minPeriodsInNoteLength) {
+            //     if (item.length < minPeriodsInNoteLength) {
+            //       skipForPair = true;
+            //       // do nothing
+            //     } else if (skipForPair) {
+            //       skipForPair = false;
+            //       // do nothing
+            //     }
+            //   } else {
+            //     noteListTempHotfixed.push(item);
+            //   }
+            // })
+
             noteListTemp.forEach(item => {
               if (arePeriodsBeforeFirstMarkersSkipped) {
                 let extendedNote: Period[] = [];
@@ -654,7 +722,7 @@ export class AppComponent implements OnInit {
 
           // For plotting
           // if (true && i === midiNoteNumbers.someHighNoteId) {
-          if (true && interval === 4 && i === 53) {
+          if (true && interval === 2 && i === 61) {
             const markersTemp1 = await this.getJsonFromUrl(`${fileName} Marker.json`).catch(error => {
               debugger
             });
@@ -1046,7 +1114,7 @@ export class AppComponent implements OnInit {
   }
 
   ticksToOffset(ticks: number): number {
-    return this.ticksToSeconds(ticks) * 100000 / 2;
+    return this.ticksToSeconds(ticks) * this.sampleRate;
   }
 
   ticksToSeconds(ticks: number): number {
