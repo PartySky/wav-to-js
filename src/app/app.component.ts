@@ -29,8 +29,11 @@ export class AppComponent implements OnInit {
   notesToRender: NoteLocal[] = [];
   notesReadMode = true;
   drawMarkers = false;
-  periods_Transition_Dictionary: { [key: string]: Period[] };
+  // periods_Transition_Dictionary: { [key: string]: Period[] };
   roundRobin_Dictionary: { [key: string]: RoundRobin };
+  periods_Transition_Array: Period[][] = [];
+  periods_Transition_Name_To_Id_Dictionary: { [key: string]: number } = {};
+  periods_Transition_Name_Global_Id = 1;
   onInitDateString: string;
   isDataReady = false;
   plt: Plotter;
@@ -59,7 +62,10 @@ export class AppComponent implements OnInit {
   }
 
   async loadData() {
-    this.periods_Transition_Dictionary = await this.loadAudioBufferForSamples();
+    // this.periods_Transition_Dictionary = await this.loadAudioBufferForSamples();
+    await this.loadAudioBufferForSamples();
+
+    debugger;
     this.isDataReady = true;
     this.processStoredMid();
   }
@@ -207,9 +213,13 @@ export class AppComponent implements OnInit {
       const minPeriodLength = 3;
       this.notesToRender.forEach(item => {
         item.offset = item.offset - zeroOffset;
-        let periodList: Period[];
         let nextItem = this.notesToRender[i + 1];
         let nextNoteId = nextItem ? nextItem.noteId : null;
+        // todo: solve it
+        if (nextNoteId === 24) {
+          nextNoteId = 52;
+        }
+
         let previousItem = this.notesToRender[i - 1];
         let previousNoteId = previousItem ? previousItem.noteId : null;
         let sampleName = '';
@@ -218,7 +228,6 @@ export class AppComponent implements OnInit {
 
 
         if (nextNoteId && Math.abs(nextNoteId - item.noteId) > 4) {
-          debugger;
           const nearestOddValue = item.noteId - nextNoteId < 0 ? 4 : -4;
 
           rrKey = getTransitionSampleName({
@@ -236,6 +245,11 @@ export class AppComponent implements OnInit {
           });
         }
 
+        // todo: solve it
+        if (item.noteId === 24) {
+          rrKey = '53 vib';
+        }
+
         let safeRRstring = 'RR';
         const rrKeyForConsoleLength = 20;
 
@@ -250,13 +264,36 @@ export class AppComponent implements OnInit {
           constLengthRrKey = constLengthRrKey + ' '.repeat(rrKeyForConsoleLength - rrKey.length);
         }
 
+
+        // todo: solve it
+        if (item.noteId === 24) {
+          sampleName = '53 vib RR0';
+        }
+
+        let periodList: Period[];
+        let periodListId: number;
         if (sampleName) {
-          periodList = this.periods_Transition_Dictionary[sampleName];
+          periodListId = this.periods_Transition_Name_To_Id_Dictionary[sampleName];
+        }
+
+        if (periodListId) {
+          debugger
+          // periodList = this.periods_Transition_Dictionary[sampleName];
+          periodList = this.periods_Transition_Array[periodListId];
+
+          // todo: solve it
+          if (item.noteId === 24) {
+            periodList.forEach(toAmp =>{
+              for(let iLoc = 0; iLoc < toAmp.chData.length; iLoc++) {
+                toAmp.chData[iLoc] = toAmp.chData[iLoc] * 0.33;
+              }
+            });
+          }
+
           if (!periodList?.length) {
             throw new Error(`No periods for sampleName "${sampleName}"`);
           } else if (periodList?.length < minPeriodLength) {
             console.log(`Low period length for sampleName "${sampleName}" source ${periodList[0].sourceFileName}`);
-            debugger;
           }
           if (nextNoteId === midiNoteNumbers.N_C1_24_VibratoTrigger) {
             periodList = this.trimPeriodNFromEnd(periodList, 5); // last value 1500 samples
@@ -278,7 +315,6 @@ export class AppComponent implements OnInit {
     let outPutChDataTemp: Float32Array;
 
     chDataListForMixDown.forEach(item => {
-      debugger;
       console.log('item.offset ' + item.offset)
     })
 
@@ -376,7 +412,7 @@ export class AppComponent implements OnInit {
               extendedNoteLength = extendedNoteLength + item.chData.length;
             })
 
-            if(extendedNoteLength + chDataList[chDataNum].offset < nextChDataStart) {
+            if (extendedNoteLength + chDataList[chDataNum].offset < nextChDataStart) {
               debugger;
             }
 
@@ -409,7 +445,6 @@ export class AppComponent implements OnInit {
           lengthTemp = lengthTemp + item.chData.length;
         })
 
-        debugger;
         nextChDataStart = this.getNearestNextChDataStart({
           periodList: periodListTemp,
           offset: chDataList[chDataNum].offset,
@@ -562,11 +597,16 @@ export class AppComponent implements OnInit {
     return result;
   }
 
-  async loadAudioBufferForSamples(): Promise<{ [key: string]: Period[] }> {
+  // async loadAudioBufferForSamples(): Promise<{ [key: string]: Period[] }> {
+  async loadAudioBufferForSamples(): Promise<void> {
     console.log('start loadAudioBufferForSamples')
 
     let audioBuffer_FastSprite_Down_midiNum_List: Period[][][] = [];
     let audioBuffer_FastSprite_Up_midiNum_List: Period[][][] = [];
+
+    /**
+     * midi num [], rr [], note periods []
+     */
     let audioBuffer_VibratoSprite_midiNum_List: Period[][][] = [];
     let audioBuffer_LegatoPairs_Up_01_midiNum_List: Period[][][] = [];
 
@@ -595,26 +635,26 @@ export class AppComponent implements OnInit {
         audioBuffer_FastSprite_Down_midiNum_List[i] = this.getStrokesList(period_FastSprite_Down_Up_midiNum_List, 'Down');
         audioBuffer_FastSprite_Up_midiNum_List[i] = this.getStrokesList(period_FastSprite_Down_Up_midiNum_List, 'Up');
       }
+    }
 
-      const trimVibFromStart = 2500;
-      for (let i = 42; i < 72; i++) {
-        const audioBufferTemp = await audioCtx.decodeAudioData(await this.getArrayBufferFromUrl(`assets/lib/Vibrato/Vibrato Sprite ${i}.wav`));
-        // todo: uncomment it
-        // audioBuffer_VibratoSprite_midiNum_List[i] = this.trimNFromStartForArray(
-        //   this.getPeriodListForNoteListFromSprites(audioBufferTemp.getChannelData(0)), trimVibFromStart
-        // );
-      }
+    for (let i = 42; i < 72; i++) {
+      // const audioBufferTemp = await audioCtx.decodeAudioData(await this.getArrayBufferFromUrl(`assets/lib/Vibrato/Vibrato Sprite ${i}.wav`));
+      // // todo: uncomment it
+      // audioBuffer_VibratoSprite_midiNum_List[i] = this.trimNFromStartForArray(
+      //   this.getPeriodListForNoteListFromSprites(audioBufferTemp.getChannelData(0)), trimVibFromStart
+      // );
     }
 
     const intervalList = [1, 2, 3, 4]
 
-    let result: { [key: string]: Period[] } = {};
+    // let result: { [key: string]: Period[] } = {};
     this.roundRobin_Dictionary = {};
 
     for (let interval = intervalList[0]; interval < intervalList.length + 1; interval++) {
       audioBuffer_Legato_Up_By_Interval_MidiNum_List[interval] = [];
       audioBuffer_Legato_Down_By_Interval_MidiNum_List[interval] = [];
-      for (let i = 52; i < 72; i++) {
+      // for (let i = 52; i < 60; i++) { // midiNoteNumbers.someHighNoteId
+      for (let i = 52; i < midiNoteNumbers.someHighNoteId; i++) { // midiNoteNumbers.someHighNoteId
         const intervalStr = interval.toString().padStart(2, '0')
         const fileName = `assets/lib/Legato/Legato Up ${intervalStr}/Legato Up ${intervalStr} Sprite ${i}`;
 
@@ -636,6 +676,7 @@ export class AppComponent implements OnInit {
 
           if (i >= 52 && i <= midiNoteNumbers.someHighNoteId) {
             const markersTemp1 = await this.getJsonFromUrl(`${fileName} Marker.json`).catch(error => {
+              throw new Error(error);
             });
             const markersTemp: number[] = markersTemp1 ? markersTemp1 : periodsTemp;
             const noteListTemp = this.splitPeriodListByMarkers(periodsFromChData, markersTemp);
@@ -722,26 +763,12 @@ export class AppComponent implements OnInit {
 
           // For plotting
           // if (true && i === midiNoteNumbers.someHighNoteId) {
-          if (true && interval === 2 && i === 61) {
-            const markersTemp1 = await this.getJsonFromUrl(`${fileName} Marker.json`).catch(error => {
-              debugger
+          if (false && interval === 2 && i === 61) {
+            this.drawWaveformWithMarkers({
+              fileName: fileName,
+              periodsFromChData: periodsFromChData,
+              periodsTemp: periodsTemp,
             });
-            const markersTemp: number[] = markersTemp1 ? markersTemp1 : periodsTemp;
-            const noteListTemp = this.splitPeriodListByMarkers(periodsFromChData, markersTemp);
-
-            let iRunningSum = 0;
-
-
-            noteListTemp.forEach(item => {
-              item.forEach(period => {
-                this.plt.plot(period.chData, iRunningSum);
-                iRunningSum = iRunningSum + period.chData.length;
-              })
-
-              this.plt.plotVerticalLine(iRunningSum, 'red');
-            })
-
-            this.plt.show();
           }
 
           this.globalTestSwitch = false;
@@ -753,6 +780,67 @@ export class AppComponent implements OnInit {
           // если будет нужно
           // audioBuffer_LegatoPairs_Up_01_midiNum_List[i] = ...
         }
+
+        let skipVibrato = false;
+        /**
+         * Vibrato
+         */
+        if (!skipVibrato && interval === 1 && i >= 53 && i <= 53) {
+          let roundRobinDownForVibrato = 0;
+          const vibratoFileName = `assets/lib/Vibrato/Vibrato Sprite ${i}`;
+          const vibratoWavTemp = await this.getArrayBufferFromUrl(`${vibratoFileName}.wav`);
+
+          if (vibratoWavTemp) {
+            const vibratoAudioBufferTemp = await audioCtx.decodeAudioData(vibratoWavTemp);
+            const vibratoPeriodsTemp = await this.getJsonFromUrl(`${vibratoFileName}.json`);
+            const vibratoPeriodsFromChData = this.periodsFromChData(vibratoAudioBufferTemp.getChannelData(0), vibratoPeriodsTemp);
+
+            const vibratoMarkersTemp1 = await this.getJsonFromUrl(`${vibratoFileName} Marker.json`).catch(error => {
+              // throw new Error(error);
+            });
+            const vibratoMarkersTemp: number[] = vibratoMarkersTemp1 ? vibratoMarkersTemp1 : vibratoPeriodsTemp;
+            const vibratoNoteListTemp = this.splitPeriodListByMarkers(vibratoPeriodsFromChData, vibratoMarkersTemp);
+
+            audioBuffer_VibratoSprite_midiNum_List[i] = [];
+
+
+            const trimVibFromStart = 25;
+            let vibratoRoundRobinUp = 0;
+            let arePeriodsBeforeFirstMarkersSkipped = false;
+
+            vibratoNoteListTemp.forEach(note => {
+              if (arePeriodsBeforeFirstMarkersSkipped) {
+                const trimmedNote: Period[] = [];
+
+                let noteCounter = 0;
+                note.forEach(item => {
+                  if (noteCounter > trimVibFromStart) {
+                    trimmedNote.push(item);
+                  }
+                  noteCounter++;
+                })
+
+                audioBuffer_VibratoSprite_midiNum_List[i][vibratoRoundRobinUp] = trimmedNote;
+                vibratoRoundRobinUp++;
+              } else {
+                arePeriodsBeforeFirstMarkersSkipped = true;
+              }
+            })
+
+            if (true && i === 53) {
+              debugger;
+              await this.drawWaveformWithMarkers({
+                fileName: vibratoFileName,
+                periodsFromChData: vibratoPeriodsFromChData,
+                periodsTemp: vibratoPeriodsTemp,
+              });
+            }
+          }
+        }
+
+        /**
+         * End Of Vibrato
+         */
       }
 
       audioBuffer_Legato_Down_By_Interval_MidiNum_List[interval].forEach((periodListList, index) => {
@@ -760,13 +848,23 @@ export class AppComponent implements OnInit {
           let localRR = -1;
           periodListList.forEach(periodList => {
             localRR++;
-            result[getFormattedName({
+            // result[getFormattedName({
+            //   midiNum: index,
+            //   art: articulations.legDown,
+            //   rr: localRR,
+            //   interval: interval,
+            // })] =
+            //   periodList;
+
+            this.periods_Transition_Name_To_Id_Dictionary[getFormattedName({
               midiNum: index,
               art: articulations.legDown,
               rr: localRR,
               interval: interval,
-            })] =
-              periodList;
+            })] = this.periods_Transition_Name_Global_Id;
+
+            this.periods_Transition_Array.push(periodList)
+            this.periods_Transition_Name_Global_Id++;
           })
 
           this.roundRobin_Dictionary[getFormattedName({
@@ -784,13 +882,23 @@ export class AppComponent implements OnInit {
           let localRR = -1;
           periodListList.forEach(periodList => {
             localRR++;
-            result[getFormattedName({
+            // result[getFormattedName({
+            //   midiNum: index,
+            //   art: articulations.legUp,
+            //   rr: localRR,
+            //   interval: interval,
+            // })] =
+            //   periodList;
+
+            this.periods_Transition_Name_To_Id_Dictionary[getFormattedName({
               midiNum: index,
               art: articulations.legUp,
               rr: localRR,
               interval: interval,
-            })] =
-              periodList;
+            })] = this.periods_Transition_Name_Global_Id;
+
+            this.periods_Transition_Array.push(periodList)
+            this.periods_Transition_Name_Global_Id++;
           })
 
           this.roundRobin_Dictionary[getFormattedName({
@@ -807,13 +915,13 @@ export class AppComponent implements OnInit {
       if (periodListList) {
         let localRR = 0;
         periodListList.forEach(periodList => {
-          result[getFormattedName({
-            midiNum: index,
-            art: articulations.fastDown,
-            rr: localRR
-          })] =
-            periodList;
-          localRR++;
+          // result[getFormattedName({
+          //   midiNum: index,
+          //   art: articulations.fastDown,
+          //   rr: localRR
+          // })] =
+          //   periodList;
+          // localRR++;
         })
       }
     })
@@ -822,52 +930,85 @@ export class AppComponent implements OnInit {
       if (periodListList) {
         let localRR = 0;
         periodListList.forEach(periodList => {
-          result[getFormattedName({
-            midiNum: index,
-            art: articulations.fastUp,
-            rr: localRR
-          })] =
-            periodList;
-          localRR++;
+          // result[getFormattedName({
+          //   midiNum: index,
+          //   art: articulations.fastUp,
+          //   rr: localRR
+          // })] =
+          //   periodList;
+          // localRR++;
         })
       }
     })
 
-    audioBuffer_VibratoSprite_midiNum_List.forEach((periodListList, index) => {
-      if (periodListList) {
-        let localRR = 0;
-        periodListList.forEach(periodList => {
-          result[getFormattedName({
-            midiNum: index,
-            art: articulations.vib,
-            rr: localRR
-          })] =
-            periodList;
-          localRR++;
-        })
-      }
-    })
+    // audioBuffer_VibratoSprite_midiNum_List.forEach((periodListList, index) => {
+    //   if (periodListList) {
+    //     let localRR = 0;
+    //     periodListList.forEach(periodList => {
+    //       result[getFormattedName({
+    //         midiNum: index,
+    //         art: articulations.vib,
+    //         rr: localRR
+    //       })] =
+    //         periodList;
+    //       localRR++;
+    //     })
+    //   }
+    // })
 
     audioBuffer_LegatoPairs_Up_01_midiNum_List.forEach((periodList, index) => {
       if (periodList) {
         const interval = 1;
         let localRR = 0;
         periodList.forEach(periodList => {
-          result[getFormattedName({
-            midiNum: index,
-            midiNumSecond: index + interval,
-            art: articulations.leg,
-            rr: localRR
-          })] =
-            periodList;
-          localRR++;
+          // result[getFormattedName({
+          //   midiNum: index,
+          //   midiNumSecond: index + interval,
+          //   art: articulations.leg,
+          //   rr: localRR
+          // })] =
+          //   periodList;
+          // localRR++;
         })
+      }
+    })
+
+    audioBuffer_VibratoSprite_midiNum_List.forEach((periodListList, index) => {
+      if (periodListList) {
+        let localRR = -1;
+        periodListList.forEach(periodList => {
+          localRR++;
+          // result[getFormattedName({
+          //   midiNum: index,
+          //   midiNumSecond: null,
+          //   art: articulations.vib,
+          //   rr: localRR
+          // })] =
+          //   periodList;
+
+          this.periods_Transition_Name_To_Id_Dictionary[getFormattedName({
+            midiNum: index,
+            midiNumSecond: null,
+            art: articulations.vib,
+            rr: localRR
+          })] = this.periods_Transition_Name_Global_Id;
+
+          this.periods_Transition_Array.push(periodList)
+          this.periods_Transition_Name_Global_Id++;
+        })
+
+        this.roundRobin_Dictionary[getFormattedName({
+          midiNum: index,
+          art: articulations.vib,
+          noRr: true,
+          interval: null,
+        })] = new RoundRobin(localRR);
       }
     })
 
     console.log('end loadAudioBufferForSamples')
 
-    return result;
+    // return result;
   }
 
   getNoteListFromSprites(periodsFromChData: Period[]): Period[][] {
@@ -1093,15 +1234,18 @@ export class AppComponent implements OnInit {
     this.storedMidi.tracks.forEach((track: Track) => {
       //tracks have notes and controlChanges
 
+      debugger;
       //notes are an array
       const notes = track.notes;
       this.notesToRender = [];
       notes.forEach((note: Note) => {
+        const offset = this.secondsToOffset(this.storedMidi.header.ticksToSeconds(note.ticks));
+
         console.log(`midi ${this.adaptMidiForGuitar(note.midi)} note bar: ${note.bars} tick ${note.ticks} ` +
-          `seconds ${this.ticksToSeconds(note.ticks)} offset ${this.ticksToOffset(note.ticks)}`);
+          `seconds ${this.storedMidi.header.ticksToSeconds(note.ticks)} offset ${offset}`);
         this.notesToRender.push({
           noteId: this.adaptMidiForGuitar(note.midi),
-          offset: this.ticksToOffset(note.ticks),
+          offset: offset,
         });
       });
 
@@ -1113,8 +1257,8 @@ export class AppComponent implements OnInit {
     return midi - 12;
   }
 
-  ticksToOffset(ticks: number): number {
-    return this.ticksToSeconds(ticks) * this.sampleRate;
+  secondsToOffset(seconds: number): number {
+    return seconds * this.sampleRate;
   }
 
   ticksToSeconds(ticks: number): number {
@@ -1122,4 +1266,32 @@ export class AppComponent implements OnInit {
     const beats = ticks / ppq;
     return (60 / 120) * beats;
   }
+
+  async drawWaveformWithMarkers(dto: DrawWaveformWithMarkersDTO) {
+    const markersTemp1 = await this.getJsonFromUrl(`${dto.fileName} Marker.json`).catch(error => {
+      // throw new Error(error);
+    });
+    const markersTemp: number[] = markersTemp1 ? markersTemp1 : dto.periodsTemp;
+    const noteListTemp = this.splitPeriodListByMarkers(dto.periodsFromChData, markersTemp);
+
+    let iRunningSum = 0;
+
+
+    noteListTemp.forEach(item => {
+      item.forEach(period => {
+        this.plt.plot(period.chData, iRunningSum);
+        iRunningSum = iRunningSum + period.chData.length;
+      })
+
+      this.plt.plotVerticalLine(iRunningSum, 'red');
+    })
+
+    this.plt.show();
+  }
+}
+
+export class DrawWaveformWithMarkersDTO {
+  fileName: string;
+  periodsFromChData: Period[];
+  periodsTemp: number[];
 }

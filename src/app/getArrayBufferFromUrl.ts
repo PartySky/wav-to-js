@@ -2,12 +2,11 @@ export async function getArrayBufferFromUrl(url: string): Promise<ArrayBuffer> |
   let response;
   let responseTemp = await fetch(url).then(data => {
     if (data.status !== 200) {
-      debugger
     } else {
       response = data;
     }
   }).catch(error => {
-    debugger;
+    throw new Error(error);
   });
 
   if (!response) {
