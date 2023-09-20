@@ -29,7 +29,6 @@ export class AppComponent implements OnInit {
   notesToRender: NoteLocal[] = [];
   notesReadMode = true;
   drawMarkers = false;
-  // periods_Transition_Dictionary: { [key: string]: Period[] };
   roundRobin_Dictionary: { [key: string]: RoundRobin };
   periods_Transition_Array: Period[][] = [];
   periods_Transition_Name_To_Id_Dictionary: { [key: string]: number } = {};
@@ -62,10 +61,8 @@ export class AppComponent implements OnInit {
   }
 
   async loadData() {
-    // this.periods_Transition_Dictionary = await this.loadAudioBufferForSamples();
     await this.loadAudioBufferForSamples();
 
-    debugger;
     this.isDataReady = true;
     this.processStoredMid();
   }
@@ -276,18 +273,51 @@ export class AppComponent implements OnInit {
           periodListId = this.periods_Transition_Name_To_Id_Dictionary[sampleName];
         }
 
+        let periodListId_BendTest: number;
+        // todo: solve it
+        if (item.noteId === 24) {
+          periodListId_BendTest = this.periods_Transition_Name_To_Id_Dictionary['54 vib RR0'];
+        }
+
         if (periodListId) {
-          debugger
-          // periodList = this.periods_Transition_Dictionary[sampleName];
           periodList = this.periods_Transition_Array[periodListId];
 
           // todo: solve it
           if (item.noteId === 24) {
-            periodList.forEach(toAmp =>{
-              for(let iLoc = 0; iLoc < toAmp.chData.length; iLoc++) {
-                toAmp.chData[iLoc] = toAmp.chData[iLoc] * 0.33;
-              }
-            });
+            // periodList.forEach(toAmp =>{
+            //   for(let iLoc = 0; iLoc < toAmp.chData.length; iLoc++) {
+            //     toAmp.chData[iLoc] = toAmp.chData[iLoc] * 0.33;
+            //   }
+            // });
+
+            const periodList_BendTest = this.periods_Transition_Array[periodListId_BendTest];
+
+            const curve = []
+            const curveLength = 50;
+            const step = 1 / curveLength;
+            let runningSum = 0;
+            for (let iCurveCounter = 0; iCurveCounter < 50; iCurveCounter++) {
+              curve.push(runningSum);
+              runningSum = runningSum + step;
+            }
+            for (let iCurveCounter = 0; iCurveCounter < 20; iCurveCounter++) {
+              curve.push(runningSum);
+            }
+            for (let iCurveCounter = 0; iCurveCounter < 50; iCurveCounter++) {
+              curve.push(runningSum);
+              runningSum = runningSum - step;
+            }
+            for (let iCurveCounter = 0; iCurveCounter < 20; iCurveCounter++) {
+              curve.push(runningSum);
+            }
+            for (let iCurveCounter = 0; iCurveCounter < curveLength; iCurveCounter++) {
+              curve.push(runningSum);
+              runningSum = runningSum + step;
+            }
+            const bend: Period[] = this.makeBend(periodList, periodList_BendTest, curve);
+            // const bend: Period[] = this.makeBend(periodList_BendTest, periodList, curve);
+            debugger
+            periodList = bend;
           }
 
           if (!periodList?.length) {
@@ -589,7 +619,7 @@ export class AppComponent implements OnInit {
   getAdjustedChDataForPeriod(dto: { chData: Float32Array; targetLength: number; amplitude?: number }): Float32Array {
     let result: Float32Array = new Float32Array(dto.targetLength);
     const multiplier = dto.chData.length / dto.targetLength;
-    const amplitude = dto.amplitude ? dto.amplitude : 1;
+    const amplitude = dto.amplitude || dto.amplitude === 0 ? dto.amplitude : 1;
     for (let i = 0; i < result.length; i++) {
       result[i] = dto.chData[Math.round(i * multiplier)] * amplitude;
     }
@@ -785,7 +815,7 @@ export class AppComponent implements OnInit {
         /**
          * Vibrato
          */
-        if (!skipVibrato && interval === 1 && i >= 53 && i <= 53) {
+        if (!skipVibrato && interval === 1 && i >= 53 && i <= 54) {
           let roundRobinDownForVibrato = 0;
           const vibratoFileName = `assets/lib/Vibrato/Vibrato Sprite ${i}`;
           const vibratoWavTemp = await this.getArrayBufferFromUrl(`${vibratoFileName}.wav`);
@@ -827,8 +857,7 @@ export class AppComponent implements OnInit {
               }
             })
 
-            if (true && i === 53) {
-              debugger;
+            if (true && i === 54) {
               await this.drawWaveformWithMarkers({
                 fileName: vibratoFileName,
                 periodsFromChData: vibratoPeriodsFromChData,
@@ -1233,8 +1262,6 @@ export class AppComponent implements OnInit {
     //get the tracks
     this.storedMidi.tracks.forEach((track: Track) => {
       //tracks have notes and controlChanges
-
-      debugger;
       //notes are an array
       const notes = track.notes;
       this.notesToRender = [];
@@ -1287,6 +1314,48 @@ export class AppComponent implements OnInit {
     })
 
     this.plt.show();
+  }
+
+  makeBend(a: Period[], target: Period[], curve: number[]): Period[] {
+    const result: Period[] = [];
+
+    let i = 0;
+    let currentLength: number;
+    target.forEach(item => {
+      let chDataTemp: Float32Array;
+      if (i > curve.length || i > a.length - 1) {
+        chDataTemp = item.chData;
+      } else {
+        currentLength = Math.floor(a[i].chData.length * (1 - curve[i]) + item.chData.length * (curve[i]));
+
+        const chDataTempA = this.getAdjustedChDataForPeriod({
+          chData: a[i].chData,
+          targetLength: currentLength,
+          amplitude: 1 - curve[i],
+        });
+
+        const chDataTempB = this.getAdjustedChDataForPeriod({
+          chData: item.chData,
+          targetLength: currentLength,
+          amplitude: curve[i],
+        });
+
+        chDataTemp = new Float32Array(chDataTempB);
+
+        let chDataValueCounter = 0;
+        chDataTempB.forEach(chDataValue => {
+          chDataTemp[chDataValueCounter] = chDataTempA[chDataValueCounter] + chDataTempB[chDataValueCounter];
+          chDataValueCounter++;
+        })
+
+        debugger
+      }
+      const periodTemp: Period = {chData: chDataTemp}
+      result.push(periodTemp)
+      i++;
+    })
+
+    return result;
   }
 }
 
