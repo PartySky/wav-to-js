@@ -244,7 +244,7 @@ export class AppComponent implements OnInit {
 
         // todo: solve it
         if (item.noteId === 24) {
-          rrKey = '53 vib';
+          rrKey = '56 vib';
         }
 
         let safeRRstring = 'RR';
@@ -264,7 +264,8 @@ export class AppComponent implements OnInit {
 
         // todo: solve it
         if (item.noteId === 24) {
-          sampleName = '53 vib RR0';
+          sampleName = `54 vib RR${this.roundRobin_Dictionary['54 vib'].value}`;
+          this.roundRobin_Dictionary['54 vib'].up();
         }
 
         let periodList: Period[];
@@ -276,7 +277,8 @@ export class AppComponent implements OnInit {
         let periodListId_BendTest: number;
         // todo: solve it
         if (item.noteId === 24) {
-          periodListId_BendTest = this.periods_Transition_Name_To_Id_Dictionary['54 vib RR0'];
+          // periodListId_BendTest = this.periods_Transition_Name_To_Id_Dictionary['56 vib RR5'];
+          periodListId_BendTest = this.periods_Transition_Name_To_Id_Dictionary[`56 vib RR${this.roundRobin_Dictionary[rrKey].value}`];
         }
 
         if (periodListId) {
@@ -296,26 +298,24 @@ export class AppComponent implements OnInit {
             const curveLength = 50;
             const step = 1 / curveLength;
             let runningSum = 0;
-            for (let iCurveCounter = 0; iCurveCounter < 50; iCurveCounter++) {
-              curve.push(runningSum);
-              runningSum = runningSum + step;
-            }
-            for (let iCurveCounter = 0; iCurveCounter < 20; iCurveCounter++) {
-              curve.push(runningSum);
-            }
-            for (let iCurveCounter = 0; iCurveCounter < 50; iCurveCounter++) {
-              curve.push(runningSum);
-              runningSum = runningSum - step;
-            }
-            for (let iCurveCounter = 0; iCurveCounter < 20; iCurveCounter++) {
-              curve.push(runningSum);
-            }
+            // for (let iCurveCounter = 0; iCurveCounter < 50; iCurveCounter++) {
+            //   curve.push(runningSum);
+            // }
+            // for (let iCurveCounter = 0; iCurveCounter < 15; iCurveCounter++) {
+            //   curve.push(runningSum);
+            //   runningSum = runningSum - step;
+            // }
+            // for (let iCurveCounter = 0; iCurveCounter < 10; iCurveCounter++) {
+            //   curve.push(runningSum);
+            // }
             for (let iCurveCounter = 0; iCurveCounter < curveLength; iCurveCounter++) {
               curve.push(runningSum);
               runningSum = runningSum + step;
             }
             const bend: Period[] = this.makeBend(periodList, periodList_BendTest, curve);
             // const bend: Period[] = this.makeBend(periodList_BendTest, periodList, curve);
+
+            this.bendProcessor(bend);
             debugger
             periodList = bend;
           }
@@ -652,10 +652,12 @@ export class AppComponent implements OnInit {
     const audioCtx = new AudioContext();
 
     const skipped = true;
+    const pickupPath = 'Neck';
+    const stringPath = '1st';
 
     if (!skipped) {
       for (let i = 35; i < 71; i++) {
-        const fileName = `assets/lib/Fast/Fast Sprite ${i}`;
+        const fileName = `assets/lib/${pickupPath}/${stringPath}/Fast/Fast Sprite ${i}`;
 
         const audioBufferTemp = await audioCtx.decodeAudioData(await this.getArrayBufferFromUrl(`${fileName}.wav`));
         const periodsTemp = await this.getJsonFromUrl(`${fileName}.json`);
@@ -686,7 +688,7 @@ export class AppComponent implements OnInit {
       // for (let i = 52; i < 60; i++) { // midiNoteNumbers.someHighNoteId
       for (let i = 52; i < midiNoteNumbers.someHighNoteId; i++) { // midiNoteNumbers.someHighNoteId
         const intervalStr = interval.toString().padStart(2, '0')
-        const fileName = `assets/lib/Legato/Legato Up ${intervalStr}/Legato Up ${intervalStr} Sprite ${i}`;
+        const fileName = `assets/lib/${pickupPath}/${stringPath}/Legato/Legato Up ${intervalStr}/Legato Up ${intervalStr} Sprite ${i}`;
 
         const wavTemp = await this.getArrayBufferFromUrl(`${fileName}.wav`);
 
@@ -812,12 +814,13 @@ export class AppComponent implements OnInit {
         }
 
         let skipVibrato = false;
+        const maxVibNoteNum = 56;
         /**
          * Vibrato
          */
-        if (!skipVibrato && interval === 1 && i >= 53 && i <= 54) {
+        if (!skipVibrato && interval === 1 && i >= 53 && i <= maxVibNoteNum) {
           let roundRobinDownForVibrato = 0;
-          const vibratoFileName = `assets/lib/Vibrato/Vibrato Sprite ${i}`;
+          const vibratoFileName = `assets/lib/${pickupPath}/${stringPath}/Vibrato/Vibrato Sprite ${i}`;
           const vibratoWavTemp = await this.getArrayBufferFromUrl(`${vibratoFileName}.wav`);
 
           if (vibratoWavTemp) {
@@ -857,7 +860,7 @@ export class AppComponent implements OnInit {
               }
             })
 
-            if (true && i === 54) {
+            if (true && i === maxVibNoteNum) {
               await this.drawWaveformWithMarkers({
                 fileName: vibratoFileName,
                 periodsFromChData: vibratoPeriodsFromChData,
@@ -1319,6 +1322,9 @@ export class AppComponent implements OnInit {
   makeBend(a: Period[], target: Period[], curve: number[]): Period[] {
     const result: Period[] = [];
 
+    // todo: solve it
+    const lengthTrimForTest = 300;
+
     let i = 0;
     let currentLength: number;
     target.forEach(item => {
@@ -1347,14 +1353,68 @@ export class AppComponent implements OnInit {
           chDataTemp[chDataValueCounter] = chDataTempA[chDataValueCounter] + chDataTempB[chDataValueCounter];
           chDataValueCounter++;
         })
-
-        debugger
       }
       const periodTemp: Period = {chData: chDataTemp}
-      result.push(periodTemp)
+      if (i < lengthTrimForTest) {
+        result.push(periodTemp)
+      }
       i++;
     })
 
+    return result;
+  }
+
+  bendProcessor(a: Period[]): Period[] {
+    const result: Period[] = [];
+    const firstNPeriodsForSkipping = Math.floor(a.length / 4);
+    let minLength = 0;
+    let maxLength = 0;
+    let lastLength = 0;
+    let previousLength = 0;
+    let previousLength2 = 0;
+    let goUp = true;
+
+    let lastMin = 0;
+    let lastMax = 0;
+
+
+    let i = 0;
+    let bendCounter = 0;
+    const threshold = 5;
+
+    a.forEach(item => {
+      lastLength = item.chData.length;
+
+      if (i > firstNPeriodsForSkipping) {
+        if (maxLength < lastLength) {
+          maxLength = lastLength;
+        }
+
+        if (minLength === 0 || minLength > lastLength) {
+          minLength = lastLength;
+        }
+
+        if (goUp && lastLength > previousLength && previousLength > previousLength2) {
+          goUp = false;
+          console.log('Найден разворот вниз')
+        }
+
+        if (!goUp && lastLength < previousLength && previousLength < previousLength2) {
+          goUp = true;
+          console.log('Найден разворот вверх')
+        }
+        console.log('lastLength: ' + lastLength)
+      }
+
+      previousLength = lastLength;
+      previousLength2 = previousLength;
+      i++;
+    })
+
+    console.log('bendCounter: ' + bendCounter)
+    console.log('minLength: ' + minLength)
+    console.log('maxLength: ' + maxLength)
+    debugger;
     return result;
   }
 }
