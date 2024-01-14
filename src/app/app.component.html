@@ -29,4 +29,26 @@
        (click)="moveLeft()">Left</div>
   <div class="btn"
        (click)="moveRight()">Right</div>
+  <div class="btn"
+       (click)="loadView()">Load view</div>
+  <div class="btn"
+       (click)="saveView()">Save view</div>
+  <div *ngIf="true"
+       class="btn"
+       (click)="trimLeft(1)">Trim L +</div>
+  <div *ngIf="true"
+       class="btn"
+       (click)="trimLeft(2)">Trim L -</div>
+  <div class="btn"
+       (click)="trimRight(1)">Trim R +</div>
+  <div class="btn"
+       (click)="trimRight(2)">Trim R -</div>
+  <div class="btn"
+       (click)="extendByRevertingSave()">Save wav</div>
+  <div class="btn"
+       (click)="logExtendByRevertingTrim()">Log trim</div>
+  <div class="btn"
+       (click)="logExtendByRevertingFadeChange(1)">Fade +</div>
+  <div class="btn"
+       (click)="logExtendByRevertingFadeChange(2)">Fade -</div>
 </div>

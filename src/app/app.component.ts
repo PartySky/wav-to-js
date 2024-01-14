@@ -42,12 +42,19 @@ export class AppComponent implements OnInit {
   cursorType = 'crosshair';
   private storedMidi: Midi;
   private sampleRate = 44100;
+  extendByRevertingTrim = {
+    right: 0,
+    left: 0,
+  }
+  logExtendByRevertingFade = 300;
 
   constructor() {
   }
 
   async ngOnInit() {
+    this.extendByReverting(true);
     this.initPlt();
+    return;
     this.getMidiFileFromUrl();
     await this.loadData();
     this.initMidi();
@@ -1240,6 +1247,14 @@ export class AppComponent implements OnInit {
     this.plt.moveLeft();
   }
 
+  saveView(): void {
+    this.plt.saveView();
+  }
+
+  loadView(): void {
+    this.plt.loadView();
+  }
+
 
   async getMidiFileFromUrl(): Promise<void> {
     let url = 'assets/test.mid';
@@ -1416,6 +1431,240 @@ export class AppComponent implements OnInit {
     console.log('maxLength: ' + maxLength)
     debugger;
     return result;
+  }
+
+  trimLeft(direction: number): void {
+    if (direction === 1) {
+      this.extendByRevertingTrim.left = this.extendByRevertingTrim.left + 1;
+    } else {
+      this.extendByRevertingTrim.left = this.extendByRevertingTrim.left - 1;
+    }
+    this.plt.resetView();
+    this.extendByReverting(true);
+  }
+
+  trimRight(direction: number): void {
+    if (direction === 1) {
+      this.extendByRevertingTrim.right = this.extendByRevertingTrim.right + 1;
+    } else {
+      this.extendByRevertingTrim.right = this.extendByRevertingTrim.right - 1;
+    }
+    this.plt.resetView();
+    this.extendByReverting(true);
+  }
+
+  extendByRevertingSave(): void {
+    this.plt.resetView();
+    this.extendByReverting();
+  }
+
+  logExtendByRevertingTrim(): void {
+    console.log(`Trim ${this.extendByRevertingTrim.left} ${this.extendByRevertingTrim.right} Fade ${this.logExtendByRevertingFade}`);
+  }
+
+  logExtendByRevertingFadeChange(direction: number): void {
+    if (direction === 1) {
+      this.logExtendByRevertingFade++;
+    } else {
+      this.logExtendByRevertingFade--;
+    }
+    this.plt.resetView();
+    this.extendByReverting(true);
+  }
+
+  crossfadePeriodChDataWithPrevious(
+    chData: Float32Array | number[],
+    target: Float32Array | number[],
+    fadeLength: number
+  ): number[] {
+    let result: number[] = [];
+
+    let i = 0;
+    let amplitude = 0;
+
+    target.forEach(item => {
+      amplitude = i / fadeLength;
+      const test = false;
+      if (!test) {
+        if (i < fadeLength) {
+          result.push(item * amplitude + chData[i] * (1 - amplitude));
+        } else {
+          result.push(item);
+        }
+      } else {
+        if (i < fadeLength) {
+          result.push(chData[i]);
+        } else if (i < (fadeLength + 10)) {
+          result.push(0);
+        } else {
+          result.push(item);
+        }
+      }
+
+      i++;
+    })
+
+    return result;
+  }
+
+  async extendByReverting(noDownload = false): Promise<void> {
+    const audioCtx = new AudioContext();
+    const ccId = 22;
+    const fileName = `assets/forReverse/Kurcy_127_0${ccId}_R`;
+    const audioBufferTemp = await audioCtx.decodeAudioData(await this.getArrayBufferFromUrl(`${fileName}.wav`));
+    const periodsTemp = await this.getJsonFromUrl(`${fileName}.json`);
+    const periodsFromChData = this.periodsFromChData(audioBufferTemp.getChannelData(0), periodsTemp);
+    const periodsResult: Period[] = [];
+    const periodsForCheckLine: Period[] = [];
+    const periodsFromChDataTrimmedFromRight: Period[] = [];
+
+    const trimNLastPeriodsNum = 5;
+    let i1 = 0;
+    periodsFromChData.forEach(item => {
+      if (i1 < (periodsFromChData.length - trimNLastPeriodsNum)) {
+        periodsFromChDataTrimmedFromRight.push(item);
+      }
+      i1++;
+    });
+
+    const lastNWrongPeriods = 0; //2;
+    let checkingLineStart = 0;
+    // последний период состоит из кроссфейда последнего и предпоследнего,
+    // поэтому из основной волны убирается последний период,
+    // чтобы волна заканчивалась на предпоследнем периоде
+    const extraTrimNumForFade = 1;
+    periodsFromChDataTrimmedFromRight.forEach(item => {
+      if (periodsResult.length < periodsFromChDataTrimmedFromRight.length - lastNWrongPeriods - extraTrimNumForFade) {
+        periodsResult.push(item);
+        checkingLineStart = checkingLineStart + item.chData.length;
+      }
+    })
+
+    let chDataOfLastTemp: number[] = [];
+    const twoPeriodsChData: number[] = [];
+    let additionalPeriodLength = 0;
+    const useTwoPeriodsChData = false;
+
+    if (useTwoPeriodsChData) {
+
+      periodsFromChDataTrimmedFromRight[periodsFromChDataTrimmedFromRight.length - 2].chData.forEach(item => {
+        twoPeriodsChData.push(item);
+        additionalPeriodLength++;
+      })
+      periodsFromChDataTrimmedFromRight[periodsFromChDataTrimmedFromRight.length - 1].chData.forEach(item => {
+        twoPeriodsChData.push(item);
+      })
+      // const tresholdTemp = 3;
+      const tresholdTemp = additionalPeriodLength + this.extendByRevertingTrim.left;
+      const trimFromRight = this.extendByRevertingTrim.right;
+      let i = 0;
+      twoPeriodsChData.forEach(item => {
+        if (i > tresholdTemp &&
+          i < (twoPeriodsChData.length - trimFromRight)) {
+          chDataOfLastTemp.push(item);
+        }
+        i++;
+      })
+    } else {
+      periodsFromChDataTrimmedFromRight[periodsFromChDataTrimmedFromRight.length - 1].chData.forEach(item => {
+        twoPeriodsChData.push(item);
+      })
+      chDataOfLastTemp = this.crossfadePeriodChDataWithPrevious(twoPeriodsChData, periodsFromChDataTrimmedFromRight[periodsFromChDataTrimmedFromRight.length - 2].chData, this.logExtendByRevertingFade);
+    }
+
+
+    periodsForCheckLine.push(periodsFromChDataTrimmedFromRight[periodsFromChDataTrimmedFromRight.length - 3]);
+    periodsForCheckLine.push(periodsFromChDataTrimmedFromRight[periodsFromChDataTrimmedFromRight.length - 2]);
+    periodsForCheckLine.push(periodsFromChDataTrimmedFromRight[periodsFromChDataTrimmedFromRight.length - 1]);
+
+    const lastPeriod: Period = {chData: new Float32Array(chDataOfLastTemp)};
+
+
+    for (let i = 0; i < 10; i++) {
+      // periodsResult.push(lastPeriod);
+    }
+
+    const useGoForwardBackCycle = false;
+    if (useGoForwardBackCycle) {
+      for (let iCycle = 0; iCycle < 10; iCycle++) {
+        const max = 9;
+        const min = 0;
+        for (let i = min; i < max; i++) {
+          periodsResult.push(periodsFromChDataTrimmedFromRight[periodsFromChDataTrimmedFromRight.length - 1 - i]);
+          periodsResult.push(periodsFromChDataTrimmedFromRight[periodsFromChDataTrimmedFromRight.length - 1 - i]);
+          periodsResult.push(periodsFromChDataTrimmedFromRight[periodsFromChDataTrimmedFromRight.length - 1 - i]);
+        }
+
+        periodsResult.push(periodsFromChDataTrimmedFromRight[periodsFromChDataTrimmedFromRight.length - 1 - max]);
+        periodsResult.push(periodsFromChDataTrimmedFromRight[periodsFromChDataTrimmedFromRight.length - 1 - max]);
+
+
+        for (let i2 = max - 1; i2 > -1; i2--) {
+          periodsResult.push(periodsFromChDataTrimmedFromRight[periodsFromChDataTrimmedFromRight.length - 1 - i2]);
+          periodsResult.push(periodsFromChDataTrimmedFromRight[periodsFromChDataTrimmedFromRight.length - 1 - i2]);
+          periodsResult.push(periodsFromChDataTrimmedFromRight[periodsFromChDataTrimmedFromRight.length - 1 - i2]);
+        }
+
+        periodsResult.push(periodsFromChDataTrimmedFromRight[periodsFromChDataTrimmedFromRight.length - 1 - min]);
+        periodsResult.push(periodsFromChDataTrimmedFromRight[periodsFromChDataTrimmedFromRight.length - 1 - min]);
+      }
+    }
+
+    for (let i = (periodsFromChDataTrimmedFromRight.length - 1) * 2; i >= 0; i--) {
+      periodsResult.push(lastPeriod);
+      // periodsResult.push(periodsFromChData[periodsFromChData.length - 1]);
+      // periodsResult.push(periodsFromChData[100]);
+    }
+
+    const periodsTempForPlotting: number[] = [];
+    periodsTemp.forEach(item => {
+      periodsTempForPlotting.push(item);
+    })
+    debugger;
+    periodsTempForPlotting.push(periodsTempForPlotting[periodsTemp.length - 1] * 2);
+
+    // this.drawWaveformWithMarkers({
+    //   fileName: fileName,
+    //   periodsFromChData: periodsResult,
+    //   periodsTemp: periodsTempForPlotting,
+    // });
+
+    let iRunningSum = 0;
+    periodsResult.forEach(period => {
+      this.plt.plot(period.chData, iRunningSum);
+      iRunningSum = iRunningSum + period.chData.length;
+    })
+    let iRunningSumForCheckLine = 0;
+    periodsForCheckLine.forEach(period => {
+      const chDataForCheckLine: number[] = [];
+      period.chData.forEach(dataItem => {
+        chDataForCheckLine.push(dataItem + 0.01);
+      })
+      this.plt.plot(chDataForCheckLine, iRunningSumForCheckLine + checkingLineStart);
+      iRunningSumForCheckLine = iRunningSumForCheckLine + period.chData.length;
+    })
+    this.plt.show();
+
+    if (!noDownload) {
+      const uiParms = getUiParams();
+      let chDataListForMixDown: { periodList: Period[], offset: number }[] = [];
+
+      chDataListForMixDown.push({periodList: periodsResult, offset: 0});
+
+      let outPutChDataTemp: Float32Array = this.mixDownChDatas(chDataListForMixDown);
+
+      const outPutAB: AudioBuffer = new AudioBuffer({
+        length: outPutChDataTemp.length,
+        numberOfChannels: 1, // 2
+        sampleRate: uiParms.sampleRate,
+      });
+
+      outPutAB.copyToChannel(outPutChDataTemp, 0);
+
+      const wavFileData = WavFileEncoder.encodeWavFile(outPutAB, uiParms.wavFileType);
+      const blob = new Blob([wavFileData], {type: "audio/wav"});
+      this.openSaveAsDialog(blob, `test ${getDateString(new Date())}.wav`);
+    }
   }
 }
 

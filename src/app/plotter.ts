@@ -136,7 +136,7 @@ export class Plotter {
       if (nearestLeftMarker) {
         const markersTemp: Marker[] = [];
         this.markers.forEach(item => {
-          if(item.lineId !== nearestLeftMarker.lineId) {
+          if (item.lineId !== nearestLeftMarker.lineId) {
             markersTemp.push(item);
           }
         })
@@ -551,8 +551,42 @@ export class Plotter {
     );
   }
 
+  saveView(): void {
+    const view = {
+      minXValue: this.minXValue,
+      minYValue: this.minYValue,
+      maxXValue: this.maxXValue,
+      maxYValue: this.maxYValue,
+    }
+    localStorage.setItem('view', JSON.stringify(view));
+  }
+
+  loadView(): void {
+    const view: {
+      minXValue: number,
+      minYValue: number,
+      maxXValue: number,
+      maxYValue: number,
+    } = JSON.parse(localStorage.getItem('view'));
+
+    if (
+      !view?.minXValue ||
+      !view?.minYValue ||
+      !view?.maxXValue ||
+      !view?.maxYValue
+    ) {
+      return;
+    }
+    this.setZoom(
+      view.minXValue,
+      view.minYValue,
+      view.maxXValue,
+      view.maxYValue
+    );
+  }
+
   moveLeft(): void {
-    const xDiff = - (this.maxXValue - this.minXValue) * 0.75;
+    const xDiff = -(this.maxXValue - this.minXValue) * 0.75;
 
     this.setZoom(
       this.minXValue + xDiff,
@@ -570,6 +604,16 @@ export class Plotter {
       this.minXValue + xDiff,
       this.minYValue,
       this.maxXValue + xDiff,
+      this.maxYValue
+    );
+  }
+
+  resetView(): void {
+    this.figureLineList = [];
+    this.setZoom(
+      this.minXValue,
+      this.minYValue,
+      this.maxXValue,
       this.maxYValue
     );
   }
