@@ -551,23 +551,25 @@ export class Plotter {
     );
   }
 
-  saveView(): void {
+  saveView(id?: number): void {
     const view = {
       minXValue: this.minXValue,
       minYValue: this.minYValue,
       maxXValue: this.maxXValue,
       maxYValue: this.maxYValue,
     }
-    localStorage.setItem('view', JSON.stringify(view));
+    const idTemp = id ? id : '';
+    localStorage.setItem('view' + idTemp, JSON.stringify(view));
   }
 
-  loadView(): void {
+  loadView(id?: number): void {
+    const idTemp = id ? id : '';
     const view: {
       minXValue: number,
       minYValue: number,
       maxXValue: number,
       maxYValue: number,
-    } = JSON.parse(localStorage.getItem('view'));
+    } = JSON.parse(localStorage.getItem('view' + idTemp));
 
     if (
       !view?.minXValue ||

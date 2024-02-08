@@ -10,45 +10,256 @@
         style="border: 1px solid #000">
 </canvas>
 
-<div class="buttons-wrapper">
-  <div class="btn"
-       (click)="undoMaxXYChange()">Undo</div>
-  <div class="btn"
-       (click)="setDragMode()">Drag</div>
-  <div class="btn"
-       (click)="setZoomMode()">Zoom</div>
-  <div class="btn"
-       (click)="zoomOut()">Zoom Out</div>
-  <div class="btn"
-       (click)="setDrawMarkersMode()">Draw markers</div>
-  <div class="btn"
-       (click)="setRemoveMarkersMode()">Remove markers</div>
-  <div class="btn"
-       (click)="saveMarkers()">Save markers</div>
-  <div class="btn"
-       (click)="moveLeft()">Left</div>
-  <div class="btn"
-       (click)="moveRight()">Right</div>
-  <div class="btn"
-       (click)="loadView()">Load view</div>
-  <div class="btn"
-       (click)="saveView()">Save view</div>
-  <div *ngIf="true"
-       class="btn"
-       (click)="trimLeft(1)">Trim L +</div>
-  <div *ngIf="true"
-       class="btn"
-       (click)="trimLeft(2)">Trim L -</div>
-  <div class="btn"
-       (click)="trimRight(1)">Trim R +</div>
-  <div class="btn"
-       (click)="trimRight(2)">Trim R -</div>
-  <div class="btn"
-       (click)="extendByRevertingSave()">Save wav</div>
-  <div class="btn"
-       (click)="logExtendByRevertingTrim()">Log trim</div>
-  <div class="btn"
-       (click)="logExtendByRevertingFadeChange(1)">Fade +</div>
-  <div class="btn"
-       (click)="logExtendByRevertingFadeChange(2)">Fade -</div>
+<div>
+  <div class="buttons-wrapper">
+    <div class="btn"
+         (click)="undoMaxXYChange()">Undo
+    </div>
+    <div class="btn"
+         (click)="setDragMode()">Drag
+    </div>
+    <div class="btn"
+         (click)="setZoomMode()">Zoom
+    </div>
+    <div class="btn"
+         (click)="zoomOut()">Zoom Out
+    </div>
+    <div class="btn"
+         (click)="setDrawMarkersMode()">Draw markers
+    </div>
+    <div class="btn"
+         (click)="setRemoveMarkersMode()">Remove markers
+    </div>
+    <div class="btn"
+         (click)="saveMarkers()">Save markers
+    </div>
+    <div class="btn"
+         (click)="moveLeft()">Left
+    </div>
+    <div class="btn"
+         (click)="moveRight()">Right
+    </div>
+    <div class="btn"
+         (click)="loadView()">Load view
+    </div>
+    <div class="btn"
+         (click)="saveView()">Save view
+    </div>
+    <div class="btn"
+         (click)="loadView(2)">Load view 2
+    </div>
+    <div class="btn"
+         (click)="saveView(2)">Save view 2
+    </div>
+  </div>
+  <ng-container *ngIf="showCrossfadingWIthLinkedTailButtons">
+    <div class="buttons-wrapper">
+      <div class="sum-wrapper">
+        <div class="sum" [ngStyle]="{'width':  (this.crossfadingWIthLinkedTailFunctionsSum * 1000 / 150000) + 'px'}">
+          {{this.crossfadingWIthLinkedTailFunctionsSum}}
+        </div>
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailTrimChange(100)">Trim + 100
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailTrimChange(10)">Trim + 10
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailTrimChange(1)">Trim + 1
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailTrimChange(-1)">Trim - 1
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailTrimChange(-10)">Trim - 10
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailTrimChange(-100)">Trim - 100
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailSaveTrim()">Save trim
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailLoadTrim()">Load trim
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailSave()">Save wav
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailSaveBoth()">Save both
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailUseLR('L')">Use L
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailUseLR('R')">Use R
+      </div>
+      <!--    <div class="btn"-->
+      <!--         (click)="crossfadingWIthLinkedTailCCChange(1)">CC Num + {{extendByRevertingCCNum}}-->
+      <!--    </div>-->
+      <!--    <div class="btn"-->
+      <!--         (click)="crossfadingWIthLinkedTailCCChange(-1)">CC Num - -->
+      <!--    </div>-->
+      <div class="btn"
+           (click)="setMultiplyer()">Set Amp <span *ngIf="crossfadingWIthLinkedTailUseStoredAmpMultiplyer">ON</span>
+      </div>
+      <div class="btn"
+           (click)="setUseNormal()">Normal <span *ngIf="crossfadingWIthLinkedTailUseNormal">ON</span>
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailUseSRDataToggle()">Use SR Data <span
+        *ngIf="crossfadingWIthLinkedTailUseDataWithNewSampleRate">ON</span>
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailMixTypeToggle()">Mix Type <span
+        [innerText]="crossfadingWIthLinkedTailMixType"></span>
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailUseYScaleToggle()">YScale <span
+        *ngIf="crossfadingWIthLinkedTailUseYAxisScale">ON</span>
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailYAxisScaleChange(1)">Y +
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailYAxisScaleChange(-1)">Y -
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailStoreAllData()">Store all data
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailReadDataForCCNum()">Read data
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailSaveDelta()">Save delta
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailLoadDelta()">Load delta
+      </div>
+    </div>
+    <div class="buttons-wrapper">
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailDeltaChange(100)">Delta {{crossfadingWIthLinkedTailExtraLength}} + 100
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailDeltaChange(10)">Delta + 10
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailDeltaChange(1)">Delta + 1
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailDeltaChange(0.5)">Delta + 0.5
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailDeltaChange(0.1)">Delta + 0.1
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailDeltaChange(0.05)">Delta + 0.05
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailDeltaChange(0.01)">Delta + 0.01
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailDeltaChange(0.001)">Delta + 0.001
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailDeltaChange(0.0001)">Delta + 0.0001
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailDeltaChange(-0.0001)">Delta - 0.0001
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailDeltaChange(-0.001)">Delta - 0.001
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailDeltaChange(-0.01)">Delta - 0.01
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailDeltaChange(-0.05)">Delta - 0.05
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailDeltaChange(-0.1)">Delta - 0.1
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailDeltaChange(-0.5)">Delta - 0.5
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailDeltaChange(-1)">Delta - 1
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailDeltaChange(-10)">Delta - 10
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailDeltaChange(-100)">Delta - 100
+      </div>
+    </div>
+  </ng-container>
+  <ng-container *ngIf="showExtendByRevertingButtons">
+    <div *ngIf="true"
+         class="btn"
+         (click)="extendByRevertingTrimLeft(1)">Trim L +
+    </div>
+    <div *ngIf="true"
+         class="btn"
+         (click)="extendByRevertingTrimLeft(2)">Trim L -
+    </div>
+    <div class="btn"
+         (click)="extendByRevertingTrimRight(1)">Trim R +
+    </div>
+    <div class="btn"
+         (click)="extendByRevertingTrimRight(2)">Trim R -
+    </div>
+    <div class="btn"
+         (click)="extendByRevertingSave()">Save wav
+    </div>
+    <div class="btn"
+         (click)="logExtendByRevertingTrim()">Log trim
+    </div>
+    <div class="btn"
+         (click)="logExtendByRevertingFadeChange(1)">Fade +
+    </div>
+    <div class="btn"
+         (click)="logExtendByRevertingFadeChange(2)">Fade -
+    </div>
+    <div class="btn"
+         (click)="logExtendByRevertingCCChange(1)">CC Num +
+    </div>
+    <div class="btn"
+         (click)="logExtendByRevertingCCChange(2)">CC Num -
+    </div>
+    <div class="btn"
+         (click)="logExtendByRevertingChannelChange('L')">Use L
+    </div>
+    <div class="btn"
+         (click)="logExtendByRevertingChannelChange('R')">Use R
+    </div>
+    <div class="btn"
+         (click)="extendByRevertingCycleLengthChange(1)">Cycle length +
+    </div>
+    <div class="btn"
+         (click)="extendByRevertingCycleLengthChange(-1)">Cycle length -
+    </div>
+    <div class="btn"
+         (click)="extendByRevertingTailShiftChange(100)">Tail shift + 100
+    </div>
+    <div class="btn"
+         (click)="extendByRevertingTailShiftChange(10)">Tail shift + 10
+    </div>
+    <div class="btn"
+         (click)="extendByRevertingTailShiftChange(1)">Tail shift + 1
+    </div>
+    <div class="btn"
+         (click)="extendByRevertingTailShiftChange(-1)">Tail shift - 1
+    </div>
+    <div class="btn"
+         (click)="extendByRevertingTailShiftChange(-10)">Tail shift - 10
+    </div>
+    <div class="btn"
+         (click)="extendByRevertingTailShiftChange(-100)">Tail shift - 100
+    </div>
+    <div class="btn"
+         (click)="extendByRevertingSaveBoth()">Save both
+    </div>
+  </ng-container>
 </div>

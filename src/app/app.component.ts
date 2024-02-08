@@ -15,8 +15,9 @@ import {Plotter} from "./plotter";
 import {legatoTypes} from "./legatoTypes";
 import {RoundRobin} from "./roundRobin";
 import {testNoteSet} from "./testNoteSet";
-import {Header, Midi, Track} from "@tonejs/midi";
-import {Note, NoteOffEvent, NoteOnEvent} from "@tonejs/midi/dist/Note";
+import {Midi, Track} from "@tonejs/midi";
+import {Note} from "@tonejs/midi/dist/Note";
+import {crossfadingWIthLinkedTailDTO} from "./crossfadingWIthLinkedTailDTO";
 
 @Component({
   selector: 'app-root',
@@ -47,12 +48,29 @@ export class AppComponent implements OnInit {
     left: 0,
   }
   logExtendByRevertingFade = 300;
+  logExtendByRevertingCCNum = 21;
+  logExtendByRevertingVelocity = 58;
+  logExtendByRevertingChannelName = 'L';
+  cycleGoBackForthDepth = 30;
+  logExtendByRevertingTailDataShift = 0;
+  showExtendByRevertingButtons = false;
+  showCrossfadingWIthLinkedTailButtons = true;
+  crossfadingWIthLinkedTailTrim = 0;
+  crossfadingWIthLinkedTailExtraLength = 0;
+  crossfadingWIthLinkedTailYAxisScale = 1;
+  crossfadingWIthLinkedTailUseYAxisScale = true;
+  crossfadingWIthLinkedTailUseDataWithNewSampleRate = false;
+  crossfadingWIthLinkedTailUseStoredAmpMultiplyer = false;
+  crossfadingWIthLinkedTailUseNormal = false;
+  crossfadingWIthLinkedTailAmpMultiplyer = 0;
+  crossfadingWIthLinkedTailMixType = 'A';
+  crossfadingWIthLinkedTailFunctionsSum = 0;
 
   constructor() {
   }
 
   async ngOnInit() {
-    this.extendByReverting(true);
+    this.crossfadingWIthLinkedTail(true);
     this.initPlt();
     return;
     this.getMidiFileFromUrl();
@@ -1247,14 +1265,13 @@ export class AppComponent implements OnInit {
     this.plt.moveLeft();
   }
 
-  saveView(): void {
-    this.plt.saveView();
+  saveView(id?: number): void {
+    this.plt.saveView(id);
   }
 
-  loadView(): void {
-    this.plt.loadView();
+  loadView(id?: number): void {
+    this.plt.loadView(id);
   }
-
 
   async getMidiFileFromUrl(): Promise<void> {
     let url = 'assets/test.mid';
@@ -1433,7 +1450,7 @@ export class AppComponent implements OnInit {
     return result;
   }
 
-  trimLeft(direction: number): void {
+  extendByRevertingTrimLeft(direction: number): void {
     if (direction === 1) {
       this.extendByRevertingTrim.left = this.extendByRevertingTrim.left + 1;
     } else {
@@ -1443,7 +1460,7 @@ export class AppComponent implements OnInit {
     this.extendByReverting(true);
   }
 
-  trimRight(direction: number): void {
+  extendByRevertingTrimRight(direction: number): void {
     if (direction === 1) {
       this.extendByRevertingTrim.right = this.extendByRevertingTrim.right + 1;
     } else {
@@ -1459,7 +1476,8 @@ export class AppComponent implements OnInit {
   }
 
   logExtendByRevertingTrim(): void {
-    console.log(`Trim ${this.extendByRevertingTrim.left} ${this.extendByRevertingTrim.right} Fade ${this.logExtendByRevertingFade}`);
+    console.log(`Trim ${this.extendByRevertingTrim.left} ${this.extendByRevertingTrim.right} Fade ${this.logExtendByRevertingFade} `
+      + `CCNum ${this.logExtendByRevertingCCNum} ${this.logExtendByRevertingChannelName} Cycle length ${this.cycleGoBackForthDepth}`);
   }
 
   logExtendByRevertingFadeChange(direction: number): void {
@@ -1472,9 +1490,182 @@ export class AppComponent implements OnInit {
     this.extendByReverting(true);
   }
 
+  logExtendByRevertingCCChange(direction: number): void {
+    this.logExtendByRevertingChannelName = 'L';
+    if (direction === 1) {
+      this.logExtendByRevertingCCNum++;
+    } else {
+      this.logExtendByRevertingCCNum--;
+    }
+    this.plt.resetView();
+    this.extendByReverting(true);
+  }
+
+  extendByRevertingCycleLengthChange(value: number): void {
+    this.cycleGoBackForthDepth = this.cycleGoBackForthDepth + value;
+    this.plt.resetView();
+    this.extendByReverting(true);
+  }
+
+  extendByRevertingTailShiftChange(value: number): void {
+    this.logExtendByRevertingTailDataShift = this.logExtendByRevertingTailDataShift + value;
+    this.plt.resetView();
+    this.extendByReverting(true);
+  }
+
+  extendByRevertingSaveBoth(): void {
+    this.extendByReverting(false, 'L');
+    this.extendByReverting(false, 'R');
+    this.plt.resetView();
+  }
+
+  logExtendByRevertingChannelChange(channelName: string): void {
+    this.logExtendByRevertingChannelName = channelName;
+    this.plt.resetView();
+    this.extendByReverting(true);
+  }
+
+  crossfadingWIthLinkedTailTrimChange(value: number): void {
+    this.crossfadingWIthLinkedTailTrim = this.crossfadingWIthLinkedTailTrim + value;
+    this.plt.resetView();
+    this.crossfadingWIthLinkedTail(true);
+  }
+
+  crossfadingWIthLinkedTailSaveTrim(): void {
+    localStorage.setItem('crossfadingWIthLinkedTailTrim', JSON.stringify(this.crossfadingWIthLinkedTailTrim));
+    this.plt.resetView();
+    this.crossfadingWIthLinkedTail(true);
+  }
+
+  crossfadingWIthLinkedTailLoadTrim(): void {
+    const trimTemp = JSON.parse(localStorage.getItem('crossfadingWIthLinkedTailTrim'));
+
+    if (trimTemp) {
+      this.crossfadingWIthLinkedTailTrim = trimTemp
+      this.plt.resetView();
+      this.crossfadingWIthLinkedTail(true);
+    }
+  }
+
+  crossfadingWIthLinkedTailStoreAllData(): void {
+    let data = JSON.parse(localStorage.getItem('crossfadingWIthLinkedTailAllData'));
+    if (!data) {
+      data = {};
+    }
+
+    data[this.logExtendByRevertingCCNum + '_' + this.logExtendByRevertingVelocity] = {
+      extraLength: this.crossfadingWIthLinkedTailExtraLength,
+      trim: this.crossfadingWIthLinkedTailTrim,
+    };
+
+    localStorage.setItem('crossfadingWIthLinkedTailAllData', JSON.stringify(data));
+    this.plt.resetView();
+    this.crossfadingWIthLinkedTail(true);
+  }
+
+  crossfadingWIthLinkedTailReadDataForCCNum(): void {
+    debugger;
+    let data = JSON.parse(localStorage.getItem('crossfadingWIthLinkedTailAllData'));
+    const dataForCurrentSettings = data?.[this.logExtendByRevertingCCNum + '_' + this.logExtendByRevertingVelocity];
+    if (!dataForCurrentSettings) {
+      return;
+    }
+
+    this.crossfadingWIthLinkedTailExtraLength = dataForCurrentSettings.extraLength;
+    this.crossfadingWIthLinkedTailTrim = dataForCurrentSettings.trim;
+
+    this.plt.resetView();
+    this.crossfadingWIthLinkedTail(true);
+  }
+
+  crossfadingWIthLinkedTailSaveDelta(): void {
+    localStorage.setItem('crossfadingWIthLinkedTailExtraLength', JSON.stringify(this.crossfadingWIthLinkedTailExtraLength));
+    this.plt.resetView();
+    this.crossfadingWIthLinkedTail(true);
+  }
+
+  crossfadingWIthLinkedTailLoadDelta(): void {
+    const delta = JSON.parse(localStorage.getItem('crossfadingWIthLinkedTailExtraLength'));
+
+    if (delta) {
+      this.crossfadingWIthLinkedTailExtraLength = delta
+      this.plt.resetView();
+      this.crossfadingWIthLinkedTail(true);
+    }
+  }
+
+  crossfadingWIthLinkedTailDeltaChange(value: number): void {
+    if (this.crossfadingWIthLinkedTailExtraLength == 0) {
+      this.crossfadingWIthLinkedTailExtraLength = 1 * Math.sign(value);
+    }
+
+    this.crossfadingWIthLinkedTailExtraLength = this.crossfadingWIthLinkedTailExtraLength +
+      (Math.abs(this.crossfadingWIthLinkedTailExtraLength) / 100 * value);
+
+    this.plt.resetView();
+    this.crossfadingWIthLinkedTail(true);
+  }
+
+  crossfadingWIthLinkedTailYAxisScaleChange(value: number): void {
+    if (value > 0) {
+      this.crossfadingWIthLinkedTailYAxisScale = this.crossfadingWIthLinkedTailYAxisScale * 3;
+    } else {
+      this.crossfadingWIthLinkedTailYAxisScale = this.crossfadingWIthLinkedTailYAxisScale / 3;
+    }
+    this.plt.resetView();
+    this.crossfadingWIthLinkedTail(true);
+  }
+
+  crossfadingWIthLinkedTailSave(): void {
+    this.plt.resetView();
+    this.crossfadingWIthLinkedTail();
+  }
+
+  crossfadingWIthLinkedTailSaveBoth(): void {
+    this.crossfadingWIthLinkedSaveBothLocal();
+  }
+
+  crossfadingWIthLinkedTailUseLR(channelName: string): void {
+    this.logExtendByRevertingChannelName = channelName;
+    this.plt.resetView();
+    this.crossfadingWIthLinkedTail(true);
+  }
+
+  crossfadingWIthLinkedTailUseSRDataToggle(): void {
+    this.crossfadingWIthLinkedTailUseDataWithNewSampleRate = !this.crossfadingWIthLinkedTailUseDataWithNewSampleRate;
+    this.plt.resetView();
+    this.crossfadingWIthLinkedTail(true);
+  }
+
+  crossfadingWIthLinkedTailMixTypeToggle(): void {
+    if (this.crossfadingWIthLinkedTailMixType === 'A') {
+      this.crossfadingWIthLinkedTailMixType = 'B'
+    } else if (this.crossfadingWIthLinkedTailMixType === 'B') {
+      this.crossfadingWIthLinkedTailMixType = 'A'
+    }
+    this.plt.resetView();
+    this.crossfadingWIthLinkedTail(true);
+  }
+
+  crossfadingWIthLinkedTailUseYScaleToggle(): void {
+    this.crossfadingWIthLinkedTailUseYAxisScale = !this.crossfadingWIthLinkedTailUseYAxisScale;
+    this.plt.resetView();
+    this.crossfadingWIthLinkedTail(true);
+  }
+
+  setMultiplyer(): void {
+    this.crossfadingWIthLinkedTailUseStoredAmpMultiplyer = !this.crossfadingWIthLinkedTailUseStoredAmpMultiplyer;
+  }
+
+  setUseNormal(): void {
+    this.crossfadingWIthLinkedTailUseNormal = !this.crossfadingWIthLinkedTailUseNormal;
+    this.plt.resetView();
+    this.crossfadingWIthLinkedTail(true);
+  }
+
   crossfadePeriodChDataWithPrevious(
     chData: Float32Array | number[],
-    target: Float32Array | number[],
+    previousTarget: Float32Array | number[],
     fadeLength: number
   ): number[] {
     let result: number[] = [];
@@ -1482,7 +1673,7 @@ export class AppComponent implements OnInit {
     let i = 0;
     let amplitude = 0;
 
-    target.forEach(item => {
+    previousTarget.forEach(item => {
       amplitude = i / fadeLength;
       const test = false;
       if (!test) {
@@ -1507,16 +1698,334 @@ export class AppComponent implements OnInit {
     return result;
   }
 
-  async extendByReverting(noDownload = false): Promise<void> {
+
+  async crossfadingWIthLinkedSaveBothLocal(): Promise<void> {
+    const velocity = this.logExtendByRevertingVelocity;
+
+    const periodResultChDataL = await this.getCrossfadingWIthLinkedTailChData({
+      fileChannelNum: 0,
+      velocity: velocity,
+    });
+
+    this.crossfadingWIthLinkedTailUseStoredAmpMultiplyer = true;
+
+    const periodResultChDataR = await this.getCrossfadingWIthLinkedTailChData({
+      fileChannelNum: 1,
+      velocity: velocity,
+    });
+
+    const uiParms = getUiParams();
+    const chDataListForMixDownL: { periodList: Period[], offset: number }[] = [];
+    const chDataListForMixDownR: { periodList: Period[], offset: number }[] = [];
+
+    chDataListForMixDownL.push({periodList: [{chData: periodResultChDataL}], offset: 0});
+    chDataListForMixDownR.push({periodList: [{chData: periodResultChDataR}], offset: 0});
+
+    const outPutChDataTempL: Float32Array = this.mixDownChDatas(chDataListForMixDownL);
+    const outPutChDataTempR: Float32Array = this.mixDownChDatas(chDataListForMixDownR);
+
+    const outPutAB: AudioBuffer = new AudioBuffer({
+      length: outPutChDataTempL.length,
+      numberOfChannels: 2,
+      sampleRate: uiParms.sampleRate,
+    });
+
+    outPutAB.copyToChannel(outPutChDataTempL, 0);
+    outPutAB.copyToChannel(outPutChDataTempR, 1);
+
+    const wavFileData = WavFileEncoder.encodeWavFile(outPutAB, uiParms.wavFileType);
+    const blob = new Blob([wavFileData], {type: "audio/wav"});
+    this.openSaveAsDialog(blob, `test ${getDateString(new Date())} CC ${this.logExtendByRevertingCCNum} LR.wav`);
+  }
+
+  async crossfadingWIthLinkedTail(noDownload = false): Promise<void> {
+    const channelNameLocal = this.logExtendByRevertingChannelName;
+    const velocity = this.logExtendByRevertingVelocity;
+
+    const periodResultChData = await this.getCrossfadingWIthLinkedTailChData({
+      fileChannelNum: 0,
+      velocity: velocity,
+    });
+
+    if (!noDownload) {
+      const uiParms = getUiParams();
+      let chDataListForMixDown: { periodList: Period[], offset: number }[] = [];
+
+      chDataListForMixDown.push({periodList: [{chData: periodResultChData}], offset: 0});
+
+      let outPutChDataTemp: Float32Array = this.mixDownChDatas(chDataListForMixDown);
+
+      const outPutAB: AudioBuffer = new AudioBuffer({
+        length: outPutChDataTemp.length,
+        numberOfChannels: 1,
+        sampleRate: uiParms.sampleRate,
+      });
+
+      outPutAB.copyToChannel(outPutChDataTemp, 0);
+
+      const wavFileData = WavFileEncoder.encodeWavFile(outPutAB, uiParms.wavFileType);
+      const blob = new Blob([wavFileData], {type: "audio/wav"});
+      this.openSaveAsDialog(blob, `test ${getDateString(new Date())} CC ${this.logExtendByRevertingCCNum} ${channelNameLocal}.wav`);
+    }
+  }
+
+  private async getCrossfadingWIthLinkedTailChData(dto: crossfadingWIthLinkedTailDTO): Promise<Float32Array> {
     const audioCtx = new AudioContext();
-    const ccId = 22;
-    const fileName = `assets/forReverse/Kurcy_127_0${ccId}_R`;
+    const ccId = this.logExtendByRevertingCCNum;
+    const channelNameLocal = dto.channelName ? '_' + dto.channelName : '';
+    const fileName = `assets/forReverse/${dto.velocity}_5dB/Kurcy_${dto.velocity}_${ccId}${channelNameLocal}`;
     const audioBufferTemp = await audioCtx.decodeAudioData(await this.getArrayBufferFromUrl(`${fileName}.wav`));
-    const periodsTemp = await this.getJsonFromUrl(`${fileName}.json`);
+
+    const periodContainer: Period = {chData: audioBufferTemp.getChannelData(dto.fileChannelNum)};
+    const SR_data = this.crossfadingWIthLinkedTailUseDataWithNewSampleRate ? '_SR' : '';
+
+    let fileNameSecond = `assets/forReverse/${dto.velocity}_5dB/Ruben_Tail_${dto.velocity}_${ccId}${channelNameLocal}${SR_data}`;
+    if (this.crossfadingWIthLinkedTailUseNormal) {
+      fileNameSecond = `assets/forReverse/${dto.velocity}_5dB/normal/Ruben_Tail_${dto.velocity}_${ccId}${channelNameLocal}${SR_data}`;
+    }
+
+    const audioBufferTempSecond = await audioCtx.decodeAudioData(await this.getArrayBufferFromUrl(`${fileNameSecond}.wav`));
+
+    const tailPeriodContainer: Period = {chData: audioBufferTempSecond.getChannelData(dto.fileChannelNum)};
+
+    const tailTrimmedChData: number[] = [];
+    const readMultiplyerFromStartLength = 150;
+
+    const trimTailFromRight = 1500 * 2;
+    const fadeTailFromRight = 100 * 5;
+    let fadeTailFromRightCounter = 0;
+    let fadeTailFromRightAmp = 1;
+    let i = 0;
+    tailPeriodContainer.chData.forEach(item => {
+      if (i >= this.crossfadingWIthLinkedTailTrim) {
+        if (i < (tailPeriodContainer.chData.length - trimTailFromRight - fadeTailFromRight)) {
+          tailTrimmedChData.push(item);
+        } else if (i < (tailPeriodContainer.chData.length - trimTailFromRight)) {
+          fadeTailFromRightAmp = 1 - fadeTailFromRightCounter / fadeTailFromRight;
+          tailTrimmedChData.push(item * fadeTailFromRightAmp);
+          fadeTailFromRightCounter++;
+        }
+      }
+      i++;
+    })
+
+    // for (let i = 0; i < tailTrimmedChData.length - 1; i++) {
+    //   if (i > readMultiplyerFromStartLength) {
+    //     // tailTrimmedChData[i] = 0;
+    //   }
+    // }
+
+    const trimOriginFromRight = 5000//4000;
+
+    let fadeStart = periodContainer.chData.length * 0.75 - trimOriginFromRight;
+    let fadeLength = periodContainer.chData.length * 0.22 - trimOriginFromRight;
+
+    if (this.crossfadingWIthLinkedTailMixType === 'A') {
+      /**
+       * Do nothing
+       */
+    } else if (this.crossfadingWIthLinkedTailMixType === 'B') {
+      fadeStart = periodContainer.chData.length * 0.65 - trimOriginFromRight;
+      fadeLength = periodContainer.chData.length * 0.32 - trimOriginFromRight;
+    }
+
+
+    // const fadeStart = periodContainer.chData.length * 0.65;
+    // const fadeLength = periodContainer.chData.length * 0.22;
+
+    // const fadeStart = periodContainer.chData.length * 0.55;
+    // const fadeLength = periodContainer.chData.length - fadeStart;
+
+    // const fadeStart = periodContainer.chData.length * 0.55;
+    // const fadeLength = periodContainer.chData.length * 0.22;
+
+
+    // const fadeStart = periodContainer.chData.length * 0.35;
+    // const fadeLength = periodContainer.chData.length * 0.42;
+
+    // const fadeStart = periodContainer.chData.length * 0.35;
+    // const fadeLength = periodContainer.chData.length * 0.22;
+
+    // const fadeStart = periodContainer.chData.length * 0.65;
+    // const fadeLength = periodContainer.chData.length * 0.32;
+    // cc 30 - переделать
+    // const fadeStart = periodContainer.chData.length * 0.25;
+    // const fadeLength = periodContainer.chData.length * 0.22;
+
+    // const fadeStart = periodContainer.chData.length - (periodContainer.chData.length / 12);
+    // const fadeLength = periodContainer.chData.length - fadeStart;
+
+    // const fadeStart = periodContainer.chData.length * 0.55;
+    // const fadeLength = periodContainer.chData.length * 0.42;
+    let maxForTarget = 0;
+    let maxForTail = 0;
+    let ampMultiplyer = 0;
+
+    if (channelNameLocal === 'R') {
+      this.crossfadingWIthLinkedTailUseStoredAmpMultiplyer = true;
+    }
+
+    if (!this.crossfadingWIthLinkedTailUseStoredAmpMultiplyer) {
+      for (let i = Math.floor(fadeStart + fadeLength * 0.85); i < fadeStart + fadeLength; i++) {
+        if (maxForTail < tailTrimmedChData[i]) {
+          maxForTail = tailTrimmedChData[i];
+        }
+        if (maxForTarget < periodContainer.chData[i]) {
+          maxForTarget = periodContainer.chData[i];
+        }
+      }
+
+      ampMultiplyer = maxForTarget / maxForTail;
+      this.crossfadingWIthLinkedTailAmpMultiplyer = maxForTarget / maxForTail;
+    } else {
+      ampMultiplyer = this.crossfadingWIthLinkedTailAmpMultiplyer;
+    }
+
+    let tailTrimmedAdjustedChData: Float32Array = new Float32Array(tailTrimmedChData);
+
+    if (this.crossfadingWIthLinkedTailExtraLength && !this.crossfadingWIthLinkedTailUseDataWithNewSampleRate) {
+      tailTrimmedAdjustedChData = this.getAdjustedChDataForPeriod({
+        chData: new Float32Array(tailTrimmedChData),
+        targetLength: tailTrimmedChData.length + this.crossfadingWIthLinkedTailExtraLength,
+      });
+    }
+
+    /**
+     * 44100 samples per 1 second
+     *
+     *     N samples per Q length
+     *     x samples per New length
+     *     x = new Length * N / Q
+     *
+     *     Q length New length
+     *     old sr   new sr
+     *
+     *     new SR = old sr * new l / old l
+     *
+     */
+
+    const newSampleRate = 44100 * tailTrimmedChData.length / tailTrimmedAdjustedChData.length;
+
+    console.log(`newSampleRate ${newSampleRate}`);
+
+    if (this.crossfadingWIthLinkedTailTrim < 0) {
+      const arrayTemp: number[] = [];
+
+      for (let i = 0; i < Math.abs(this.crossfadingWIthLinkedTailTrim); i++) {
+        arrayTemp.push(0);
+      }
+      tailTrimmedAdjustedChData.forEach(item => {
+        arrayTemp.push(item);
+      })
+
+      tailTrimmedAdjustedChData = new Float32Array(arrayTemp);
+    }
+
+    const tailPeriodContainerPlottingChData: number[] = [];
+    const yAxisScale = this.crossfadingWIthLinkedTailUseYAxisScale ? this.crossfadingWIthLinkedTailYAxisScale : 1;
+
+    tailTrimmedAdjustedChData.forEach(dataItem => {
+      tailPeriodContainerPlottingChData.push(dataItem * ampMultiplyer * yAxisScale + 0.5);
+    })
+    this.plt.plot(tailPeriodContainerPlottingChData, 0);
+
+    const chDataResultTemp: number[] = [];
+    let fadeMultiplyer = 0;
+    let fadeCounter = 0;
+    let i2 = 0;
+
+    const crossFadeMarker: number[] = [];
+
+    this.crossfadingWIthLinkedTailFunctionsSum = 0;
+
+    tailTrimmedAdjustedChData.forEach(item => {
+      if (i2 < fadeStart + fadeLength) {
+        this.crossfadingWIthLinkedTailFunctionsSum = this.crossfadingWIthLinkedTailFunctionsSum
+          + Math.abs(item - periodContainer.chData[i2]);
+      }
+
+      if (i2 < fadeStart) {
+        chDataResultTemp.push(periodContainer.chData[i2]);
+        crossFadeMarker.push(-1);
+        // } else if (i2 < fadeStart + fadeLength && periodContainer.chData[i2]) {
+      } else if (i2 < fadeStart + fadeLength) {
+        fadeMultiplyer = fadeCounter / fadeLength;
+
+        chDataResultTemp.push(periodContainer.chData[i2] * (1 - fadeMultiplyer) + item * ampMultiplyer * fadeMultiplyer);
+        // chDataResultTemp.push(item * ampMultiplyer * fadeMultiplyer);
+        crossFadeMarker.push(periodContainer.chData[i2] * yAxisScale - 0.5);
+        fadeCounter++;
+      } else {
+        chDataResultTemp.push(item * ampMultiplyer);
+      }
+      i2++;
+    })
+    const periodResult: Period = {chData: new Float32Array(chDataResultTemp)};
+    const periodResultPlottingChData: number[] = [];
+
+    periodResult.chData.forEach(item => {
+      periodResultPlottingChData.push(item * yAxisScale);
+    })
+
+    this.plt.plot(periodResultPlottingChData, 0);
+
+    const periodBeforePlottingChData: number[] = [];
+
+    periodContainer.chData.forEach(dataItem => {
+      periodBeforePlottingChData.push(dataItem * yAxisScale + 1);
+    })
+    this.plt.plot(periodBeforePlottingChData, 0);
+
+    this.plt.plot(crossFadeMarker, 0);
+
+    this.plt.show();
+
+    const revertResult = false;
+    let revertedResultTemp: Float32Array;
+
+    if (revertResult) {
+      const arrayTemp: number[] = [];
+      periodResult.chData.forEach(item => {
+        arrayTemp.push(-item);
+      });
+      revertedResultTemp = new Float32Array(arrayTemp);
+    } else {
+      revertedResultTemp = periodResult.chData;
+    }
+
+    // return periodResult.chData;
+    return revertedResultTemp;
+  }
+
+  async extendByReverting(noDownload = false, channelName?: string): Promise<void> {
+    const audioCtx = new AudioContext();
+    const ccId = this.logExtendByRevertingCCNum;
+    const channelNameLocal = channelName ? channelName : this.logExtendByRevertingChannelName;
+    const fileName = `assets/forReverse/127_5dB/Kurcy_127_0${ccId}_${channelNameLocal}`;
+    const fileNameJson = `assets/forReverse/127_5dB/Kurcy_127_0${ccId}_L`;
+    const audioBufferTemp = await audioCtx.decodeAudioData(await this.getArrayBufferFromUrl(`${fileName}.wav`));
+    const periodsTemp = await this.getJsonFromUrl(`${fileNameJson}.json`);
     const periodsFromChData = this.periodsFromChData(audioBufferTemp.getChannelData(0), periodsTemp);
     const periodsResult: Period[] = [];
     const periodsForCheckLine: Period[] = [];
     const periodsFromChDataTrimmedFromRight: Period[] = [];
+
+
+    const fileNameSecond = `assets/forReverse/127_5dB/Tail_127_${ccId}_${channelNameLocal}`;
+    const fileNameJsonSecond = `assets/forReverse/127_5dB/Tail_127_${ccId}_L`;
+    const audioBufferTempSecond = await audioCtx.decodeAudioData(await this.getArrayBufferFromUrl(`${fileNameSecond}.wav`));
+    let periodsTempSecond = await this.getJsonFromUrl(`${fileNameJsonSecond}.json`);
+
+    if (this.logExtendByRevertingTailDataShift) {
+      const periodsTemp: number[] = [];
+      periodsTempSecond.forEach(item => {
+        periodsTemp.push(item + this.logExtendByRevertingTailDataShift);
+      })
+
+      periodsTempSecond = periodsTemp;
+    }
+
+    const periodsFromChDataSecond = this.periodsFromChData(audioBufferTempSecond.getChannelData(0), periodsTempSecond);
 
     const trimNLastPeriodsNum = 5;
     let i1 = 0;
@@ -1533,12 +2042,15 @@ export class AppComponent implements OnInit {
     // поэтому из основной волны убирается последний период,
     // чтобы волна заканчивалась на предпоследнем периоде
     const extraTrimNumForFade = 1;
-    periodsFromChDataTrimmedFromRight.forEach(item => {
-      if (periodsResult.length < periodsFromChDataTrimmedFromRight.length - lastNWrongPeriods - extraTrimNumForFade) {
-        periodsResult.push(item);
-        checkingLineStart = checkingLineStart + item.chData.length;
-      }
-    })
+    const renderMainData = true;
+    if (renderMainData) {
+      periodsFromChDataTrimmedFromRight.forEach(item => {
+        if (periodsResult.length < periodsFromChDataTrimmedFromRight.length - lastNWrongPeriods - extraTrimNumForFade) {
+          periodsResult.push(item);
+          checkingLineStart = checkingLineStart + item.chData.length;
+        }
+      })
+    }
 
     let chDataOfLastTemp: number[] = [];
     const twoPeriodsChData: number[] = [];
@@ -1584,37 +2096,145 @@ export class AppComponent implements OnInit {
       // periodsResult.push(lastPeriod);
     }
 
-    const useGoForwardBackCycle = false;
-    if (useGoForwardBackCycle) {
-      for (let iCycle = 0; iCycle < 10; iCycle++) {
-        const max = 9;
+    const periodsResultBeforeMixing: Period[] = [];
+    periodsResult.forEach(item => {
+      periodsResultBeforeMixing.push(item);
+    })
+
+    const useGoForwardBackCycle = true;
+    const targetPeriodsNum = (periodsFromChDataTrimmedFromRight.length - 1) * 2;
+    let runningPeriodSum = 0;
+    const mixWithSecond = true;
+    const addjustTailPeriods = false;
+    // const blendPeriodStart = periodsResult.length - 1;
+    const blendPeriodStart = 25;
+    const blendPeriodsToCrossfade = 5;
+    let ampMultiplyer = 1;
+    const tailPeriodsAdjusted: Period[] = [];
+    if (!mixWithSecond) {
+      if (useGoForwardBackCycle) {
+        const cycleNum = 10;
+        const max = this.cycleGoBackForthDepth;
         const min = 0;
-        for (let i = min; i < max; i++) {
-          periodsResult.push(periodsFromChDataTrimmedFromRight[periodsFromChDataTrimmedFromRight.length - 1 - i]);
-          periodsResult.push(periodsFromChDataTrimmedFromRight[periodsFromChDataTrimmedFromRight.length - 1 - i]);
-          periodsResult.push(periodsFromChDataTrimmedFromRight[periodsFromChDataTrimmedFromRight.length - 1 - i]);
+        for (let iCycle = 0; runningPeriodSum < targetPeriodsNum; iCycle++) {
+          for (let i = min; i < max && runningPeriodSum < targetPeriodsNum; i++) {
+            const crossfadedTemp = this.crossfadePeriodChDataWithPrevious(
+              periodsFromChDataTrimmedFromRight[periodsFromChDataTrimmedFromRight.length - 1 - i].chData,
+              periodsFromChDataTrimmedFromRight[periodsFromChDataTrimmedFromRight.length - 1 - i - 2].chData,
+              this.logExtendByRevertingFade
+            );
+
+            periodsResult.push({chData: new Float32Array(crossfadedTemp)});
+
+            runningPeriodSum++;
+          }
+
+          periodsResult.push(periodsFromChDataTrimmedFromRight[periodsFromChDataTrimmedFromRight.length - 1 - max]);
+          runningPeriodSum++;
+
+          for (let i2 = max - 1; i2 > 0 && runningPeriodSum < targetPeriodsNum; i2--) {
+            periodsResult.push(periodsFromChDataTrimmedFromRight[periodsFromChDataTrimmedFromRight.length - 1 - i2]);
+            runningPeriodSum++;
+          }
         }
-
-        periodsResult.push(periodsFromChDataTrimmedFromRight[periodsFromChDataTrimmedFromRight.length - 1 - max]);
-        periodsResult.push(periodsFromChDataTrimmedFromRight[periodsFromChDataTrimmedFromRight.length - 1 - max]);
-
-
-        for (let i2 = max - 1; i2 > -1; i2--) {
-          periodsResult.push(periodsFromChDataTrimmedFromRight[periodsFromChDataTrimmedFromRight.length - 1 - i2]);
-          periodsResult.push(periodsFromChDataTrimmedFromRight[periodsFromChDataTrimmedFromRight.length - 1 - i2]);
-          periodsResult.push(periodsFromChDataTrimmedFromRight[periodsFromChDataTrimmedFromRight.length - 1 - i2]);
+      } else {
+        for (let i = targetPeriodsNum; i >= 0; i--) {
+          periodsResult.push(lastPeriod);
         }
-
-        periodsResult.push(periodsFromChDataTrimmedFromRight[periodsFromChDataTrimmedFromRight.length - 1 - min]);
-        periodsResult.push(periodsFromChDataTrimmedFromRight[periodsFromChDataTrimmedFromRight.length - 1 - min]);
       }
+    } else {
+      let iTailPeriodsAdjusted = 0
+      periodsFromChDataSecond.forEach(item => {
+        if (addjustTailPeriods && periodsResult[iTailPeriodsAdjusted]) {
+          const chDataTailTemp = this.getAdjustedChDataForPeriod({
+            chData: periodsFromChDataSecond[iTailPeriodsAdjusted].chData,
+            targetLength: periodsResult[iTailPeriodsAdjusted].chData.length
+          });
+
+          tailPeriodsAdjusted.push({chData: chDataTailTemp});
+        } else {
+          tailPeriodsAdjusted.push(item);
+        }
+        iTailPeriodsAdjusted++;
+      })
+
+      const newResult: Period[] = [];
+
+      let i = 0;
+
+      let crossfadePeriodCounter = 0;
+      tailPeriodsAdjusted.forEach(item => {
+        if (i < blendPeriodStart) {
+          newResult.push(periodsResult[i]);
+
+          let maxTarget = 0;
+          periodsResult[i].chData.forEach(chItem => {
+            if (chItem > maxTarget) {
+              maxTarget = chItem;
+            }
+          })
+
+          let maxSecond = 0;
+          item.chData.forEach(chItem => {
+            if (chItem > maxSecond) {
+              maxSecond = chItem;
+            }
+          });
+
+          ampMultiplyer = maxTarget / maxSecond;
+          // ampMultiplyer = 0.1
+        } else if (addjustTailPeriods && i >= blendPeriodStart && i < blendPeriodStart + blendPeriodsToCrossfade) {
+          const chDataTempAmped: number[] = [];
+          item.chData.forEach(chItem => {
+            chDataTempAmped.push(chItem * ampMultiplyer);
+          });
+
+          let amplitude = crossfadePeriodCounter / blendPeriodsToCrossfade;
+
+          const chDataTailTemp = this.getAdjustedChDataForPeriod({
+            chData: new Float32Array(chDataTempAmped),
+            targetLength: periodsResult[i].chData.length
+          });
+
+          const chDataTemp: number[] = [];
+
+          let ch02_i = 0;
+          periodsResult[i].chData.forEach(ch02 => {
+            chDataTemp.push(ch02 * (1 - amplitude) + chDataTailTemp[ch02_i] * amplitude);
+            ch02_i++;
+          })
+
+          newResult.push({chData: new Float32Array(chDataTemp)});
+          crossfadePeriodCounter++;
+        } else if (!addjustTailPeriods && i === blendPeriodStart) {
+          const chDataTempAmped: number[] = [];
+          item.chData.forEach(chItem => {
+            chDataTempAmped.push(chItem * ampMultiplyer);
+          });
+
+          const crossfadedTemp = this.crossfadePeriodChDataWithPrevious(
+            periodsResult[i].chData,
+            chDataTempAmped,
+            this.logExtendByRevertingFade
+          );
+          newResult.push({chData: new Float32Array(crossfadedTemp)});
+        } else {
+          const chDataTempAmped: number[] = [];
+          item.chData.forEach(chItem => {
+            chDataTempAmped.push(chItem * ampMultiplyer);
+          });
+          newResult.push({chData: new Float32Array(chDataTempAmped)});
+        }
+        i++;
+      })
+
+      let i2 = 0;
+      newResult.forEach(item => {
+        periodsResult[i2] = item;
+        i2++;
+      })
     }
 
-    for (let i = (periodsFromChDataTrimmedFromRight.length - 1) * 2; i >= 0; i--) {
-      periodsResult.push(lastPeriod);
-      // periodsResult.push(periodsFromChData[periodsFromChData.length - 1]);
-      // periodsResult.push(periodsFromChData[100]);
-    }
 
     const periodsTempForPlotting: number[] = [];
     periodsTemp.forEach(item => {
@@ -1629,10 +2249,23 @@ export class AppComponent implements OnInit {
     //   periodsTemp: periodsTempForPlotting,
     // });
 
-    let iRunningSum = 0;
+    let iPlotRunningSum = 0;
+    let tailPlotStart = 0;
+    let i = 0;
     periodsResult.forEach(period => {
-      this.plt.plot(period.chData, iRunningSum);
-      iRunningSum = iRunningSum + period.chData.length;
+      const chDataTemp: number[] = [];
+      period.chData.forEach(dataItem => {
+        chDataTemp.push(dataItem);
+      })
+      // if (i < limit) {
+      this.plt.plot(chDataTemp, iPlotRunningSum);
+      this.plt.plotVerticalLine(iPlotRunningSum);
+      // }
+      if (i === blendPeriodStart) {
+        tailPlotStart = iPlotRunningSum;
+      }
+      i++;
+      iPlotRunningSum = iPlotRunningSum + period.chData.length;
     })
     let iRunningSumForCheckLine = 0;
     periodsForCheckLine.forEach(period => {
@@ -1643,6 +2276,40 @@ export class AppComponent implements OnInit {
       this.plt.plot(chDataForCheckLine, iRunningSumForCheckLine + checkingLineStart);
       iRunningSumForCheckLine = iRunningSumForCheckLine + period.chData.length;
     })
+
+    let iRunningSumForTailLine = tailPlotStart;
+    const limitTailDraw = 29;
+    let iTail = 0;
+
+    //blendPeriodStart
+    tailPeriodsAdjusted.forEach(period => {
+      const chDataTemp: number[] = [];
+      period.chData.forEach(dataItem => {
+        chDataTemp.push(dataItem * ampMultiplyer + 0.5);
+      })
+      if (iTail >= blendPeriodStart) {
+        this.plt.plot(chDataTemp, iRunningSumForTailLine);
+        this.plt.plotVerticalLine(iRunningSumForTailLine, 'red');
+        iRunningSumForTailLine = iRunningSumForTailLine + period.chData.length;
+      }
+      iTail++;
+    })
+
+    const drawBeforeMixing = true;
+    if (drawBeforeMixing) {
+      let iPlotBeforeMixingRunningSum = 0;
+      let iBeforeMixing = 0;
+      periodsResultBeforeMixing.forEach(period => {
+        const chDataTemp: number[] = [];
+        period.chData.forEach(dataItem => {
+          chDataTemp.push(dataItem + 1);
+        })
+        this.plt.plot(chDataTemp, iPlotBeforeMixingRunningSum);
+        iBeforeMixing++;
+        iPlotBeforeMixingRunningSum = iPlotBeforeMixingRunningSum + period.chData.length;
+      })
+    }
+
     this.plt.show();
 
     if (!noDownload) {
@@ -1663,7 +2330,7 @@ export class AppComponent implements OnInit {
 
       const wavFileData = WavFileEncoder.encodeWavFile(outPutAB, uiParms.wavFileType);
       const blob = new Blob([wavFileData], {type: "audio/wav"});
-      this.openSaveAsDialog(blob, `test ${getDateString(new Date())}.wav`);
+      this.openSaveAsDialog(blob, `test ${getDateString(new Date())} CC ${this.logExtendByRevertingCCNum} ${channelNameLocal}.wav`);
     }
   }
 }
