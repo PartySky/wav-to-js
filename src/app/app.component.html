@@ -51,6 +51,18 @@
     <div class="btn"
          (click)="saveView(2)">Save view 2
     </div>
+    <div class="btn"
+         (click)="loadView(3)">Load view 3
+    </div>
+    <div class="btn"
+         (click)="saveView(3)">Save view 3
+    </div>
+    <div class="btn"
+         (click)="loadView(4)">Load view 4
+    </div>
+    <div class="btn"
+         (click)="saveView(4)">Save view 4
+    </div>
   </div>
   <ng-container *ngIf="showCrossfadingWIthLinkedTailButtons">
     <div class="buttons-wrapper">
@@ -90,9 +102,14 @@
            (click)="crossfadingWIthLinkedTailSaveBoth()">Save both
       </div>
       <div class="btn"
+           (click)="crossfadingWIthLinkedTailUseLongToggle()">Use long <span *ngIf="crossfadingWIthLinkedTailUseLong">On</span>
+      </div>
+      <div *ngIf="false"
+           class="btn"
            (click)="crossfadingWIthLinkedTailUseLR('L')">Use L
       </div>
-      <div class="btn"
+      <div *ngIf="false"
+           class="btn"
            (click)="crossfadingWIthLinkedTailUseLR('R')">Use R
       </div>
       <!--    <div class="btn"-->
@@ -193,6 +210,24 @@
       <div class="btn"
            (click)="crossfadingWIthLinkedTailDeltaChange(-100)">Delta - 100
       </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailClearResetSum()">Clear resent sum
+      </div>
+
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailClearProcessDelta(1)">Process Delta +
+      </div>
+      <div class="btn"
+           (click)="crossfadingWIthLinkedTailClearProcessDelta(-1)">Process Delta -
+      </div>
+      <ng-container *ngIf="crossfadingWIthLinkedTailFunctionsRecentSum > 0">
+        <div *ngIf="crossfadingWIthLinkedTailFunctionsRecentSum > crossfadingWIthLinkedTailFunctionsSum"
+             class="btn sum-delta-green">
+        </div>
+        <div *ngIf="crossfadingWIthLinkedTailFunctionsRecentSum < crossfadingWIthLinkedTailFunctionsSum"
+             class="btn sum-delta-red">
+        </div>
+      </ng-container>
     </div>
   </ng-container>
   <ng-container *ngIf="showExtendByRevertingButtons">
